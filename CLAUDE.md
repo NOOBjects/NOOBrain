@@ -27,4 +27,10 @@ App web para aprender qualquer tema, estilo Duolingo com a identidade da NOOBjec
 - Ações irreversíveis ou públicas (apagar dados, publicar, mexer em contas) pedem confirmação.
 
 ## Estado e roteiro
-Veja `ROADMAP.md`. Publicado na Vercel; atualizar = commit + push.
+Veja `ROADMAP.md`.
+
+## Publicação
+- No ar em https://noobrain.vercel.app (Vercel, equipe NOOBjects `noob-jects`, funções em Paris `cdg1`, ver `vercel.json`). Variáveis de produção já cadastradas na Vercel.
+- Atualizar: `git commit` e depois `npx vercel deploy --prod --scope noob-jects` (o CLI já está logado).
+- GitHub ainda **não** conectado (falta o usuário criar o repositório vazio ou autorizar). Quando conectar: `git remote add origin ...`, `git push`, e ligar o repositório ao projeto na Vercel para deploy automático.
+- Supabase: projeto europeu `noobrain-eu` (Paris). O projeto de São Paulo `noobrain` foi pausado e deve ser apagado pelo usuário no painel.
