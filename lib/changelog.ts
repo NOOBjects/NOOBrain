@@ -6,6 +6,12 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.9.6",
+    date: "2026-10-05",
+    title: "Entrar mais depressa",
+    melhorias: ["Entrar, criar conta e recuperar a palavra-passe já não pedem a verificação de «és uma pessoa»."],
+  },
+  {
     version: "0.9.5",
     date: "2026-10-05",
     title: "Perguntas mais claras",
