@@ -15,6 +15,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 Regra: de cada vez que algo muda, acrescentar uma linha no topo, com a data e o que mudou para quem usa. A ideia de mostrar isto dentro do app ("Novidades") está em "Ideias para depois".
 
 **2026-10-04** (um dia de trabalho, versão beta 0.9)
+- Página inicial mais rápida: o captcha só carrega quando começas a escrever no formulário. Lighthouse (telemóvel) numa página de tema: desempenho 99, acessibilidade 100, boas práticas 100, SEO 100. O Google já não mostra destaque para "Course" (descontinuado em 2025): é normal o teste de resultados ricos não mostrar nada.
 - Perfil no telemóvel: o conteúdo já não sai do ecrã e o avatar volta a mostrar o mascote.
 - Telemóvel: o menu de baixo (ilha) cortava o botão Perfil com 6 abas; agora os botões repartem a largura (só ícones em ecrãs estreitos).
 - Ideias: lista corrigida, aba "Ideias" na ilha; apagar trilha (com confirmação); botão "Terminar sessão" no Perfil.

@@ -124,10 +124,14 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
   }, [wait]);
 
   const captchaRef = useRef<HCaptcha>(null);
+  // O hCaptcha só carrega quando a pessoa começa a usar o formulário (pesa muito na página inicial).
+  const [armed, setArmed] = useState(false);
 
   /** Corre o captcha invisível e devolve o token; `undefined` se a pessoa fechar o desafio. */
   async function captcha() {
     try {
+      setArmed(true);
+      for (let i = 0; i < 50 && !captchaRef.current; i++) await new Promise((r) => setTimeout(r, 100));
       const { response } = await captchaRef.current!.execute({ async: true });
       return response;
     } catch {
@@ -258,7 +262,7 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
 
   return (
     <div className="account">
-      <HCaptcha ref={captchaRef} sitekey={CAPTCHA_KEY} size="invisible" languageOverride="pt" />
+      {armed && <HCaptcha ref={captchaRef} sitekey={CAPTCHA_KEY} size="invisible" languageOverride="pt" />}
       <div className="hero-mascot"><Mascot mood={mood} /></div>
       {(mode === "entrar" || mode === "criar") && (
         <div className="seg" role="group" aria-label="Entrar ou criar conta">
@@ -303,7 +307,7 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
             noValidate
             onSubmit={submit}
             className="account-form"
-            onFocus={(e) => setFocus(e.target.id === "email" ? "email" : e.target.id === "password" || e.target.id === "eye" ? "senha" : "")}
+            onFocus={(e) => { setArmed(true); setFocus(e.target.id === "email" ? "email" : e.target.id === "password" || e.target.id === "eye" ? "senha" : ""); }}
             onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocus(""); }}
           >
             {needsEmail && (
