@@ -2,7 +2,8 @@
 
 import type { AuthError, User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
 import { ReminderToggle } from "./ReminderToggle";
@@ -14,6 +15,8 @@ import { OAUTH_KEY, type SyncStatus } from "@/lib/useSync";
 
 // O botão do Google só aparece depois de o Google estar ligado no Supabase (ver .env.example).
 const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+// Chave pública do hCaptcha (a secret está só no painel do Supabase).
+const CAPTCHA_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY || "4f9600c6-0b00-4992-94ec-72de30520826";
 const LAST_EMAIL = "noobrain:email";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -135,6 +138,20 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
     return () => clearTimeout(t);
   }, [wait]);
 
+  const captchaRef = useRef<HCaptcha>(null);
+
+  /** Corre o captcha invisível e devolve o token; `undefined` se a pessoa fechar o desafio. */
+  async function captcha() {
+    try {
+      const { response } = await captchaRef.current!.execute({ async: true });
+      return response;
+    } catch {
+      return undefined;
+    } finally {
+      captchaRef.current?.resetCaptcha();
+    }
+  }
+
   if (!supabase)
     return (
       <div className="account">
@@ -237,17 +254,19 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
     if (mode === "criar" && !age) return setMsg({ ok: false, text: "Confirma que tens 13 anos ou mais para criares conta." });
 
     setBusy(true);
+    const captchaToken = mode === "nova" ? undefined : await captcha();
+    if (mode !== "nova" && !captchaToken) { setBusy(false); return setMsg({ ok: false, text: "Não foi possível confirmar que és uma pessoa. Tenta outra vez." }); }
     const auth = supabase!.auth;
     const back = window.location.origin;
     let error: AuthError | null = null;
-    if (mode === "entrar") ({ error } = await auth.signInWithPassword({ email: addr, password }));
+    if (mode === "entrar") ({ error } = await auth.signInWithPassword({ email: addr, password, options: { captchaToken } }));
     else if (mode === "criar") {
-      const r = await auth.signUp({ email: addr, password, options: { emailRedirectTo: back, data: { age_ok: true } } });
+      const r = await auth.signUp({ email: addr, password, options: { emailRedirectTo: back, captchaToken, data: { age_ok: true } } });
       error = r.error;
       if (!error && !r.data.session) { setBusy(false); remember(addr); return sentScreen("signup"); }
     } else if (mode === "nova") ({ error } = await auth.updateUser({ password }));
     else {
-      ({ error } = await auth.resetPasswordForEmail(addr, { redirectTo: back }));
+      ({ error } = await auth.resetPasswordForEmail(addr, { redirectTo: back, captchaToken }));
       if (!error) { setBusy(false); return sentScreen("reset"); }
     }
     setBusy(false);
@@ -268,9 +287,11 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
     setBusy(true);
     const addr = email.trim().toLowerCase();
     const back = window.location.origin;
+    const captchaToken = await captcha();
+    if (!captchaToken) { setBusy(false); return setMsg({ ok: false, text: "Não foi possível confirmar que és uma pessoa. Tenta outra vez." }); }
     const { error } = kind === "signup"
-      ? await supabase!.auth.resend({ type: "signup", email: addr, options: { emailRedirectTo: back } })
-      : await supabase!.auth.resetPasswordForEmail(addr, { redirectTo: back });
+      ? await supabase!.auth.resend({ type: "signup", email: addr, options: { emailRedirectTo: back, captchaToken } })
+      : await supabase!.auth.resetPasswordForEmail(addr, { redirectTo: back, captchaToken });
     setBusy(false);
     if (error) return setMsg(explain(error));
     setWait(60);
@@ -287,6 +308,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
 
   return (
     <div className="account">
+      <HCaptcha ref={captchaRef} sitekey={CAPTCHA_KEY} size="invisible" languageOverride="pt" />
       <div className="hero-mascot"><Mascot mood={mood} /></div>
       {(mode === "entrar" || mode === "criar") && (
         <div className="seg" role="group" aria-label="Entrar ou criar conta">
