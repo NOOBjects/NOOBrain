@@ -124,7 +124,7 @@ Só quando o usuário pedir para publicar/enviar.
 1. Seção 4 passou.
 2. `git status` → confira que não há `.env.local` nem chaves na lista.
 3. `git add -A` e `git commit -m "frase curta em português dizendo o que mudou"` (termine a mensagem com a linha de coautoria que o sistema indicar).
-4. `git push` (vai para https://github.com/rodrigorondons/NOOBrain).
+4. `git push` (vai para https://github.com/apenasdrei/NOOBrain).
 5. Site: se a Vercel ainda não estiver ligada ao GitHub, rode `npx vercel deploy --prod --scope noob-jects`. Endereço: https://noobrain.vercel.app.
 6. Abra o endereço e confirme que carrega.
 
