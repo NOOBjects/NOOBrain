@@ -29,6 +29,9 @@ export default function Page() {
         <li><b>Contadores de uso da IA</b> (quantos pedidos fizeste por dia) são guardados durante 30 dias, para aplicar os limites diários.</li>
       </ul>
 
+      <h2>Ideias</h2>
+      <p>As ideias que partilhares no mural, e os teus votos, são públicas e aparecem com o teu @nome e avatar. Podes apagar as tuas ideias enquanto ainda não tiverem resposta, e apagar a conta remove tudo.</p>
+
       <h2>Ranking</h2>
       <p>O teu nome, avatar e XP da semana aparecem no ranking. Podes sair dele nas Definições a qualquer momento.</p>
 

@@ -747,3 +747,10 @@ a.btn { text-decoration: none; }
 .rank-row { display: flex; align-items: center; gap: 12px; }
 .rank-n { min-width: 24px; font: 700 18px/1 var(--font-display); color: var(--ink-3); }
 .rank-id { margin-right: auto; min-width: 0; }
+.idea { display: flex; gap: 12px; align-items: flex-start; }
+.idea-main { display: grid; gap: 8px; min-width: 0; flex: 1; }
+.row-between { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.idea-by { display: flex; align-items: center; gap: 8px; }
+.vote { display: grid; justify-items: center; gap: 2px; min-width: 44px; padding: 8px 6px; border: 0; background: var(--surface-2); color: var(--ink-2); clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+.vote.on { background: var(--brand); color: var(--on-brand); }
+textarea.field { resize: vertical; font: inherit; }

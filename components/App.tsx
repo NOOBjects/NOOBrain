@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Account } from "./Account";
 import { Explore } from "./Explore";
 import { Bolt, Book, Compass, Flame, Plus, Route, Sync, User } from "./Icons";
+import { Ideas } from "./Ideas";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
@@ -16,13 +17,12 @@ import { ReviewView } from "./ReviewView";
 import { Settings } from "./Settings";
 import { TrailNode, ZIGZAG } from "./TrailNode";
 import { BETA, VERSION } from "@/lib/config";
-import { CONTACT } from "@/lib/legal";
 import { disable as disableReminders, notifyDue } from "@/lib/reminders";
 import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking";
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias";
 
 const TEMA = "noobrain:tema"; // tema escolhido numa página pública, à espera do login
 
@@ -137,13 +137,13 @@ export function App({ landing }: { landing?: ReactNode }) {
       </header>
 
       <main className="content">
-        {BETA && user && !betaSeen && (
+        {BETA && user && profile && !betaSeen && (
           <div className="pane tint gap" role="status"><div className="in">
             <b>O NOOBrain está em beta</b>
             <p className="sub small">Algumas coisas podem falhar ou mudar. As tuas ideias ajudam a decidir o que vem a seguir. Fundraising em breve.</p>
             <div className="beta-row">
               <button type="button" className="btn sm" onClick={closeBeta}><span className="face">Começar</span></button>
-              <a className="btn soft sm" href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`} onClick={closeBeta}><span className="face">Dar uma ideia</span></a>
+              <button type="button" className="btn soft sm" onClick={() => { closeBeta(); go("ideias"); }}><span className="face">Dar uma ideia</span></button>
             </div>
           </div></div>
         )}
@@ -173,8 +173,10 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
-          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} notify={notify} />
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} notify={notify} />
         )}
+
+        {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} />}
 
         {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
 
@@ -251,9 +253,9 @@ export function App({ landing }: { landing?: ReactNode }) {
         )}
         </>}
       </main>
-      <footer className="foot"><LegalLinks /></footer>
+      <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" || view === "ideias" ? "perfil" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>

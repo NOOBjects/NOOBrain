@@ -18,11 +18,11 @@ export function LegalPage({ title, children }: { title: string; children: ReactN
 }
 
 /** Ligações para as duas páginas, usadas no fim delas e no rodapé da app. */
-export function LegalLinks() {
+export function LegalLinks({ onIdea }: { onIdea?: () => void }) {
   return (
     <p className="sub small legal-links">
       <Link href="/privacidade">Política de privacidade</Link> · <Link href="/termos">Termos de serviço</Link>
-      {BETA && <><br />Versão beta {VERSION} · <a href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`}>Dar uma ideia</a></>}
+      {BETA && <><br />Versão beta {VERSION} · {onIdea ? <button type="button" className="linkbtn" onClick={onIdea}>Dar uma ideia</button> : <a href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`}>Dar uma ideia</a>}</>}
     </p>
   );
 }

@@ -376,7 +376,8 @@ Notas: o ranking só mostra quem tem XP na semana (`week_xp > 0`); o botão Idei
   - botão "Aprender no NOOBrain";
   - `params` é uma Promise no Next 16.
 
-## Fase 7: mural de sugestões
+## Fase 7: mural de sugestões — FEITA (04/10/2026)
+Notas: o Rodrigo gere as ideias no Table Editor → `suggestions` (campos `status` e `reply`). O `pg_net` foi movido para o schema `extensions` (aviso do linter).
 ```sql
 create table public.suggestions (
   id bigint generated always as identity primary key,
