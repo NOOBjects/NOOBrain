@@ -772,3 +772,4 @@ textarea.field { resize: vertical; font: inherit; }
 .landing { display: grid; gap: 14px; max-width: 460px; margin: 40px auto 0; text-align: center; }
 .landing-blocks { display: grid; gap: 12px; text-align: left; }
 .chip.ai { background: var(--ink); color: var(--bg); padding: 5px 10px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
+.trail-del { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; }

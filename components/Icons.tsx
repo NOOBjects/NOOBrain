@@ -21,6 +21,7 @@ export const Book = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M4 5 
 export const Sync = () => <Svg><path {...stroke} d="M18 9 A7 7 0 0 0 6 10 M6 15 A7 7 0 0 0 18 14 M19 4 V9 H14 M5 20 V15 H10" /></Svg>;
 export const User = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M8 8 L10 5 H14 L16 8 V10 L14 13 H10 L8 10 Z M4 21 L6 17 H18 L20 21" /></Svg>;
 export const Compass = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M12 3 L19 6 L21 12 L19 18 L12 21 L5 18 L3 12 L5 6 Z M15 9 L13 13 L9 15 L11 11 Z" /></Svg>;
+export const Idea = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M9 18 H15 M10 21 H14 M8 15 L6 10 L9 5 H15 L18 10 L16 15 Z" /></Svg>;
 export const ChevronDown = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M5 9 L12 16 L19 9" /></Svg>;
 export const ChevronUp = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M5 15 L12 8 L19 15" /></Svg>;
 export const Eye = () => (

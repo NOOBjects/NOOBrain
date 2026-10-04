@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Account } from "./Account";
 import { Explore } from "./Explore";
-import { Bolt, Book, Compass, Flame, Plus, Route, Sync, User } from "./Icons";
+import { Bolt, Book, Compass, Flame, Idea, Plus, Route, Sync, User } from "./Icons";
 import { Ideas } from "./Ideas";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
@@ -46,6 +46,7 @@ export function App({ landing }: { landing?: ReactNode }) {
   const [pick, setView] = useState<View>("trilha");
   // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
   // sem conta, só existe o ecrã de entrada
+  const [delId, setDelId] = useState<string | null>(null); // trilha à espera de confirmação para apagar
   const [changing, setChanging] = useState(false); // a alterar a palavra-passe, vindo das definições
   const view: View = !user || recovery || linkError || changing ? "conta" : pick;
   const booting = !!user && view !== "conta" && (loading || profile === undefined);
@@ -130,6 +131,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
     { id: "licao", label: "Lição", icon: <Book />, onClick: () => (trail ? openLesson(current) : go("novo")) },
     { id: "explorar", label: "Explorar", icon: <Compass />, onClick: () => go("explorar") },
+    { id: "ideias", label: "Ideias", icon: <Idea />, onClick: () => go("ideias") },
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
   ];
@@ -262,13 +264,32 @@ export function App({ landing }: { landing?: ReactNode }) {
               ))}
             </div>
             {trail.done >= total && <p className="sub center">Trilha concluída. Que tal rever os cartões ou criar um novo tema?</p>}
+
+            <div className="trail-del">
+              {delId === trail.id ? (
+                <>
+                  <span className="sub small">Apagar “{trail.topic}” e o progresso dela?</span>
+                  <button type="button" className="btn bad sm" onClick={() => {
+                    const id = trail.id;
+                    update((x) => {
+                      const left = x.trails.filter((t) => t.id !== id);
+                      const cards = Object.fromEntries(Object.entries(x.cards).filter(([k]) => !k.startsWith(`${id}:`)));
+                      return { ...x, trails: left, active: left[0]?.id ?? "", cards };
+                    });
+                    setDelId(null);
+                    notify("Trilha apagada");
+                  }}><span className="face">Apagar</span></button>
+                  <button type="button" className="linkbtn" onClick={() => setDelId(null)}>Cancelar</button>
+                </>
+              ) : <button type="button" className="linkbtn" onClick={() => setDelId(trail.id)}>Apagar esta trilha</button>}
+            </div>
           </>
         )}
         </>}
       </main>
       <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" || view === "ideias" ? "perfil" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>
