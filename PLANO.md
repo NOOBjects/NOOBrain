@@ -11,6 +11,18 @@ As regras gerais estão no `CLAUDE.md`.
 ## Já feito
 Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e aviso · temas parecidos e cache · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT · ilha de menu · responsivo · páginas de privacidade e termos · favicon, ícones, imagem de partilha, manifesto, robots e sitemap · ícone do projeto na Vercel · README com visual · funções confirmadas em Paris (`cdg1`).
 
+## Registo de alterações (changelog)
+Regra: de cada vez que algo muda, acrescentar uma linha no topo, com a data e o que mudou para quem usa. A ideia de mostrar isto dentro do app ("Novidades") está em "Ideias para depois".
+
+**2026-10-04** (um dia de trabalho, versão beta 0.9)
+- Ideias: lista corrigida, aba "Ideias" na ilha; apagar trilha (com confirmação); botão "Terminar sessão" no Perfil.
+- Criação de temas: pede mais contexto quando o tema é ambíguo (ex.: só "Fernando"). Emblema "Feito com IA · NOOBjects".
+- Fase 8: animações leves. Fase 7: mural de ideias com votos. Fase 6: ranking semanal e perfil público.
+- Fase 5: avisos push com o app fechado (testado no computador). Fase 4: IA só com conta, cotas diárias, cabeçalhos de segurança.
+- Fases 3 e 3B: catálogo partilhado (9 temas, 72 lições), Explorar, landing e páginas de tema para o Google.
+- Fase 2: perfil com @nome e avatar, definições (tema claro/escuro, dados, apagar conta). Fase 1: login obrigatório, começar do zero.
+- Fase 0: selo Beta, aviso da beta, textos em PT-PT. Fase A: IA passa do Gemini para o Groq gratuito; idade mínima 13 anos; captcha.
+
 ## Decisões tomadas pelo Rodrigo (não voltar a perguntar)
 - Login obrigatório para tudo. Sem conta, só o ecrã de entrada, que mostra os temas disponíveis. Quem entra começa do zero.
 - Social: perfis com @nome e ranking semanal. Sem seguir, sem feed, sem comentários.
@@ -261,7 +273,7 @@ Com o login obrigatório, o Google não vê nada do que está dentro do app. Por
 7. **Domínio**: fica `noobrain.vercel.app` (decisão do Rodrigo: sem custos). Todos os URLs absolutos saem de uma constante `SITE_URL` em `lib/config.ts`, para mudar num só sítio se um dia houver domínio.
 8. Verificar: Lighthouse (SEO e desempenho ≥ 90 no telemóvel) e o [teste de resultados ricos](https://search.google.com/test/rich-results) numa página de tema.
 
-## Fase 4: segurança, desempenho e IA — FEITA (04/10/2026), falta o painel (Rodrigo)
+## Fase 4: segurança, desempenho e IA — FEITA (04/10/2026), falta o painel (Rodrigo; a proteção de palavras-passe vazadas não está disponível no plano atual do Supabase, ignorar o aviso)
 Notas: IA só com conta (401 sem sessão), cotas diárias (limites em `lib/quota.ts`, global por `AI_DAILY_MAX`), relatórios só com sessão, cabeçalhos de segurança, apagar conta já na Fase 2. Sem `SUPABASE_SECRET_KEY` no `.env.local`, a IA local responde 401: acrescentar a chave.
 1. **IA só com conta**:
    - `lib/api.ts` envia `authorization: Bearer <access_token>`;
@@ -518,4 +530,4 @@ O que a pesquisa encontrou (outubro de 2026):
 3. Anúncios só se nada mais resultar.
 
 ## Ideias para depois
-Animações sofisticadas em todo o app (transições entre ecrãs, micro-interações, mascote reativo, celebrações; a Fase 8 só fez o básico, leve, com transform e opacity) · Dashboard de administrador (gerir ideias, estados e respostas, ver relatórios de erro, números de uso; hoje faz-se no painel do Supabase) · Vozes e conversa para línguas (ver as notas de pesquisa sobre didática, ideia 8) · Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
+Novidades dentro do app / changelog visível quando algo muda (o registo de alterações já existe aqui no PLANO.md; falta mostrá-lo a quem usa) · Animações sofisticadas em todo o app (transições entre ecrãs, micro-interações, mascote reativo, celebrações; a Fase 8 só fez o básico, leve, com transform e opacity) · Dashboard de administrador (gerir ideias, estados e respostas, ver relatórios de erro, números de uso; hoje faz-se no painel do Supabase) · Vozes e conversa para línguas (ver as notas de pesquisa sobre didática, ideia 8) · Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
