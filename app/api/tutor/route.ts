@@ -4,7 +4,7 @@ import { allow, clientKey } from "@/lib/limit";
 // A IA pode levar até ~40 s quando o primeiro modelo está sobrecarregado e o app passa para o reserva.
 export const maxDuration = 60;
 
-const SCHEMA = { type: "OBJECT", properties: { answer: { type: "STRING" } }, required: ["answer"] };
+const SCHEMA = { type: "object", properties: { answer: { type: "string" } }, required: ["answer"], additionalProperties: false };
 const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/\s+/g, " ").trim().slice(0, max) : "");
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     .join("\n");
 
   const prompt = [
-    "Você é um tutor paciente que responde em português do Brasil, de forma curta (no máximo 120 palavras), clara e amigável.",
+    "Você é um tutor paciente que responde em português de Portugal (europeu, Acordo Ortográfico de 1990), de forma curta (no máximo 120 palavras), clara e amigável.",
     `Tema: "${topic}". Conceito da lição: "${title}".`,
     `Conteúdo da lição, que é a sua base:\n${lesson}`,
     history && `Conversa até agora:\n${history}`,

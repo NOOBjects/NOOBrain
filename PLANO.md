@@ -25,7 +25,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 - Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
 
 ## Por decidir ou fazer (Rodrigo)
-1. ~~Conta no Groq~~: **feita**. A chave já está em `AI_API_KEY` na Vercel. **Atenção: até a Fase A ser publicada, criar temas no site falha** (a chave é do Groq e o código ainda chama o Gemini). Falta:
+1. ~~Conta no Groq~~: **feita**. A chave já está em `AI_API_KEY` na Vercel. Falta:
    - o Rodrigo pôr a mesma chave no `.env.local` (trocar a linha `AI_API_KEY=`), para testar no computador;
    - apagar a chave antiga do Gemini no Google AI Studio.
 2. ~~Publicação automática~~: **resolvido** (cada push na `main` publica sozinho).
@@ -41,7 +41,8 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 
 ---
 
-## Fase A: IA gratuita com o Groq (URGENTE: a IA no site está parada até isto ser publicado)
+## Fase A: IA gratuita com o Groq — FEITA (04/10/2026)
+Notas: a caixa dos 13 anos está só no registo por e-mail e fica em `user_metadata.age_ok`; passar para `profiles.age_ok` e pô-la também no "Cria o teu perfil" (cobre o Google) na Fase 2. O corte das fontes já estava em 4500 caracteres (cabe nos 8000 tokens/min). Prompts já em PT-PT.
 **Porque mudar.** Os termos do Gemini (verificados a 04/10/2026) proíbem o plano gratuito para utilizadores na UE e proíbem apps acessíveis a menores de 18. O **Groq** ([termos](https://console.groq.com/docs/legal/services-agreement)) tem:
 - plano gratuito sem proibição de produção;
 - "Groq is not permitted to use Inputs or Outputs for training";

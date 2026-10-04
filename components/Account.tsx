@@ -121,6 +121,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
   const [caps, setCaps] = useState(false);
   const [focus, setFocus] = useState<"" | "email" | "senha">("");
   const [busy, setBusy] = useState(false);
+  const [age, setAge] = useState(false); // "Tenho 13 anos ou mais" (registo por e-mail)
   const [msg, setMsg] = useState<Msg | null>(null);
   const [bad, setBad] = useState<{ email?: string; password?: string }>({});
   const [sent, setSent] = useState<Sent>("signup");
@@ -233,6 +234,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
     else if (needsNew && password.length < 8) errs.password = "Usa pelo menos 8 caracteres.";
     setBad(errs);
     if (errs.email || errs.password) return document.getElementById(errs.email ? "email" : "password")?.focus();
+    if (mode === "criar" && !age) return setMsg({ ok: false, text: "Confirma que tens 13 anos ou mais para criares conta." });
 
     setBusy(true);
     const auth = supabase!.auth;
@@ -240,7 +242,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
     let error: AuthError | null = null;
     if (mode === "entrar") ({ error } = await auth.signInWithPassword({ email: addr, password }));
     else if (mode === "criar") {
-      const r = await auth.signUp({ email: addr, password, options: { emailRedirectTo: back } });
+      const r = await auth.signUp({ email: addr, password, options: { emailRedirectTo: back, data: { age_ok: true } } });
       error = r.error;
       if (!error && !r.data.session) { setBusy(false); remember(addr); return sentScreen("signup"); }
     } else if (mode === "nova") ({ error } = await auth.updateUser({ password }));
@@ -394,6 +396,12 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
                   </button>
                 )}
               </div>
+            )}
+            {mode === "criar" && (
+              <label className="sub small" style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <input type="checkbox" checked={age} onChange={(e) => setAge(e.target.checked)} required style={{ marginTop: 3 }} />
+                Confirmo que tenho 13 anos ou mais
+              </label>
             )}
             <button type="submit" className="btn block" disabled={busy}><span className="face">{busy ? "Um momento…" : LABEL[mode]}</span></button>
             {mode === "criar" && <p className="sub small">O teu e-mail e o teu progresso ficam guardados na União Europeia. Ao criares conta, aceitas os <Link href="/termos">Termos</Link> e a <Link href="/privacidade">Política de privacidade</Link>.</p>}

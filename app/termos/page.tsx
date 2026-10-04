@@ -20,6 +20,7 @@ export default function Page() {
       <p>As fontes indicadas pertencem aos seus autores e são partilhadas sob licenças abertas (por exemplo, Creative Commons), de acordo com as regras de cada site de origem.</p>
 
       <h2>A tua conta</h2>
+      <p>Para usar o NOOBrain precisas de ter pelo menos 13 anos.</p>
       <p>A conta é opcional. Mantém a tua palavra-passe em segredo, porque és responsável pelo que acontece na tua conta. Podes pedir o apagamento a qualquer momento (ver a <Link href="/privacidade">política de privacidade</Link>).</p>
 
       <h2>Uso aceitável</h2>

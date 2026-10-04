@@ -22,7 +22,7 @@ export default function Page() {
 
       <h2>O que sai da app para gerar as lições</h2>
       <ul>
-        <li><b>Temas e perguntas ao tutor</b> são enviados a um serviço de inteligência artificial (Google Gemini) para criar trilhas, lições e respostas. No plano gratuito, a Google pode usar esse conteúdo para melhorar os seus serviços. Por isso, não escrevas dados pessoais nos temas nem nas perguntas.</li>
+        <li><b>Temas e perguntas ao tutor</b> são enviados a um serviço de inteligência artificial (Groq) para criar trilhas, lições e respostas. O Groq é nosso subcontratante: os dados são processados nos EUA e no Reino Unido e não são usados para treinar modelos. Mesmo assim, não escrevas dados pessoais nos temas nem nas perguntas.</li>
         <li><b>Pesquisas nas wikis</b> (Wikipédia, Wikilivros, Wikiversidade e Wikisource) usam o tema que escreveste para encontrar fontes abertas.</li>
         <li><b>«Reportar erro»</b> envia-nos o texto que escreveres nesse formulário, sem o teu nome.</li>
       </ul>
