@@ -5,12 +5,12 @@ import { disable, enable, serverSnapshot, snapshot, subscribe } from "@/lib/remi
 
 export function ReminderToggle() {
   const state = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
-  if (state === "na") return <p className="sub small">Lembretes não estão disponíveis neste navegador ou foram bloqueados nas permissões do site.</p>;
+  if (state === "na") return <p className="sub small">Os lembretes não estão disponíveis neste navegador ou foram bloqueados nas permissões do site.</p>;
   return (
     <div className="remind">
-      <p className="sub small">{state === "on" ? "Você será lembrado quando houver cartões para revisar." : "Receba um aviso quando for hora de revisar."}</p>
+      <p className="sub small">{state === "on" ? "Vais receber um aviso quando houver cartões para rever." : "Recebe um aviso quando for hora de rever."}</p>
       <button type="button" className="btn soft sm" onClick={() => (state === "on" ? disable() : void enable())}>
-        <span className="face">{state === "on" ? "Desligar lembretes" : "Ativar lembretes"}</span>
+        <span className="face">{state === "on" ? "Desligar lembretes" : "Ligar lembretes"}</span>
       </button>
     </div>
   );

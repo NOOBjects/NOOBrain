@@ -6,21 +6,26 @@ import { Bolt, Book, Flame, Plus, Route, Sync, User } from "./Icons";
 import { Island } from "./Island";
 import { LessonView } from "./LessonView";
 import { Mascot, type Mood } from "./Mascot";
+import { MergeChoice } from "./MergeChoice";
 import { NewTopic } from "./NewTopic";
 import { ReviewView } from "./ReviewView";
 import { TrailNode } from "./TrailNode";
 import { notifyDue } from "@/lib/reminders";
 import { ZIGZAG } from "@/lib/sample";
 import { activeTrail, dueCards, update } from "@/lib/store";
-import { useAppState } from "@/lib/useAppState";
+import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
 type View = "trilha" | "licao" | "revisar" | "novo" | "conta";
 
 export function App() {
   const s = useAppState();
-  const { user, status } = useSync();
-  const [view, setView] = useState<View>("trilha");
+  const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
+  const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, conflict, resolve, signOut, welcome } = useSync();
+  const [pick, setView] = useState<View>("trilha");
+  // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
+  const view: View = recovery || linkError ? "conta" : pick;
+  const showStats = hydrated && !loading && !conflict && !(view === "conta" && !user);
   const [lesson, setLesson] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
@@ -57,6 +62,7 @@ export function App() {
     setTimeout(() => setMood("idle"), 1400);
   }
   function go(v: View) {
+    clearLinkError();
     setView(v);
     window.scrollTo({ top: 0 });
   }
@@ -68,25 +74,27 @@ export function App() {
   const items = [
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
     { id: "licao", label: "Lição", icon: <Book />, onClick: () => openLesson(current) },
-    { id: "revisar", label: "Revisar", icon: <Sync />, onClick: () => go("revisar"), badge: dueCount },
-    { id: "conta", label: user ? "Conta" : "Entrar", icon: <User />, onClick: () => go("conta") },
+    { id: "revisar", label: "Revisar", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
+    { id: "conta", label: ready && !user ? "Entrar" : "Conta", icon: <User />, onClick: () => go("conta") },
   ];
 
   return (
     <div className="app">
-      <header className="top">
+      <header className={`top${view === "conta" ? " on-account" : ""}`}>
         <div className="brand">
           <div className="brand-mascot"><Mascot mood={mood} /></div>
           <div className="brand-text"><div className="name"><b>NOOB</b>rain</div><div className="by">por NOOBjects</div></div>
         </div>
-        <div className="stats">
+        {showStats && <div className="stats">
           <span className="stat s" title="Dias seguidos"><Flame />{s.streak}</span>
           <span className="stat x" title="Pontos de experiência"><Bolt />{s.xp}</span>
-        </div>
-        <button type="button" className="iconbtn ch" aria-label="Novo tema" onClick={() => go("novo")}><Plus /></button>
+        </div>}
+        {!(view === "conta" && !user) && <button type="button" className="iconbtn ch" aria-label="Novo tema" onClick={() => go("novo")}><Plus /></button>}
       </header>
 
       <main className="content">
+        {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
+        {!hydrated ? null : conflict ? <MergeChoice conflict={conflict} onPick={resolve} /> : <>
         {view === "novo" && (
           <NewTopic trails={s.trails}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha"); notify(`Abri a trilha “${t.topic}”`); }}
@@ -95,7 +103,11 @@ export function App() {
 
         {view === "revisar" && <ReviewView state={s} />}
 
-        {view === "conta" && <Account user={user} status={status} />}
+        {view === "conta" && (
+          <Account user={user} ready={ready} status={status} recovery={recovery} onRecovered={endRecovery}
+            linkError={linkError} onClearLink={() => { setView("conta"); clearLinkError(); }}
+            onSignedIn={(t) => { go("trilha"); notify(t); }} onSignOut={signOut} />
+        )}
 
         {view === "licao" && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify}
@@ -154,11 +166,12 @@ export function App() {
             {trail.done >= total && <p className="sub center">Trilha concluída. Que tal revisar os cartões ou criar um novo tema?</p>}
           </>
         )}
+        </>}
       </main>
 
       <Island items={items} current={view === "novo" ? "" : view} />
 
-      <div className={`toast ch${toast ? " show" : ""}`} role="status" aria-live="polite">{toast}</div>
+      <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>
   );
 }

@@ -12,16 +12,19 @@ Ordem de prioridade: de cima para baixo. Marque como feito ao concluir.
 - [x] Conta opcional com Supabase (Europa) e sincronização do progresso
 - [x] Ilha de menu flutuante: some ao rolar para baixo ou pela seta, volta ao rolar para cima
 - [x] Responsivo: celular, tablet, desktop, celular deitado, toque/mouse, contraste alto, movimento reduzido
+- [x] Painel de conta: entrar, criar conta, recuperar palavra-passe, ecrã de e-mail enviado, escolha ao juntar progressos, dados só depois de carregados
 
 ## Próximo (pedido pelo usuário)
 - [ ] **Animações em quase tudo**: troca de página, entrar num conceito, mascote reagindo, botões, cartões, trilha
-- [ ] **Página de login e cadastro** mais trabalhada (visual, recuperar senha, confirmação de e-mail)
+- [ ] **Entrar com o Google**: configurar o Google e o Supabase (ver PLANO-LOGIN.md, secção 4) e ligar NEXT_PUBLIC_GOOGLE_LOGIN=1
 - [ ] **Mais fontes** para cobrir qualquer assunto: busca na web com resultados citados (ex.: Gemini com Google Search, Brave ou Tavily), Open Library para livros
 - [ ] **Catálogo compartilhado**: lição/trilha gerada uma vez serve a todos. Precisa de uma chave secreta de escrita no servidor (decisão do usuário: usar a "secret key" do Supabase ou um token próprio com função no banco)
 - [ ] **Lembretes com o app fechado** (push de verdade): service worker com Web Push, chaves VAPID e uma tarefa agendada na Vercel
-- [ ] **Idioma**: confirmar português de Portugal ou do Brasil nos textos do app e da IA
+- [ ] **Idioma: português de Portugal** (decidido). Painel de conta já convertido; falta o resto do app e as instruções da IA em lib/ai.ts
 
 ## Ideias
+- [ ] Apagar a conta pelo próprio app (RGPD: os dados estão na UE). Precisa de uma rota no servidor com a chave secreta do Supabase
+- [ ] E-mails com servidor próprio (ex.: Resend): o envio de e-mails incluído no Supabase tem um limite baixo por hora
 - [ ] Instalar como app (manifest e ícones PNG), modo offline
 - [ ] Apagar ou arquivar trilhas, renomear
 - [ ] Painel simples dos erros reportados

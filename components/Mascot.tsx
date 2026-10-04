@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { BODY, EYES, MASCOT_VIEWBOX, SLOTS } from "@/lib/mascot-paths";
 
-export type Mood = "idle" | "think" | "happy" | "sad";
+export type Mood = "idle" | "think" | "happy" | "sad" | "shy" | "calm" | "peek";
 
 /*
  * Pupila = quadrado que desliza por baixo de um octógono fixo dentro de cada olho.

@@ -22,3 +22,15 @@ export const Sync = () => <Svg><path {...stroke} d="M18 9 A7 7 0 0 0 6 10 M6 15 
 export const User = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M8 8 L10 5 H14 L16 8 V10 L14 13 H10 L8 10 Z M4 21 L6 17 H18 L20 21" /></Svg>;
 export const ChevronDown = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M5 9 L12 16 L19 9" /></Svg>;
 export const ChevronUp = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M5 15 L12 8 L19 15" /></Svg>;
+export const Eye = () => (
+  <Svg>
+    <path {...stroke} strokeLinejoin="miter" d="M2 12 L7 7 H17 L22 12 L17 17 H7 Z" />
+    <path fill="currentColor" d="M10 10 H14 V14 H10 Z" />
+  </Svg>
+);
+export const EyeOff = () => (
+  <Svg>
+    <path {...stroke} strokeLinejoin="miter" d="M2 12 L7 7 H17 L22 12 L17 17 H7 Z" />
+    <path {...stroke} d="M4 20 L20 4" />
+  </Svg>
+);

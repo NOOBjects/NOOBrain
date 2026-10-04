@@ -3,7 +3,7 @@ import { topicKey } from "./topic";
 import type { Card, State, Trail } from "./types";
 
 // Guarda tudo no navegador (localStorage). Com conta, o componente Sync copia o mesmo estado para o Supabase.
-export const initial: State = { trails: [exampleTrail], active: exampleTrail.id, xp: 20, streak: 0, lastDay: null, cards: {}, updatedAt: 0 };
+export const initial: State = { trails: [exampleTrail], active: exampleTrail.id, xp: 0, streak: 0, lastDay: null, cards: {}, updatedAt: 0 };
 
 const KEY = "noobrain:v2";
 const listeners = new Set<() => void>();
