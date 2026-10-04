@@ -139,6 +139,14 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
   const [embedded] = useState(() => typeof navigator !== "undefined" && inAppBrowser());
+  // Login do Google na janela à parte: a sessão chega a este separador pelo Supabase (BroadcastChannel).
+  const popup = useRef(false);
+  useEffect(() => {
+    const sub = supabase?.auth.onAuthStateChange((e) => {
+      if (e === "SIGNED_IN" && popup.current) { popup.current = false; onSignedIn("Sessão iniciada com o Google."); }
+    });
+    return () => sub?.data.subscription.unsubscribe();
+  }, [onSignedIn]);
   const android = embedded && /Android/i.test(navigator.userAgent);
   function copyLink() {
     const link = window.location.origin;
@@ -209,16 +217,31 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
     try { localStorage.setItem(LAST_EMAIL, addr); } catch { /* sem armazenamento: segue */ }
   }
 
+  // Num navegador normal, o Google abre numa janela à parte (no telemóvel, um separador) que se fecha sozinha no fim:
+  // a página do Google nunca entra no histórico do app, por isso "voltar" não leva de volta ao login.
+  // No app instalado e dentro de outras apps fica o método antigo (a página muda para o Google e volta).
   async function google() {
     setMsg(null);
-    setBusy(true);
-    try { sessionStorage.setItem(OAUTH_KEY, "1"); } catch { /* sem armazenamento: só não haverá boas-vindas */ }
-    const { error } = await supabase!.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } });
-    if (error) { setBusy(false); setMsg(explain(error)); }
+    const own = !embedded && !matchMedia("(display-mode: standalone)").matches;
+    const win = own ? window.open("", "noobrain-google", "popup,width=480,height=680") : null; // tem de abrir já, no clique
+    popup.current = !!win;
+    if (!win) {
+      setBusy(true);
+      try { sessionStorage.setItem(OAUTH_KEY, "1"); } catch { /* sem armazenamento: só não haverá boas-vindas */ }
+    }
+    const { data, error } = await supabase!.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}${win ? "/entrar" : ""}`, skipBrowserRedirect: true },
+    });
+    if (error || !data.url) { win?.close(); setBusy(false); return setMsg(error ? explain(error) : { ok: false, text: "Não foi possível continuar. Tenta outra vez." }); }
+    if (!win) return window.location.assign(data.url);
+    win.location.href = data.url;
+    setMsg({ ok: true, text: "Continua na janela do Google. Quando terminares, ela fecha-se sozinha." });
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    popup.current = false; // entrar com e-mail depois de fechar a janela do Google
     setMsg(null);
     if (linkError) onClearLink();
     const addr = email.trim().toLowerCase();

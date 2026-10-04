@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Account } from "./Account";
 import { Explore } from "./Explore";
 import { Bolt, Book, Compass, Flame, Idea, Plus, Route, Sync, User } from "./Icons";
@@ -23,6 +23,23 @@ import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
 type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias";
+const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias"]; // "trilha" é o endereço sem ?v=
+
+// Cada ecrã tem endereço próprio (/?v=revisar, /?v=licao&c=2). Assim o "voltar" do telemóvel anda entre ecrãs, como num site,
+// e recarregar a página não perde o sítio. O Next deixa usar pushState sem recarregar (ver guia "single-page-applications").
+const NAV = "noobrain:nav";
+function onNav(cb: () => void) {
+  window.addEventListener("popstate", cb);
+  window.addEventListener(NAV, cb);
+  return () => { window.removeEventListener("popstate", cb); window.removeEventListener(NAV, cb); };
+}
+/** Muda de ecrã. `replace` troca a entrada atual do histórico em vez de criar outra (ex.: depois de concluir um passo). */
+function navigate(v: View, c?: number, replace = false) {
+  const search = v === "trilha" || v === "conta" ? "" : `?v=${v}${c === undefined ? "" : `&c=${c}`}`;
+  if (search === window.location.search) return;
+  window.history[replace ? "replaceState" : "pushState"](null, "", search || window.location.pathname);
+  window.dispatchEvent(new Event(NAV));
+}
 
 /** "+N XP" que sobe quando o XP aumenta (ganhos grandes são ignorados: são a nuvem a carregar, não uma lição). */
 function XpGain({ xp }: { xp: number }) {
@@ -43,7 +60,10 @@ export function App({ landing }: { landing?: ReactNode }) {
   const s = useAppState();
   const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
   const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome, profile, reloadProfile } = useSync();
-  const [pick, setView] = useState<View>("trilha");
+  const search = useSyncExternalStore(onNav, () => window.location.search, () => "");
+  const params = new URLSearchParams(search);
+  const asked = params.get("v") ?? "";
+  const pick = (VIEWS.includes(asked) ? asked : "trilha") as View;
   // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
   // sem conta, só existe o ecrã de entrada
   const [delId, setDelId] = useState<string | null>(null); // trilha à espera de confirmação para apagar
@@ -52,7 +72,6 @@ export function App({ landing }: { landing?: ReactNode }) {
   const booting = !!user && view !== "conta" && (loading || profile === undefined);
   const needsProfile = !!user && view !== "conta" && profile === null;
   const showStats = hydrated && !loading && !(view === "conta" && !user);
-  const [lesson, setLesson] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
   // Aviso da beta: uma vez por conta (a chave leva o id da pessoa).
@@ -69,6 +88,8 @@ export function App({ landing }: { landing?: ReactNode }) {
   const pct = total ? Math.round((trail!.done / total) * 100) : 0;
   const dueCount = useMemo(() => dueCards(s).length, [s]);
   const current = trail ? Math.min(trail.done, total - 1) : 0;
+  // Lição pedida no endereço (?c=), sem passar do conceito atual (os seguintes ainda estão fechados).
+  const lesson = trail ? Math.min(Math.max(0, Math.floor(Number(params.get("c"))) || 0), current) : 0;
   const streakAtRisk = s.streak > 0 && s.lastDay !== new Date().toLocaleDateString("sv");
 
   // Lembretes: selo no título da aba e aviso do sistema quando o app está em segundo plano.
@@ -106,7 +127,7 @@ export function App({ landing }: { landing?: ReactNode }) {
         if (!t) return;
         sessionStorage.removeItem(TEMA);
         setTema(t.replace(/-/g, " "));
-        setView("explorar");
+        navigate("explorar");
       } catch { /* sem armazenamento */ }
     }, 0);
     return () => clearTimeout(id);
@@ -117,14 +138,16 @@ export function App({ landing }: { landing?: ReactNode }) {
     setMood("happy");
     setTimeout(() => setMood("idle"), 1400);
   }
-  function go(v: View) {
+  function go(v: View, c?: number, replace = false) {
     clearLinkError();
-    setView(v);
+    navigate(v, c, replace);
     window.scrollTo({ top: 0 });
   }
-  function openLesson(i: number) {
-    setLesson(i);
-    go("licao");
+  const openLesson = (i: number) => go("licao", i);
+  async function leave() { // terminar sessão: o endereço volta ao início
+    navigate("trilha", undefined, true);
+    await disableReminders();
+    await signOut();
   }
 
   const items = [
@@ -165,30 +188,30 @@ export function App({ landing }: { landing?: ReactNode }) {
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
         {!hydrated ? landing : booting ? (
           <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
-        ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha"); }} /> : <>
+        ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
         {view === "novo" && (
           <NewTopic trails={s.trails}
-            onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha"); notify(`Abri a trilha “${t.topic}”`); }}
-            onDone={(t) => { go("trilha"); notify(`Trilha pronta: ${t}`); celebrate(); }} />
+            onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha", undefined, true); notify(`Abri a trilha “${t.topic}”`); }}
+            onDone={(t) => { go("trilha", undefined, true); notify(`Trilha pronta: ${t}`); celebrate(); }} />
         )}
 
         {view === "explorar" && (
           <Explore state={s} initialQuery={tema} onNew={() => go("novo")}
-            onStart={(t) => { go("trilha"); notify(`Trilha pronta: ${t.topic}`); celebrate(); }} />
+            onStart={(t) => { go("trilha", undefined, true); notify(`Trilha pronta: ${t.topic}`); celebrate(); }} />
         )}
 
         {view === "revisar" && <ReviewView state={s} />}
 
         {view === "conta" && (
           <Account ready={ready} recovery={recovery} onRecovered={endRecovery}
-            changing={changing} onChangingEnd={(changed) => { setChanging(false); setView("definicoes"); if (changed) notify("Palavra-passe alterada."); }}
-            linkError={linkError} onClearLink={() => { setView("conta"); clearLinkError(); }}
-            onSignedIn={(t) => { go("trilha"); notify(t); }} />
+            changing={changing} onChangingEnd={(changed) => { setChanging(false); if (changed) notify("Palavra-passe alterada."); }}
+            linkError={linkError} onClearLink={clearLinkError}
+            onSignedIn={setToast} />
         )}
         {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
-          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} notify={notify} />
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={leave} notify={notify} />
         )}
 
         {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} />}
@@ -197,7 +220,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {view === "definicoes" && user && profile && (
           <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
-            onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} />
+            onSignOut={leave} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} />
         )}
 
         {(view === "trilha" || view === "licao") && !trail && (
@@ -212,7 +235,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {view === "licao" && trail && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify}
-            onBack={() => go("trilha")} onNext={() => { setLesson((i) => i + 1); celebrate(); window.scrollTo({ top: 0 }); }} />
+            onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }} />
         )}
 
         {view === "trilha" && trail && (

@@ -40,7 +40,7 @@ Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado
 | X | Y |
 |---|---|
 | cores, cantos, sombras, fontes, pontos de quebra | `app/globals.css` |
-| navegação e casca | `components/App.tsx`; menu flutuante `Island.tsx` |
+| navegação e casca | `components/App.tsx`; menu flutuante `Island.tsx`; ecrãs no endereço (`?v=`, função `navigate` em `App.tsx`); fim do login do Google em `app/entrar` + `LoginDone.tsx` |
 | lição (Aprender → Memorizar → Testar) | `LessonView.tsx`, `Deck.tsx`, `Quiz.tsx`, `Tutor.tsx` |
 | revisão, novo tema, conta | `ReviewView.tsx`, `NewTopic.tsx`, `Account.tsx` (+ `lib/supabase.ts`, `lib/useSync.ts`) |
 | mascote, nó da trilha, ícones | `Mascot.tsx` + `lib/mascot-paths.ts`, `TrailNode.tsx`, `Icons.tsx` |
