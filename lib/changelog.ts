@@ -6,6 +6,16 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.9.5",
+    date: "2026-10-05",
+    title: "Perguntas mais claras",
+    novo: ["No teste, ordenas os passos arrastando-os pela pega (ou com as setas do teclado)."],
+    melhorias: [
+      "A correção ficou mais fácil de ler: ícone de certo ou errado, a resposta certa em destaque e o porquê num bloco à parte.",
+      "O aquecimento diz logo se acertaste e qual era a resposta certa.",
+    ],
+  },
+  {
     version: "0.9.4",
     date: "2026-10-05",
     title: "Lições mais ativas",
