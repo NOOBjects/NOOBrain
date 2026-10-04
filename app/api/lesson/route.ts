@@ -1,4 +1,6 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
+import { isSeed } from "@/lib/auth";
+import { findLesson, saveLesson } from "@/lib/catalog";
 import { allow, clientKey } from "@/lib/limit";
 import type { Lesson } from "@/lib/types";
 import { cached, remember } from "@/lib/cache";
@@ -36,7 +38,7 @@ const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/\
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
 export async function POST(request: Request) {
-  if (!allow(`lesson:${clientKey(request)}`, 6)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
+  if (!isSeed(request) && !allow(`lesson:${clientKey(request)}`, 6)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
@@ -48,6 +50,12 @@ export async function POST(request: Request) {
   const cacheKey = `lesson:${topicKey(topic)}:${level}:${topicKey(title)}`;
   const hit = cached<object>(cacheKey);
   if (hit) return Response.json(hit);
+
+  // Já criada por alguém? Vem do catálogo, sem gastar IA.
+  const trailKey = topicKey(topic);
+  const conceptKey = topicKey(title);
+  const shared = await findLesson(trailKey, level, conceptKey);
+  if (shared) return Response.json({ lesson: shared });
 
   const found = await findSources(`${topic} ${title}`);
   const { text } = found.text ? found : await findSources(topic);
@@ -61,6 +69,7 @@ export async function POST(request: Request) {
     "- cards: 4 cartões de memória com term (até 4 palavras) e definition (1 frase).",
     "- quiz: 3 perguntas de múltipla escolha. Cada uma com q, 4 options curtas, answer (índice de 0 a 3 da opção certa, variando a posição) e why (1 a 2 frases explicando).",
     "Use apenas fatos corretos. Se não tiver certeza de algo, deixe de fora em vez de inventar. Só uma opção pode estar certa.",
+    /ingl[eê]s/i.test(topic) ? "O tema é uma língua: usa conceitos práticos (cumprimentos, verbo to be, números, frases do dia a dia) e, nos cartões, a palavra ou frase em inglês no term e a tradução em português no definition." : "",
     text ? `Textos de referência (fontes abertas), use como apoio:
 ${text}` : "Não há texto de referência: seja conservador.",
   ].join("\n");
@@ -82,6 +91,7 @@ ${text}` : "Não há texto de referência: seja conservador.",
     if (!lesson.intro.length || lesson.cards.length < 3 || lesson.quiz.length < 2) return fail("A lição veio incompleta. Tenta outra vez.", 502);
     const result = { lesson };
     remember(cacheKey, result);
+    await saveLesson(trailKey, level, conceptKey, lesson);
     return Response.json(result);
   } catch (e) {
     return aiErrorResponse(e);

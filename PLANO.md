@@ -196,7 +196,8 @@ create trigger progress_stats after insert or update of data on public.progress
      - mais tarde, o link de doação.
 - **Privacidade**: acrescentar perfil público, ranking (com opção de sair), sugestões públicas, subscrições de push e contadores de IA (guardados 30 dias).
 
-## Fase 3: catálogo partilhado e lições já criadas
+## Fase 3: catálogo partilhado e lições já criadas — FEITA (04/10/2026), falta correr a semente (Rodrigo)
+Notas: migração `catalogo` aplicada. Para encher o catálogo com os 9 temas: pôr `SUPABASE_SECRET_KEY` e `SEED_TOKEN` (texto aleatório) no `.env.local`, reiniciar `npm run dev` e correr `npm run seed:catalog` (~30 min, 20 s entre pedidos). Entretanto o catálogo enche-se sozinho com o uso.
 Cada trilha ou lição gerada fica guardada uma vez e serve a toda a gente. É o que mais poupa na IA.
 ```sql
 create table public.catalog_trails (

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Account } from "./Account";
-import { Bolt, Book, Flame, Plus, Route, Sync, User } from "./Icons";
+import { CatalogChips } from "./CatalogChips";
+import { Explore } from "./Explore";
+import { Bolt, Book, Compass, Flame, Plus, Route, Sync, User } from "./Icons";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
@@ -20,7 +22,7 @@ import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "conta" | "perfil" | "definicoes";
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes";
 
 export function App() {
   const s = useAppState();
@@ -90,6 +92,7 @@ export function App() {
   const items = [
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
     { id: "licao", label: "Lição", icon: <Book />, onClick: () => (trail ? openLesson(current) : go("novo")) },
+    { id: "explorar", label: "Explorar", icon: <Compass />, onClick: () => go("explorar") },
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
   ];
@@ -130,6 +133,11 @@ export function App() {
             onDone={(t) => { go("trilha"); notify(`Trilha pronta: ${t}`); celebrate(); }} />
         )}
 
+        {view === "explorar" && (
+          <Explore state={s} onNew={() => go("novo")}
+            onStart={(t) => { go("trilha"); notify(`Trilha pronta: ${t.topic}`); celebrate(); }} />
+        )}
+
         {view === "revisar" && <ReviewView state={s} />}
 
         {view === "conta" && (
@@ -138,6 +146,7 @@ export function App() {
             linkError={linkError} onClearLink={() => { setView("conta"); clearLinkError(); }}
             onSignedIn={(t) => { go("trilha"); notify(t); }} />
         )}
+        {view === "conta" && !user && <CatalogChips />}
 
         {view === "perfil" && user && profile && (
           <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} />
@@ -153,7 +162,8 @@ export function App() {
             <div className="hero-mascot"><Mascot /></div>
             <h1 className="h-screen">Escolhe o teu primeiro tema</h1>
             <p className="sub">Escreve qualquer tema e eu monto-te uma trilha com lições, cartões e testes.</p>
-            <button type="button" className="btn block" onClick={() => go("novo")}><span className="face">Criar um tema</span></button>
+            <button type="button" className="btn block" onClick={() => go("explorar")}><span className="face">Explorar temas</span></button>
+            <button type="button" className="btn soft block" onClick={() => go("novo")}><span className="face">Criar um tema</span></button>
           </div>
         )}
 

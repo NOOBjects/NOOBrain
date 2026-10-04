@@ -7,3 +7,6 @@ export async function userFrom(request: Request) {
   const { data, error } = await admin.auth.getUser(token);
   return error ? null : data.user;
 }
+
+/** Pedido do script de sementes local (`scripts/seed-catalog.mjs`): `SEED_TOKEN` existe só no `.env.local`, nunca na Vercel. */
+export const isSeed = (request: Request) => !!process.env.SEED_TOKEN && request.headers.get("x-seed-token") === process.env.SEED_TOKEN;

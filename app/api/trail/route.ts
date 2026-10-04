@@ -1,4 +1,6 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
+import { isSeed } from "@/lib/auth";
+import { findTrail, saveTrail } from "@/lib/catalog";
 import { allow, clientKey } from "@/lib/limit";
 import { cached, remember } from "@/lib/cache";
 import { findSources } from "@/lib/sources";
@@ -28,7 +30,7 @@ const LEVELS = ["Iniciante", "Intermediário"];
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
 export async function POST(request: Request) {
-  if (!allow(`trail:${clientKey(request)}`, 4)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
+  if (!isSeed(request) && !allow(`trail:${clientKey(request)}`, 4)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
   const body = await request.json().catch(() => null);
   const topic = typeof body?.topic === "string" ? body.topic.replace(/\s+/g, " ").trim() : "";
@@ -40,6 +42,11 @@ export async function POST(request: Request) {
   const hit = cached<object>(cacheKey);
   if (hit) return Response.json(hit);
 
+  // Já criada por alguém? Vem do catálogo, sem gastar IA.
+  const key = topicKey(topic);
+  const shared = await findTrail(key, level);
+  if (shared) return Response.json({ ...shared, level });
+
   const { sources, text } = await findSources(topic);
 
   // O tema é texto digitado pelo usuário: vai entre aspas e a IA é avisada de que é só um assunto.
@@ -50,6 +57,7 @@ export async function POST(request: Request) {
     "Crie de 6 a 8 conceitos em ordem, do mais básico ao mais avançado. O último deve se chamar \"Revisão final\".",
     "Cada conceito tem: title (até 5 palavras) e summary (1 a 2 frases claras, sem jargão desnecessário).",
     "Use apenas fatos corretos. Se não tiver certeza de algo, deixe de fora em vez de inventar.",
+    /ingl[eê]s/i.test(topic) ? "O tema é uma língua: usa conceitos práticos (cumprimentos, verbo to be, números, frases do dia a dia) e, nos cartões, a palavra ou frase em inglês no term e a tradução em português no definition." : "",
     text
       ? `Textos de referência (fontes abertas). Use como apoio para os fatos, mas o foco é o tema escolhido: se um texto tratar de algo mais amplo ou diferente, não deixe isso desviar a trilha.
 ${text}`
@@ -65,6 +73,7 @@ ${text}`
     if (concepts.length < 4) return fail("A IA devolveu poucos conceitos. Tenta outra vez.", 502);
     const result = { topic, level, concepts, sources };
     remember(cacheKey, result);
+    await saveTrail(key, level, { topic, concepts, sources });
     return Response.json(result);
   } catch (e) {
     return aiErrorResponse(e);
