@@ -29,6 +29,9 @@ export default function Page() {
         <li><b>Contadores de uso da IA</b> (quantos pedidos fizeste por dia) são guardados durante 30 dias, para aplicar os limites diários.</li>
       </ul>
 
+      <h2>Ranking</h2>
+      <p>O teu nome, avatar e XP da semana aparecem no ranking. Podes sair dele nas Definições a qualquer momento.</p>
+
       <h2>Lembretes</h2>
       <p>Se ligares os lembretes, guardamos a subscrição do teu aparelho (um endereço técnico do navegador e o teu fuso horário) para te enviar avisos de revisão. Podes desligá-los nas Definições e a subscrição é apagada.</p>
 

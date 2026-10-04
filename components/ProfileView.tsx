@@ -4,14 +4,15 @@ import type { User } from "@supabase/supabase-js";
 import { useState } from "react";
 import { Avatar } from "./Avatar";
 import { ProfileForm } from "./ProfileForm";
+import { SITE_URL } from "@/lib/config";
 import type { Profile } from "@/lib/profile";
 import type { State } from "@/lib/types";
 
 const since = (iso: string) => new Date(iso).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
 /** O perfil da pessoa: avatar, nome, estatísticas e editar. XP e sequência vêm do estado local (sempre em dia). */
-export function ProfileView({ user, profile, state, onSaved, onSettings }: {
-  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void;
+export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, notify }: {
+  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; notify: (m: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
@@ -48,6 +49,10 @@ export function ProfileView({ user, profile, state, onSaved, onSettings }: {
       </div>
       <div className="acts">
         <button type="button" className="btn block" onClick={() => setEditing(true)}><span className="face">Editar perfil</span></button>
+        <button type="button" className="btn block" onClick={async () => {
+          try { await navigator.clipboard.writeText(`${SITE_URL}/u/${profile.username}`); notify("Link do perfil copiado"); } catch { notify(`${SITE_URL}/u/${profile.username}`); }
+        }}><span className="face">Partilhar perfil</span></button>
+        <button type="button" className="btn block" onClick={onRanking}><span className="face">Ranking</span></button>
       </div>
     </div>
   );

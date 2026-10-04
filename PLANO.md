@@ -362,7 +362,8 @@ select cron.schedule('noobrain-limpeza', '30 3 * * *', $$
 $$);
 ```
 
-## Fase 6: ranking e perfil público
+## Fase 6: ranking e perfil público — FEITA (04/10/2026)
+Notas: o ranking só mostra quem tem XP na semana (`week_xp > 0`); o botão Ideias do Perfil chega com a Fase 7.
 - **`Ranking.tsx`**:
   - `profiles` com `username, display_name, avatar, week_xp`, onde `week_start` = segunda-feira de Lisboa e `in_ranking`, por `week_xp desc`, limite de 50;
   - a minha posição = quantos têm mais XP;

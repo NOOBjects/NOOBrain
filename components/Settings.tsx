@@ -27,9 +27,9 @@ function readTheme(): Theme {
   try { const t = localStorage.getItem(THEME); return t === "light" || t === "dark" ? t : "auto"; } catch { return "auto"; }
 }
 
-export function Settings({ user, profile, state, status, onChangePassword, onSignOut, onBack }: {
+export function Settings({ user, profile, state, status, onChangePassword, onSignOut, onBack, onProfile }: {
   user: User; profile: Profile; state: State; status: SyncStatus;
-  onChangePassword: () => void; onSignOut: () => Promise<void>; onBack: () => void;
+  onChangePassword: () => void; onSignOut: () => Promise<void>; onBack: () => void; onProfile: () => void;
 }) {
   const [theme, setTheme] = useState<Theme>(readTheme);
   const [reset, setReset] = useState("");
@@ -59,6 +59,12 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
     setTest(res.ok ? "Enviado. Se não chegar, confirma as permissões do navegador." : body.error ?? "Não consegui enviar.");
   }
 
+  async function toggleRanking() {
+    const { error: err } = await supabase!.from("profiles").update({ in_ranking: !profile.in_ranking }).eq("id", user.id);
+    if (err) return setError("Não consegui guardar. Tenta outra vez.");
+    onProfile();
+  }
+
   async function deleteAccount() {
     setError(null);
     const { data } = await supabase!.auth.getSession();
@@ -84,6 +90,12 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
         <ReminderToggle />
         <button type="button" className="btn soft sm" onClick={() => void sendTest()}><span className="face">Enviar aviso de teste</span></button>
         {test && <p className="sub small" role="status">{test}</p>}
+      </div></section>
+
+      <section className="pane gap"><div className="in set">
+        <div className="eyebrow">Ranking</div>
+        <p className="sub small">{profile.in_ranking ? "O teu nome aparece no ranking da semana." : "Estás fora do ranking."}</p>
+        <button type="button" className="btn soft sm" onClick={() => void toggleRanking()}><span className="face">{profile.in_ranking ? "Sair do ranking" : "Aparecer no ranking"}</span></button>
       </div></section>
 
       <section className="pane gap"><div className="in set">

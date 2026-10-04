@@ -11,6 +11,7 @@ import { Mascot, type Mood } from "./Mascot";
 import { NewTopic } from "./NewTopic";
 import { Onboarding } from "./Onboarding";
 import { ProfileView } from "./ProfileView";
+import { Ranking } from "./Ranking";
 import { ReviewView } from "./ReviewView";
 import { Settings } from "./Settings";
 import { TrailNode, ZIGZAG } from "./TrailNode";
@@ -21,7 +22,7 @@ import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes";
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking";
 
 const TEMA = "noobrain:tema"; // tema escolhido numa página pública, à espera do login
 
@@ -172,12 +173,14 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
-          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} />
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} notify={notify} />
         )}
+
+        {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
 
         {view === "definicoes" && user && profile && (
           <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
-            onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} onBack={() => go("perfil")} />
+            onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} />
         )}
 
         {(view === "trilha" || view === "licao") && !trail && (
@@ -250,7 +253,7 @@ export function App({ landing }: { landing?: ReactNode }) {
       </main>
       <footer className="foot"><LegalLinks /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>

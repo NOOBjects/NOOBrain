@@ -743,3 +743,7 @@ a.btn { text-decoration: none; }
 .rise { animation: rise 0.28s both; animation-delay: calc(var(--i, 0) * 40ms); }
 .catalog-chips { max-width: 460px; margin: 28px auto 0; text-align: center; }
 .catalog-chips .sources { justify-content: center; }
+.rank { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.rank-row { display: flex; align-items: center; gap: 12px; }
+.rank-n { min-width: 24px; font: 700 18px/1 var(--font-display); color: var(--ink-3); }
+.rank-id { margin-right: auto; min-width: 0; }
