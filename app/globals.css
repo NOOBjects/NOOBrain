@@ -563,7 +563,8 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
 .tutor-panel[hidden] { display: none; }
 .note.info { display: grid; gap: 4px; background: var(--brand-soft); color: var(--brand); }
 .remind-box { display: grid; gap: 10px; }
-.remind { display: grid; justify-items: start; gap: 10px; }
+.remind { display: grid; justify-items: stretch; gap: 10px; width: 100%; }
+.btn .face { text-align: center; }
 
 /* ---------- responsivo ---------- */
 
@@ -715,7 +716,7 @@ a.btn { text-decoration: none; }
 .foot { max-width: var(--content-max); margin-inline: auto; padding: 0 var(--gutter) 96px; text-align: center; }
 
 /* ---------- perfil, avatar e definições ---------- */
-.avatar { display: grid; place-items: center; flex: none; padding: 12%; }
+.avatar { display: flex; align-items: center; justify-content: center; flex: none; box-sizing: border-box; padding: 12%; }
 .avatar .mascot { width: 100%; }
 .av0 { background: var(--brand); --logo-body: var(--on-brand); --logo-eye: var(--brand); }
 .av1 { background: var(--brand-deep); --logo-body: var(--on-brand); --logo-eye: var(--brand-deep); }

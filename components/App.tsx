@@ -186,7 +186,7 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
-          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} notify={notify} />
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} notify={notify} />
         )}
 
         {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} />}

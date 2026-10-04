@@ -11,8 +11,8 @@ import type { State } from "@/lib/types";
 const since = (iso: string) => new Date(iso).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
 /** O perfil da pessoa: avatar, nome, estatísticas e editar. XP e sequência vêm do estado local (sempre em dia). */
-export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, onIdeas, notify }: {
-  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; onIdeas: () => void; notify: (m: string) => void;
+export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, onIdeas, onSignOut, notify }: {
+  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; onIdeas: () => void; onSignOut: () => void; notify: (m: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
@@ -54,6 +54,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
         }}><span className="face">Partilhar perfil</span></button>
         <button type="button" className="btn block" onClick={onRanking}><span className="face">Ranking</span></button>
         <button type="button" className="btn block" onClick={onIdeas}><span className="face">Ideias</span></button>
+        <button type="button" className="btn soft block" onClick={onSignOut}><span className="face">Terminar sessão</span></button>
       </div>
     </div>
   );

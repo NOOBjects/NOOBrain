@@ -26,7 +26,7 @@ export function Ideas({ user, onBack }: { user: User; onBack: () => void }) {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async (t: Tab) => {
-    let q = supabase!.from("suggestions").select("*, profiles(username, avatar)").limit(50);
+    let q = supabase!.from("suggestions").select("*, profiles!suggestions_user_id_fkey(username, avatar)").limit(50);
     if (t === "top") q = q.order("votes", { ascending: false }).order("created_at", { ascending: false });
     else if (t === "new") q = q.order("created_at", { ascending: false });
     else q = q.eq("status", "feita").order("created_at", { ascending: false });
