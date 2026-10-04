@@ -1,5 +1,6 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { allow, clientKey } from "@/lib/limit";
+import { requireUser, spend } from "@/lib/quota";
 
 // A IA pode levar até ~40 s quando o primeiro modelo está sobrecarregado e o app passa para o reserva.
 export const maxDuration = 60;
@@ -11,12 +12,18 @@ const fail = (message: string, status: number) => Response.json({ error: message
 export async function POST(request: Request) {
   if (!allow(`tutor:${clientKey(request)}`, 8)) return fail("Muitas perguntas seguidas. Espera um minuto.", 429);
 
+  const who = await requireUser(request);
+  if (who instanceof Response) return who;
+
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
   const title = clean(body?.title, 60);
   const lesson = clean(body?.lesson, 1500);
   const question = clean(body?.question, 300);
   if (!topic || !title || question.length < 2) return fail("Escreve uma pergunta.", 400);
+
+  const over = await spend(who.uid, "tutor");
+  if (over) return over;
 
   const history = (Array.isArray(body?.history) ? body.history : [])
     .slice(-6)

@@ -1,6 +1,7 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { isSeed } from "@/lib/auth";
 import { findTrail, saveTrail } from "@/lib/catalog";
+import { requireUser, spend } from "@/lib/quota";
 import { allow, clientKey } from "@/lib/limit";
 import { cached, remember } from "@/lib/cache";
 import { findSources } from "@/lib/sources";
@@ -32,6 +33,9 @@ const fail = (message: string, status: number) => Response.json({ error: message
 export async function POST(request: Request) {
   if (!isSeed(request) && !allow(`trail:${clientKey(request)}`, 4)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
+  const who = await requireUser(request);
+  if (who instanceof Response) return who;
+
   const body = await request.json().catch(() => null);
   const topic = typeof body?.topic === "string" ? body.topic.replace(/\s+/g, " ").trim() : "";
   const level = LEVELS.includes(body?.level) ? body.level : "Iniciante";
@@ -46,6 +50,9 @@ export async function POST(request: Request) {
   const key = topicKey(topic);
   const shared = await findTrail(key, level);
   if (shared) return Response.json({ ...shared, level });
+
+  const over = await spend(who.uid, "trail");
+  if (over) return over;
 
   const { sources, text } = await findSources(topic);
 

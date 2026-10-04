@@ -261,7 +261,8 @@ Com o login obrigatório, o Google não vê nada do que está dentro do app. Por
 7. **Domínio**: fica `noobrain.vercel.app` (decisão do Rodrigo: sem custos). Todos os URLs absolutos saem de uma constante `SITE_URL` em `lib/config.ts`, para mudar num só sítio se um dia houver domínio.
 8. Verificar: Lighthouse (SEO e desempenho ≥ 90 no telemóvel) e o [teste de resultados ricos](https://search.google.com/test/rich-results) numa página de tema.
 
-## Fase 4: segurança, desempenho e IA
+## Fase 4: segurança, desempenho e IA — FEITA (04/10/2026), falta o painel (Rodrigo)
+Notas: IA só com conta (401 sem sessão), cotas diárias (limites em `lib/quota.ts`, global por `AI_DAILY_MAX`), relatórios só com sessão, cabeçalhos de segurança, apagar conta já na Fase 2. Sem `SUPABASE_SECRET_KEY` no `.env.local`, a IA local responde 401: acrescentar a chave.
 1. **IA só com conta**:
    - `lib/api.ts` envia `authorization: Bearer <access_token>`;
    - `lib/auth.ts` → `userFrom(request)` com `admin.auth.getUser(token)`;

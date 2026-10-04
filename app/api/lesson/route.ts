@@ -1,6 +1,7 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { isSeed } from "@/lib/auth";
 import { findLesson, saveLesson } from "@/lib/catalog";
+import { requireUser, spend } from "@/lib/quota";
 import { allow, clientKey } from "@/lib/limit";
 import type { Lesson } from "@/lib/types";
 import { cached, remember } from "@/lib/cache";
@@ -40,6 +41,9 @@ const fail = (message: string, status: number) => Response.json({ error: message
 export async function POST(request: Request) {
   if (!isSeed(request) && !allow(`lesson:${clientKey(request)}`, 6)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
+  const who = await requireUser(request);
+  if (who instanceof Response) return who;
+
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
   const title = clean(body?.title, 60);
@@ -56,6 +60,9 @@ export async function POST(request: Request) {
   const conceptKey = topicKey(title);
   const shared = await findLesson(trailKey, level, conceptKey);
   if (shared) return Response.json({ lesson: shared });
+
+  const over = await spend(who.uid, "lesson");
+  if (over) return over;
 
   const found = await findSources(`${topic} ${title}`);
   const { text } = found.text ? found : await findSources(topic);

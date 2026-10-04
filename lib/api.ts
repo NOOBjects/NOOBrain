@@ -1,11 +1,13 @@
 import { getRaw, parse, update } from "./store";
+import { supabase } from "./supabase";
 import { topicKey } from "./topic";
 import type { Concept, Lesson, Source, Trail } from "./types";
 
 // Chamadas às rotas do servidor. Aqui ficam os resultados guardados no estado para não gastar a cota gratuita da IA à toa.
 
 async function post<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const token = (await supabase?.auth.getSession())?.data.session?.access_token;
+  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...(token && { authorization: `Bearer ${token}` }) }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? "Algo correu mal. Tenta outra vez.");
   return data as T;
