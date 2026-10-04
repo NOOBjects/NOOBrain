@@ -24,6 +24,19 @@ import { useSync } from "@/lib/useSync";
 
 type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias";
 
+/** "+N XP" que sobe quando o XP aumenta (ganhos grandes são ignorados: são a nuvem a carregar, não uma lição). */
+function XpGain({ xp }: { xp: number }) {
+  const [prev, setPrev] = useState(xp);
+  const [gain, setGain] = useState(0);
+  if (xp !== prev) { setPrev(xp); setGain(xp > prev && xp - prev <= 200 ? xp - prev : 0); }
+  useEffect(() => {
+    if (!gain) return;
+    const t = setTimeout(() => setGain(0), 1200);
+    return () => clearTimeout(t);
+  }, [gain, xp]);
+  return gain ? <span key={xp} className="xp-gain" aria-hidden="true">+{gain} XP</span> : null;
+}
+
 const TEMA = "noobrain:tema"; // tema escolhido numa página pública, à espera do login
 
 export function App({ landing }: { landing?: ReactNode }) {
@@ -131,12 +144,12 @@ export function App({ landing }: { landing?: ReactNode }) {
         </div>
         {showStats && <div className="stats">
           <span className="stat s" title="Dias seguidos"><Flame />{s.streak}</span>
-          <span className="stat x" title="Pontos de experiência"><Bolt />{s.xp}</span>
+          <span className="stat x" title="Pontos de experiência"><Bolt />{s.xp}<XpGain xp={s.xp} /></span>
         </div>}
         {!(view === "conta" && !user) && <button type="button" className="iconbtn ch" aria-label="Novo tema" onClick={() => go("novo")}><Plus /></button>}
       </header>
 
-      <main className="content">
+      <main key={view} className="content view-in">
         {BETA && user && profile && !betaSeen && (
           <div className="pane tint gap" role="status"><div className="in">
             <b>O NOOBrain está em beta</b>
@@ -238,12 +251,12 @@ export function App({ landing }: { landing?: ReactNode }) {
 
             <div className="pane gap"><div className="in prog">
               <div className="prog-top"><span>Progresso</span><span>{trail.done} de {total}</span></div>
-              <div className="bar ch" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></div>
+              <div className="bar ch" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
             </div></div>
 
             <div className="trail">
               {trail.concepts.map((c, i) => (
-                <TrailNode key={c.title + i} title={c.title} offset={ZIGZAG[i % ZIGZAG.length]}
+                <TrailNode key={c.title + i} index={i} title={c.title} offset={ZIGZAG[i % ZIGZAG.length]}
                   state={i < trail.done ? "done" : i === trail.done ? "cur" : "lock"}
                   onClick={() => (i <= trail.done ? openLesson(i) : notify("Conclui o conceito atual para desbloquear este."))} />
               ))}

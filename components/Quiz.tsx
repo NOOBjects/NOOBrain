@@ -26,7 +26,7 @@ export function Quiz({ questions, onFinish }: { questions: Question[]; onFinish:
   return (
     <div className="quiz">
       <div className="qtop">
-        <div className="bar ch"><i style={{ width: `${(i / questions.length) * 100}%` }} /></div>
+        <div className="bar ch"><i style={{ transform: `scaleX(${i / questions.length})` }} /></div>
         <span className="eyebrow">{i + 1}/{questions.length}</span>
       </div>
       <h2 className="q">{q.q}</h2>

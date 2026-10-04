@@ -433,7 +433,8 @@ revoke execute on function public.count_votes() from public, anon, authenticated
 - abre a partir do Perfil, do rodapé e do aviso da beta.
 O Rodrigo gere as ideias no Table Editor → `suggestions` (campos `status` e `reply`).
 
-## Fase 8: animações sem custo de desempenho
+## Fase 8: animações sem custo de desempenho — FEITA (04/10/2026), falta testar no telemóvel com CPU lenta (Rodrigo)
+Notas: troca de vista, nós da trilha, selo da ilha, pop e abanão no teste, barras com `scaleX` e chip "+N XP". Os cartões já viravam em 3D.
 Só CSS, só `transform` e `opacity`. A regra `prefers-reduced-motion` existente desliga tudo.
 - Troca de vista: `<div key={view} className="view-in">` com `animation: rise .28s` (o `@keyframes rise` já existe).
 - Nós da trilha e listas (Explorar, Ideias, Ranking) em cascata: `--i` e `animation-delay: calc(var(--i) * 40ms)`.

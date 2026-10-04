@@ -9,13 +9,13 @@ export type NodeState = "done" | "cur" | "lock";
 
 const LABEL: Record<NodeState, string> = { done: "feito", cur: "atual", lock: "bloqueado" };
 
-export function TrailNode({ title, state, offset, onClick }: { title: string; state: NodeState; offset: number; onClick?: () => void }) {
+export function TrailNode({ title, state, offset, index = 0, onClick }: { title: string; state: NodeState; offset: number; index?: number; onClick?: () => void }) {
   const Icon = state === "done" ? Check : state === "cur" ? Bolt : Lock;
   return (
     <button
       type="button"
       className={`node ${state}`}
-      style={{ "--x": `${offset}px` } as CSSProperties}
+      style={{ "--x": `${offset}px`, "--i": index } as CSSProperties}
       aria-label={`${title} (${LABEL[state]})`}
       aria-disabled={state === "lock" || undefined}
       onClick={onClick}

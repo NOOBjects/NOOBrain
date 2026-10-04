@@ -39,7 +39,7 @@ export function Island({ items, current }: { items: IslandItem[]; current: strin
           {items.map((it) => (
             <button key={it.id} type="button" className="isl ch" aria-current={current === it.id ? "page" : undefined} onClick={it.onClick}>
               {it.icon}<span className="isl-l">{it.label}</span>
-              {!!it.badge && <span className="badge" aria-label={`${it.badge} para rever`}>{it.badge}</span>}
+              {!!it.badge && <span key={it.badge} className="badge" aria-label={`${it.badge} para rever`}>{it.badge}</span>}
             </button>
           ))}
           <button type="button" className="isl-hide ch" aria-label="Esconder o menu" onClick={() => setHidden("manual")}><ChevronDown /></button>
