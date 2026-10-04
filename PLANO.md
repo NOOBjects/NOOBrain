@@ -445,6 +445,39 @@ Só CSS, só `transform` e `opacity`. A regra `prefers-reduced-motion` existente
 - Barra de progresso com `transform: scaleX`.
 - Testar no telemóvel com a CPU 4x mais lenta.
 
+## Fase 9: didática (ensinar DE FACTO) — PLANEADA, por fazer
+Pesquisa feita a 04/10/2026. Cada ponto abaixo tem a fonte; o que não tem fonte é hipótese minha e está marcado.
+
+### O que a investigação diz (resumo)
+1. **Recordar vale mais do que reler.** Praticar o teste e a distribuição no tempo foram as técnicas com maior utilidade em 10 analisadas, por funcionarem em várias idades e matérias ([Dunlosky et al., 2013](https://www.whz.de/fileadmin/lehre/hochschuldidaktik/docs/dunloskiimprovingstudentlearning.pdf)). Em Roediger e Karpicke (2006), quem praticou recordação reteve 61% de um texto após uma semana contra 40% de quem releu ([resumo](https://yukaichou.com/gamification-analysis/retrieval-practice-testing-effect-roediger-karpicke-learning/)); a vantagem aparece sobretudo a prazo, e é maior quando há feedback depois do teste ([Roediger e Karpicke, 2006](http://psychnet.wustl.edu/memory/wp-content/uploads/2018/04/Roediger-Karpicke-2006_PPS.pdf)).
+2. **Dificuldades desejáveis** (Bjork, 1994): espaçar, misturar temas (intercalar), testar e fazer a pessoa gerar a resposta tornam a aprendizagem mais lenta no momento e mais duradoura ([síntese](https://www.structural-learning.com/post/robert-bjork-teachers-guide-desirable)).
+3. **Rosenshine, 10 princípios:** rever o que se aprendeu, apresentar em passos pequenos, fazer perguntas, dar modelos, guiar a prática, verificar a compreensão, obter uma taxa de sucesso alta, dar apoios em tarefas difíceis, treinar a autonomia e rever todas as semanas e meses ([American Educator](https://www.aft.org/sites/default/files/Rosenshine.pdf)).
+4. **Carga cognitiva:** quem sabe pouco aprende mais com exemplos resolvidos do que a resolver problemas, e o efeito inverte-se com a experiência (efeito de inversão da perícia); a solução é ir retirando o apoio aos poucos ([síntese](https://education.nsw.gov.au/content/dam/main-education/about-us/educational-data/cese/2017-cognitive-load-theory.pdf)).
+5. **Multimédia (Mayer):** palavras mais imagens ensinam melhor do que só palavras; menos enfeites (coerência); narração com imagem sem repetir o mesmo texto no ecrã ([12 princípios](https://lucidea.com/blog/mayers-12-principles-of-multimedia-learning/)).
+6. **Feedback (Hattie e Timperley, 2007):** é mais útil ao nível da tarefa, do processo e da autorregulação; o elogio pessoal ("és ótimo!") ajuda pouco ([PDF](https://conselhopedagogico.tecnico.ulisboa.pt/files/sites/32/hattie-and-timperley-2007.pdf)).
+7. **Domínio antes de avançar (Bloom):** a aprendizagem por domínio (teste, feedback, correção antes de seguir) teve um grande efeito em grupo; o famoso "2 sigma" do tutor individual é contestado, mas o domínio em si aguenta ([análise](https://www.educationnext.org/two-sigma-tutoring-separating-science-fiction-from-science-fact/)).
+8. **Estilos de aprendizagem não têm base:** não há prova de que ensinar no "estilo" preferido ajude ([Pashler et al., 2008](https://digitalcommons.usf.edu/psy_facpub/1765/)). **Não pôr** escolha "visual/auditivo/..." no app.
+9. **Línguas:** as apps vão bem para vocabulário e compreensão (ler e ouvir), mas pouco para falar ([estudo](https://www.researchgate.net/publication/341904580_The_effectiveness_of_app-based_language_instruction_for_developing_receptive_linguistic_knowledge_and_oral_communicative_ability)); o reconhecimento de voz por IA ajuda na pronúncia ([ERIC](https://files.eric.ed.gov/fulltext/EJ1440171.pdf)).
+
+### Onde o app está hoje (o que já está bem e o que falta)
+- Bem: passos pequenos (explicação curta → cartões → teste), feedback com explicação, revisão espaçada por caixas (1, 3, 7, 16, 35 dias), tutor.
+- Falta: a lição **começa por ler** (passivo); o teste é só escolha múltipla (reconhecer, não recordar); **errar não obriga a corrigir** e o conceito abre com qualquer nota; as perguntas do teste **não entram na revisão**; a revisão não mistura temas; não há modelos que se "apagam" aos poucos; não há imagens; para línguas, nada de áudio nem fala.
+
+### Passos (por ordem de impacto; cada um é uma entrega pequena)
+1. **Domínio antes de avançar** (`LessonView.tsx`, `Quiz.tsx`): o conceito só conta como concluído com ≥ 2 de 3 certas; as erradas voltam no fim da ronda até acertar (corrigir antes de seguir). Mantém o XP menor se repetir.
+2. **Recordar primeiro** (`LessonView.tsx`, `lib/ai.ts`): antes da explicação, 1 pergunta de pré-teste ("o que achas que é...?", sem nota, só para ativar o que já sabes), depois a explicação, depois os cartões. Hipótese minha, apoiada em "gerar" e "ativar conhecimento prévio"; medir se as notas sobem.
+3. **Perguntas na revisão** (`lib/store.ts`, `ReviewView.tsx`): as perguntas do teste que a pessoa errou entram na fila de revisão espaçada, ao lado dos cartões.
+4. **Intercalar** (`ReviewView.tsx`): misturar temas e conceitos na mesma sessão de revisão, em vez de por trilha.
+5. **Outros tipos de pergunta** (`lib/ai.ts`, `Quiz.tsx`): completar a frase (cloze), ordenar passos e resposta curta escrita, avaliada pela IA com feedback ao nível do processo ("o que faltou e porquê"), sem elogios vazios.
+6. **Exemplos que se apagam** (`lib/ai.ts`): 1.º conceito da trilha com exemplo resolvido completo, depois exemplos com um passo em falta, depois só o problema.
+7. **Imagens e esquemas** (`Mascot`/novo `Figure.tsx`): quando o conceito é visual, um esquema simples gerado em SVG, sem texto repetido por baixo (coerência e redundância de Mayer).
+8. **Línguas, voz** (novo `lib/speech.ts`): ouvir com `speechSynthesis` do navegador (gratuito, sem chave) em cartões e frases; exercício "ouve e escolhe"; depois "repete a frase" com `SpeechRecognition` onde o navegador suportar (Chrome/Edge). Frases inteiras em contexto, não só palavras soltas. Para falar a sério, uma conversa guiada com o tutor (hipótese minha, depende da cota da IA).
+9. **Nível certo** (`lib/ai.ts`): um mini-teste de diagnóstico ao criar o tema para escolher entre Iniciante e Intermédio e manter a taxa de sucesso perto de 80% (Rosenshine, "alta taxa de sucesso").
+10. **Medir de verdade:** guardar por conceito as notas do 1.º teste e as da revisão aos 7 dias; olhar para elas antes e depois de cada mudança. Sem isto não se sabe se ensina.
+
+### Limites desta pesquisa
+Os resumos vêm de artigos e sínteses, não li os livros completos (Make It Stick, Visible Learning, Cognitive Load Theory de Sweller). Antes de ler como lei, ler os originais dos pontos 1, 2 e 7.
+
 ## Verificação
 | Verificar | Esperado |
 |---|---|
@@ -485,4 +518,4 @@ O que a pesquisa encontrou (outubro de 2026):
 3. Anúncios só se nada mais resultar.
 
 ## Ideias para depois
-Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
+Dashboard de administrador (gerir ideias, estados e respostas, ver relatórios de erro, números de uso; hoje faz-se no painel do Supabase) · Vozes e conversa para línguas (ver Fase 9, passo 8) · Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
