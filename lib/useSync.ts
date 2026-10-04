@@ -1,7 +1,8 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { PROFILE_COLUMNS, type Profile } from "./profile";
 import { getRaw, initial, parse, replace } from "./store";
 import { supabase } from "./supabase";
 import type { State } from "./types";
@@ -53,6 +54,7 @@ export function useSync() {
   const [settled, setSettled] = useState<string | null>(null); // conta cujo estado inicial já foi conciliado
   const [linkError, setLinkError] = useState<string | null>(null);
   const [welcome, setWelcome] = useState(false);
+  const [profileOf, setProfileOf] = useState<{ uid: string; data: Profile | null } | null>(null);
   const synced = useRef<string | null>(null); // conta autorizada a receber as mudanças locais
 
   useEffect(() => {
@@ -73,6 +75,20 @@ export function useSync() {
     const { data } = supabase.auth.onAuthStateChange((e, session) => { setUser(session?.user ?? null); if (e === "PASSWORD_RECOVERY") setRecovery(true); });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  // Perfil público da conta (undefined = ainda a carregar, null = ainda não criou).
+  const loadProfile = useCallback(async (uid: string) => {
+    const { data } = await supabase!.from("profiles").select(PROFILE_COLUMNS).eq("id", uid).maybeSingle();
+    setProfileOf({ uid, data: (data as Profile | null) ?? null });
+  }, []);
+  useEffect(() => {
+    if (!supabase || !user) return;
+    let live = true;
+    supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).maybeSingle().then(({ data }) => {
+      if (live) setProfileOf({ uid: user.id, data: (data as Profile | null) ?? null });
+    });
+    return () => { live = false; };
+  }, [user]);
 
   // Ao entrar: baixa o estado da nuvem e concilia com o do navegador.
   useEffect(() => {
@@ -124,5 +140,7 @@ export function useSync() {
     clearLinkError: () => setLinkError(null),
     signOut,
     welcome,
+    profile: user && profileOf?.uid === user.id ? profileOf.data : undefined,
+    reloadProfile: () => (user ? loadProfile(user.id) : Promise.resolve()),
   };
 }

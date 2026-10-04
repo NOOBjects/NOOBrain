@@ -9,16 +9,16 @@ export default function Page() {
     <LegalPage title="Política de privacidade">
       <p>O NOOBrain é uma app para aprender qualquer tema, feita pela NOOBjects. Esta página explica, em linguagem simples, que dados usamos e porquê.</p>
 
-      <h2>Sem conta</h2>
-      <p>Podes usar a app sem criar conta. Nesse caso, o teu progresso (trilhas, cartões, XP e sequência de dias) fica guardado apenas no teu navegador e não é enviado para nós.</p>
-
-      <h2>Com conta</h2>
-      <p>Se criares conta, guardamos:</p>
+      <h2>A tua conta</h2>
+      <p>Para usar o NOOBrain precisas de conta (e de ter pelo menos 13 anos). Guardamos:</p>
       <ul>
         <li>o teu e-mail e a tua palavra-passe (esta fica cifrada; nós nunca a vemos). Se entrares com o Google, recebemos o e-mail e os dados básicos de perfil;</li>
         <li>o teu progresso, para o poderes continuar em qualquer aparelho.</li>
       </ul>
       <p>Estes dados ficam no Supabase, num servidor em Paris (União Europeia), protegidos de forma a que cada pessoa só aceda aos seus.</p>
+
+      <h2>Perfil público</h2>
+      <p>O teu @nome, o nome a mostrar, o avatar, a descrição e as estatísticas (XP, sequência, temas concluídos) ficam num perfil que outras pessoas podem ver. Não uses o teu nome verdadeiro se não quiseres. Podes apagar a conta nas Definições e tudo desaparece.</p>
 
       <h2>O que sai da app para gerar as lições</h2>
       <ul>

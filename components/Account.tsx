@@ -1,15 +1,14 @@
 "use client";
 
-import type { AuthError, User } from "@supabase/supabase-js";
+import type { AuthError } from "@supabase/supabase-js";
 import Link from "next/link";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
-import { ReminderToggle } from "./ReminderToggle";
 import { supabase } from "@/lib/supabase";
 import { distance } from "@/lib/topic";
-import { OAUTH_KEY, type SyncStatus } from "@/lib/useSync";
+import { OAUTH_KEY } from "@/lib/useSync";
 
 // O botão do Google só aparece depois de o Google estar ligado no Supabase (ver .env.example).
 const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
@@ -17,13 +16,6 @@ const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 const CAPTCHA_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY || "4f9600c6-0b00-4992-94ec-72de30520826";
 const LAST_EMAIL = "noobrain:email";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-const STATUS: Record<SyncStatus, string> = {
-  off: "Sem sincronização",
-  syncing: "A sincronizar…",
-  saved: "Progresso guardado na nuvem",
-  error: "Não foi possível sincronizar. O progresso continua guardado neste aparelho.",
-};
 
 type Mode = "entrar" | "criar" | "esqueci" | "nova" | "enviado";
 type Sent = "signup" | "reset";
@@ -100,20 +92,18 @@ const LINK_ERROR: Record<string, string> = {
 };
 
 type Props = {
-  user: User | null;
   ready: boolean;
-  status: SyncStatus;
+  changing: boolean; // com sessão iniciada, a alterar a palavra-passe
+  onChangingEnd: (changed: boolean) => void;
   recovery: boolean;
   onRecovered: () => void;
   linkError: string | null;
   onClearLink: () => void;
   onSignedIn: (text: string) => void;
-  onSignOut: () => Promise<void>;
 };
 
-export function Account({ user, ready, status, recovery, onRecovered, linkError, onClearLink, onSignedIn, onSignOut }: Props) {
+export function Account({ ready, recovery, onRecovered, changing, onChangingEnd, linkError, onClearLink, onSignedIn }: Props) {
   const [pick, setMode] = useState<Mode>("entrar");
-  const [changing, setChanging] = useState(false); // com sessão iniciada, a alterar a palavra-passe
   const mode: Mode = recovery || changing ? "nova" : pick;
   const [email, setEmail] = useState(() => { try { return localStorage.getItem(LAST_EMAIL) ?? ""; } catch { return ""; } });
   const [password, setPassword] = useState("");
@@ -126,7 +116,6 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
   const [bad, setBad] = useState<{ email?: string; password?: string }>({});
   const [sent, setSent] = useState<Sent>("signup");
   const [wait, setWait] = useState(0); // segundos até poder reenviar o e-mail
-  const [done, setDone] = useState<string | null>(null);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -163,25 +152,6 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
           <div className="hero-mascot"><Mascot mood="think" /></div>
           <p className="sub">A verificar a sessão…</p>
         </div>
-      </div>
-    );
-
-  if (user && !recovery && !changing)
-    return (
-      <div className="account">
-        <div className="hero-mascot"><Mascot mood="happy" /></div>
-        <h1 className="h-screen">Sessão iniciada</h1>
-        <p className="sub">{user.email}{user.app_metadata.provider === "google" ? " · com o Google" : ""}</p>
-        <div className={`chip ch ${status === "error" ? "warnchip" : ""}`} role="status">{STATUS[status]}</div>
-        {done && <div className="note ch good" role="status">{done}</div>}
-        <p className="sub small">Inicia sessão com a mesma conta noutro aparelho para continuares de onde paraste.</p>
-        <ReminderToggle />
-        <div className="acts">
-            {user.app_metadata.providers?.includes("email") && (
-              <button type="button" className="btn soft" onClick={() => { setDone(null); setMsg(null); setPassword(""); setChanging(true); }}><span className="face">Alterar palavra-passe</span></button>
-            )}
-            <button type="button" className="btn soft" onClick={() => void onSignOut()}><span className="face">Terminar sessão</span></button>
-          </div>
       </div>
     );
 
@@ -254,7 +224,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
 
     if (mode === "nova") {
       setPassword("");
-      if (changing) { setChanging(false); setDone("Palavra-passe alterada."); return; }
+      if (changing) return onChangingEnd(true);
       onRecovered();
       return onSignedIn("Palavra-passe alterada. Sessão iniciada.");
     }
@@ -407,7 +377,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
             <button type="submit" className="btn block" disabled={busy}><span className="face">{busy ? "Um momento…" : LABEL[mode]}</span></button>
             {mode === "criar" && <p className="sub small">O teu e-mail e o teu progresso ficam guardados na União Europeia. Ao criares conta, aceitas os <Link href="/termos">Termos</Link> e a <Link href="/privacidade">Política de privacidade</Link>.</p>}
             {mode === "esqueci" && <button type="button" className="linkbtn" onClick={() => go("entrar")}>Voltar a entrar</button>}
-            {changing && <button type="button" className="linkbtn" onClick={() => { setChanging(false); setMsg(null); }}>Cancelar</button>}
+            {changing && <button type="button" className="linkbtn" onClick={() => { onChangingEnd(false); setMsg(null); }}>Cancelar</button>}
           </form>
         )}
       </div>

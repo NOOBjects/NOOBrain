@@ -111,7 +111,8 @@ Notas: falta só o "Já há lições sobre:" no ecrã de entrada e o botão "Exp
   - `signOut()` sem argumento: sai, faz `replace(initial)` e limpa o dono.
 - `Account.tsx`: remover o diálogo "Manter o progresso neste aparelho?". O progresso já vive na nuvem; "Terminar sessão" sai logo.
 
-## Fase 2: perfil, @nome, definições e sobre
+## Fase 2: perfil, @nome, definições e sobre — FEITA (04/10/2026)
+Notas: migração `perfis` aplicada (segurança sem avisos novos). Ficam para as suas fases: botões Partilhar perfil / Ranking / Ideias, o interruptor "Aparecer no ranking", "Explorar" na ilha, e na Privacidade o ranking, as sugestões, o push e os contadores de IA. "Apagar conta" (`DELETE /api/account`, `lib/admin.ts`, `lib/auth.ts`) já está feito aqui; falta só o resto da Fase 4. O Ko-fi é o texto "Fundraising em breve" no Sobre e no aviso da beta.
 ### Migração `perfis`
 ```sql
 create table public.profiles (

@@ -21,7 +21,7 @@ export default function Page() {
 
       <h2>A tua conta</h2>
       <p>Para usar o NOOBrain precisas de ter pelo menos 13 anos.</p>
-      <p>A conta é opcional. Mantém a tua palavra-passe em segredo, porque és responsável pelo que acontece na tua conta. Podes pedir o apagamento a qualquer momento (ver a <Link href="/privacidade">política de privacidade</Link>).</p>
+      <p>Precisas de conta para usar o NOOBrain. Mantém a tua palavra-passe em segredo, porque és responsável pelo que acontece na tua conta. Podes pedir o apagamento a qualquer momento (ver a <Link href="/privacidade">política de privacidade</Link>).</p>
 
       <h2>Uso aceitável</h2>
       <p>Não uses o NOOBrain para atividades ilegais, para prejudicar outras pessoas, para tentar aceder a contas ou sistemas que não são teus, ou para sobrecarregar o serviço com pedidos automáticos. Podemos limitar ou suspender o acesso a quem o fizer.</p>

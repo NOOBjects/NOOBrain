@@ -30,7 +30,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-PT" className={`${chakra.variable} ${figtree.variable}`}>
+    <html lang="pt-PT" className={`${chakra.variable} ${figtree.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: 'try{var t=localStorage.getItem("noobrain:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}' }} />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -8,7 +8,10 @@ import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
 import { Mascot, type Mood } from "./Mascot";
 import { NewTopic } from "./NewTopic";
+import { Onboarding } from "./Onboarding";
+import { ProfileView } from "./ProfileView";
 import { ReviewView } from "./ReviewView";
+import { Settings } from "./Settings";
 import { TrailNode, ZIGZAG } from "./TrailNode";
 import { BETA, VERSION } from "@/lib/config";
 import { CONTACT } from "@/lib/legal";
@@ -17,16 +20,19 @@ import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "conta";
+type View = "trilha" | "licao" | "revisar" | "novo" | "conta" | "perfil" | "definicoes";
 
 export function App() {
   const s = useAppState();
   const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
-  const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome } = useSync();
+  const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome, profile, reloadProfile } = useSync();
   const [pick, setView] = useState<View>("trilha");
   // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
   // sem conta, só existe o ecrã de entrada
-  const view: View = !user || recovery || linkError ? "conta" : pick;
+  const [changing, setChanging] = useState(false); // a alterar a palavra-passe, vindo das definições
+  const view: View = !user || recovery || linkError || changing ? "conta" : pick;
+  const booting = !!user && view !== "conta" && (loading || profile === undefined);
+  const needsProfile = !!user && view !== "conta" && profile === null;
   const showStats = hydrated && !loading && !(view === "conta" && !user);
   const [lesson, setLesson] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -85,7 +91,7 @@ export function App() {
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
     { id: "licao", label: "Lição", icon: <Book />, onClick: () => (trail ? openLesson(current) : go("novo")) },
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
-    { id: "conta", label: ready && !user ? "Entrar" : "Conta", icon: <User />, onClick: () => go("conta") },
+    { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
   ];
 
   return (
@@ -107,7 +113,7 @@ export function App() {
         {BETA && user && !betaSeen && (
           <div className="pane tint gap" role="status"><div className="in">
             <b>O NOOBrain está em beta</b>
-            <p className="sub small">Algumas coisas podem falhar ou mudar. As tuas ideias ajudam a decidir o que vem a seguir.</p>
+            <p className="sub small">Algumas coisas podem falhar ou mudar. As tuas ideias ajudam a decidir o que vem a seguir. Fundraising em breve.</p>
             <div className="beta-row">
               <button type="button" className="btn sm" onClick={closeBeta}><span className="face">Começar</span></button>
               <a className="btn soft sm" href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`} onClick={closeBeta}><span className="face">Dar uma ideia</span></a>
@@ -115,9 +121,9 @@ export function App() {
           </div></div>
         )}
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
-        {!hydrated ? null : user && loading && view !== "conta" ? (
+        {!hydrated ? null : booting ? (
           <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
-        ) : <>
+        ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha"); }} /> : <>
         {view === "novo" && (
           <NewTopic trails={s.trails}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha"); notify(`Abri a trilha “${t.topic}”`); }}
@@ -127,9 +133,19 @@ export function App() {
         {view === "revisar" && <ReviewView state={s} />}
 
         {view === "conta" && (
-          <Account user={user} ready={ready} status={status} recovery={recovery} onRecovered={endRecovery}
+          <Account ready={ready} recovery={recovery} onRecovered={endRecovery}
+            changing={changing} onChangingEnd={(changed) => { setChanging(false); setView("definicoes"); if (changed) notify("Palavra-passe alterada."); }}
             linkError={linkError} onClearLink={() => { setView("conta"); clearLinkError(); }}
-            onSignedIn={(t) => { go("trilha"); notify(t); }} onSignOut={signOut} />
+            onSignedIn={(t) => { go("trilha"); notify(t); }} />
+        )}
+
+        {view === "perfil" && user && profile && (
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} />
+        )}
+
+        {view === "definicoes" && user && profile && (
+          <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
+            onSignOut={async () => { setView("trilha"); await signOut(); }} onBack={() => go("perfil")} />
         )}
 
         {(view === "trilha" || view === "licao") && !trail && (
@@ -201,7 +217,7 @@ export function App() {
       </main>
       <footer className="foot"><LegalLinks /></footer>
 
-      {user && <Island items={items} current={view === "novo" ? "" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>
