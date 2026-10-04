@@ -11,6 +11,7 @@ export function ReviewView({ state }: { state: State }) {
   // A fila é congelada ao começar, para os cartões não sumirem da tela enquanto você avalia.
   const [queue, setQueue] = useState<ReturnType<typeof dueCards> | null>(null);
   const due = dueCards(state);
+  const groups = due.reduce<Record<string, typeof due>>((g, d) => ((g[d.topic] ??= []).push(d), g), {}); // Object.groupBy falha no iOS 16
   const learned = state.trails.reduce((n, t) => n + t.concepts.slice(0, t.done).filter((c) => c.lesson).length, 0);
 
   function onRate(id: string, r: 0 | 1 | 2) {
@@ -41,8 +42,8 @@ export function ReviewView({ state }: { state: State }) {
       {due.length > 0 ? (
         <>
           <div className="due">
-            {Object.entries(Object.groupBy(due, (d) => d.topic)).map(([topic, items]) => (
-              <div key={topic} className="pane"><div className="in due-row"><div><b>{topic}</b><div className="sub small">{items![0].concept}{items!.length > 1 ? " e outros" : ""}</div></div><span className="due-n">{items!.length}</span></div></div>
+            {Object.entries(groups).map(([topic, items]) => (
+              <div key={topic} className="pane"><div className="in due-row"><div><b>{topic}</b><div className="sub small">{items[0].concept}{items.length > 1 ? " e outros" : ""}</div></div><span className="due-n">{items.length}</span></div></div>
             ))}
           </div>
           <button type="button" className="btn block" onClick={() => setQueue(due)}><span className="face">Rever agora</span></button>

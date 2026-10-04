@@ -19,6 +19,8 @@ const LAST_EMAIL = "noobrain:email";
 /** Navegador embutido noutra app (Instagram, Facebook, TikTok, WebView...): o Google costuma bloquear o login aí. */
 function inAppBrowser() {
   const ua = navigator.userAgent;
+  // App instalado no ecrã principal (iPhone): o identificador não traz "Safari", mas não é outra app.
+  if (matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone) return false;
   if (/FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|BytedanceWebview|MicroMessenger|LinkedInApp|Twitter|; wv\)/i.test(ua)) return true;
   return /iPhone|iPad|iPod/.test(ua) && !/Safari|CriOS|FxiOS|EdgiOS|OPiOS/.test(ua); // WebView do iOS não traz "Safari"
 }
@@ -37,7 +39,7 @@ const TITLE: Record<Mode, string> = {
 };
 const SUB: Record<Exclude<Mode, "enviado">, string> = {
   entrar: "Inicia sessão para continuares de onde paraste, em qualquer aparelho.",
-  criar: "Com uma conta, o teu progresso acompanha-te em qualquer aparelho. É opcional: sem conta, tudo fica guardado só neste navegador.",
+  criar: "Cria a tua conta grátis. O teu progresso fica guardado e acompanha-te em qualquer aparelho.",
   esqueci: "Sem problema. Indica o teu e-mail e enviamos-te um link para criares uma nova.",
   nova: "Quase lá. Usa pelo menos 8 caracteres.",
 };
@@ -137,6 +139,13 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
   const [embedded] = useState(() => typeof navigator !== "undefined" && inAppBrowser());
+  const android = embedded && /Android/i.test(navigator.userAgent);
+  function copyLink() {
+    const link = window.location.origin;
+    const fail = () => setMsg({ ok: false, text: `Não consegui copiar. Escreve no navegador: ${window.location.host}` });
+    if (!navigator.clipboard) return fail();
+    navigator.clipboard.writeText(link).then(() => setMsg({ ok: true, text: "Link copiado. Cola-o no Chrome ou no Safari." }), fail);
+  }
   const captchaRef = useRef<HCaptcha>(null);
   // O hCaptcha só carrega quando a pessoa começa a usar o formulário (pesa muito na página inicial).
   const [armed, setArmed] = useState(false);
@@ -301,8 +310,10 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
           <>
             {embedded && (
               <div className="note ch" role="note">
-                Parece que abriste o NOOBrain dentro de outra app (como o WhatsApp). O Google pode bloquear o login aqui. Abre o link no Chrome ou no Safari, ou entra com e-mail.
-                <button type="button" className="linkbtn" onClick={() => void navigator.clipboard?.writeText(window.location.origin).then(() => setMsg({ ok: true, text: "Link copiado. Cola-o no Chrome ou no Safari." }))}>Copiar o link</button>
+                Abriste o NOOBrain dentro de outra app (como o Instagram ou o Facebook) e aqui o Google costuma bloquear a entrada.
+                {android ? " Abre no Chrome ou entra com e-mail." : " Toca em ⋯ e escolhe «Abrir no navegador», ou entra com e-mail."}
+                {android && <a className="linkbtn" href={`intent://${window.location.host}/#Intent;scheme=https;package=com.android.chrome;end`}>Abrir no Chrome</a>}
+                <button type="button" className="linkbtn" onClick={copyLink}>Copiar o link</button>
               </div>
             )}
             <button type="button" className="btn soft block" disabled={busy} onClick={google}>

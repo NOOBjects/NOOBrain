@@ -1,6 +1,6 @@
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { isSeed } from "@/lib/auth";
-import { findLesson, saveLesson } from "@/lib/catalog";
+import { findLesson, findTrail, saveLesson } from "@/lib/catalog";
 import { requireUser, spend } from "@/lib/quota";
 import { allow, clientKey } from "@/lib/limit";
 import type { Lesson } from "@/lib/types";
@@ -47,7 +47,6 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
   const title = clean(body?.title, 60);
-  const summary = clean(body?.summary, 400);
   const level = body?.level === "Intermediário" ? "Intermediário" : "Iniciante";
   if (!topic || !title) return fail("Pedido inválido.", 400);
 
@@ -60,6 +59,10 @@ export async function POST(request: Request) {
   const conceptKey = topicKey(title);
   const shared = await findLesson(trailKey, level, conceptKey);
   if (shared) return Response.json({ lesson: shared });
+
+  // O resumo vem do catálogo e não do pedido: assim ninguém muda o conteúdo de uma lição que serve toda a gente.
+  const known = (await findTrail(trailKey, level))?.concepts.find((c) => topicKey(c.title) === conceptKey);
+  const summary = known?.summary ?? clean(body?.summary, 400);
 
   const over = await spend(who.uid, "lesson");
   if (over) return over;
@@ -97,8 +100,10 @@ ${text}` : "Não há texto de referência: seja conservador.",
     };
     if (!lesson.intro.length || lesson.cards.length < 3 || lesson.quiz.length < 2) return fail("A lição veio incompleta. Tenta outra vez.", 502);
     const result = { lesson };
-    remember(cacheKey, result);
-    await saveLesson(trailKey, level, conceptKey, lesson);
+    if (known) { // só partilha lições de conceitos que existem numa trilha do catálogo
+      remember(cacheKey, result);
+      await saveLesson(trailKey, level, conceptKey, lesson);
+    }
     return Response.json(result);
   } catch (e) {
     return aiErrorResponse(e);
