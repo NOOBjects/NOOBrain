@@ -672,3 +672,13 @@ a.btn { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .account .mascot, .account .mascot .pupil, .meter i::after, .swap > *, .hint, .account .note { transition: none; animation: none; }
 }
+
+/* ---------- páginas legais e rodapé ---------- */
+.legal { display: grid; gap: 12px; max-width: 720px; margin-inline: auto; padding: 24px var(--gutter) 48px; }
+.legal .linkbtn { justify-self: start; }
+.prose { display: grid; gap: 10px; color: var(--ink-2); line-height: 1.6; }
+.prose h2 { margin: 14px 0 0; font-size: 18px; color: var(--ink); }
+.prose p, .prose ul { margin: 0; }
+.prose ul { padding-left: 20px; display: grid; gap: 6px; }
+.prose a, .legal-links a { color: var(--brand); }
+.foot { max-width: var(--content-max); margin-inline: auto; padding: 0 var(--gutter) 96px; text-align: center; }
