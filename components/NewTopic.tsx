@@ -31,8 +31,7 @@ export function NewTopic({ trails, onOpen, onDone }: {
     setLoading(true);
     try {
       const trail = await createTrail(topic, level);
-      // a trilha de exemplo sai de cena quando a primeira trilha de verdade chega
-      update((s) => ({ ...s, trails: [trail, ...s.trails.filter((t) => !t.example)], active: trail.id }));
+      update((s) => ({ ...s, trails: [trail, ...s.trails], active: trail.id }));
       onDone(trail.topic);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");

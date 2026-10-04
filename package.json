@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:topic": "node --test lib/topic.test.ts",
-    "check:merge": "node --test lib/merge.test.ts"
+    "check:topic": "node --test lib/topic.test.ts"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^2.2.0",

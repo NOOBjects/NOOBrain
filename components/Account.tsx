@@ -7,10 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
 import { ReminderToggle } from "./ReminderToggle";
-import { isBlank } from "@/lib/merge";
 import { supabase } from "@/lib/supabase";
 import { distance } from "@/lib/topic";
-import { useAppState } from "@/lib/useAppState";
 import { OAUTH_KEY, type SyncStatus } from "@/lib/useSync";
 
 // O botão do Google só aparece depois de o Google estar ligado no Supabase (ver .env.example).
@@ -110,11 +108,10 @@ type Props = {
   linkError: string | null;
   onClearLink: () => void;
   onSignedIn: (text: string) => void;
-  onSignOut: (keep: boolean) => Promise<void>;
+  onSignOut: () => Promise<void>;
 };
 
 export function Account({ user, ready, status, recovery, onRecovered, linkError, onClearLink, onSignedIn, onSignOut }: Props) {
-  const s = useAppState();
   const [pick, setMode] = useState<Mode>("entrar");
   const [changing, setChanging] = useState(false); // com sessão iniciada, a alterar a palavra-passe
   const mode: Mode = recovery || changing ? "nova" : pick;
@@ -129,7 +126,6 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
   const [bad, setBad] = useState<{ email?: string; password?: string }>({});
   const [sent, setSent] = useState<Sent>("signup");
   const [wait, setWait] = useState(0); // segundos até poder reenviar o e-mail
-  const [leaving, setLeaving] = useState(false);
   const [done, setDone] = useState<string | null>(null);
 
   useEffect(() => {
@@ -180,22 +176,12 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
         {done && <div className="note ch good" role="status">{done}</div>}
         <p className="sub small">Inicia sessão com a mesma conta noutro aparelho para continuares de onde paraste.</p>
         <ReminderToggle />
-        {leaving ? (
-          <div className="pane leave"><div className="in">
-            <b>Manter o progresso neste aparelho?</b>
-            <p className="sub small">Continua sempre guardado na tua conta. Num computador partilhado, apaga-o daqui.</p>
-            <button type="button" className="btn block" onClick={() => onSignOut(true)}><span className="face">Manter e sair</span></button>
-            <button type="button" className="btn soft block" onClick={() => onSignOut(false)}><span className="face">Apagar daqui e sair</span></button>
-            <button type="button" className="linkbtn" onClick={() => setLeaving(false)}>Cancelar</button>
-          </div></div>
-        ) : (
-          <div className="acts">
+        <div className="acts">
             {user.app_metadata.providers?.includes("email") && (
               <button type="button" className="btn soft" onClick={() => { setDone(null); setMsg(null); setPassword(""); setChanging(true); }}><span className="face">Alterar palavra-passe</span></button>
             )}
-            <button type="button" className="btn soft" onClick={() => setLeaving(true)}><span className="face">Terminar sessão</span></button>
+            <button type="button" className="btn soft" onClick={() => void onSignOut()}><span className="face">Terminar sessão</span></button>
           </div>
-        )}
       </div>
     );
 
@@ -206,12 +192,6 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
   const fix = suggest(email);
   const box = inbox(email);
   const note: Msg | null = msg ?? (linkError ? { ok: false, text: LINK_ERROR[linkError] ?? "Não foi possível concluir o início de sessão. Tenta outra vez." } : null);
-  const mine = s.trails.filter((t) => !t.example).length;
-  const keep = isBlank(s) ? null : [
-    mine ? `${mine} ${mine === 1 ? "trilha" : "trilhas"}` : "",
-    `${s.xp} XP`,
-    s.streak ? `${s.streak} ${s.streak === 1 ? "dia seguido" : "dias seguidos"}` : "",
-  ].filter(Boolean).join(" · ");
 
   function go(m: Mode) {
     setMode(m);
@@ -328,7 +308,6 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
         ) : (
           <p className="sub">{SUB[mode]}</p>
         )}
-        {mode === "criar" && keep && <div className="chip ch">Vais guardar: {keep}</div>}
 
         {GOOGLE && (mode === "entrar" || mode === "criar") && (
           <>

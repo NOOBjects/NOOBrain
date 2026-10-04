@@ -93,7 +93,8 @@ Notas: o valor interno do nível "Intermediário" não mudou (está nas trilhas 
    - nos prompts (`lib/ai.ts`, `app/api/*`), "português de Portugal (europeu), Acordo Ortográfico de 1990";
    - mensagens de erro também em PT-PT.
 
-## Fase 1: login obrigatório e começar do zero
+## Fase 1: login obrigatório e começar do zero — FEITA (04/10/2026)
+Notas: falta só o "Já há lições sobre:" no ecrã de entrada e o botão "Explorar temas" (dependem do catálogo, Fase 3). No `useSync`, a nuvem manda, mas fica o progresso do navegador se já for da mesma conta e mais recente (evita perder o último 1,5 s).
 - Apagar: `lib/merge.ts`, `lib/merge.test.ts` (e o script `check:merge`), `components/MergeChoice.tsx`, `lib/sample.ts` (o `ZIGZAG` passa para `TrailNode.tsx`).
 - `lib/store.ts`:
   - `initial` sem trilhas (`trails: []`, `active: ""`);

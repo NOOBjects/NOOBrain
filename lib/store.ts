@@ -1,9 +1,8 @@
-import { exampleTrail } from "./sample";
 import { topicKey } from "./topic";
 import type { Card, State, Trail } from "./types";
 
 // Guarda tudo no navegador (localStorage). Com conta, o componente Sync copia o mesmo estado para o Supabase.
-export const initial: State = { trails: [exampleTrail], active: exampleTrail.id, xp: 0, streak: 0, lastDay: null, cards: {}, updatedAt: 0 };
+export const initial: State = { trails: [], active: "", xp: 0, streak: 0, lastDay: null, cards: {}, updatedAt: 0 };
 
 const KEY = "noobrain:v2";
 const listeners = new Set<() => void>();
@@ -29,9 +28,9 @@ export function parse(raw: string | null): State {
   if (!raw) return initial;
   try {
     const s = { ...initial, ...JSON.parse(raw) } as State;
-    if (!s.trails?.length) return initial;
-    // estados salvos por versões anteriores podem não ter `key` nem `sources`
-    s.trails = s.trails.map((t) => ({ ...t, key: t.key ?? topicKey(t.topic), sources: t.sources ?? [] }));
+    if (!Array.isArray(s.trails)) return initial;
+    // estados guardados por versões anteriores podem ter a trilha de exemplo e não ter `key` nem `sources`
+    s.trails = s.trails.filter((t) => !(t as { example?: boolean }).example).map((t) => ({ ...t, key: t.key ?? topicKey(t.topic), sources: t.sources ?? [] }));
     return s;
   } catch {
     return initial;
@@ -54,7 +53,7 @@ export function replace(s: State) {
   write(s);
 }
 
-export const activeTrail = (s: State): Trail => s.trails.find((t) => t.id === s.active) ?? s.trails[0];
+export const activeTrail = (s: State): Trail | undefined => s.trails.find((t) => t.id === s.active) ?? s.trails[0];
 
 // ---------- sequência de dias ----------
 const day = (d: Date) => d.toLocaleDateString("sv"); // AAAA-MM-DD no fuso do usuário

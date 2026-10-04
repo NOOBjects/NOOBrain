@@ -7,14 +7,12 @@ import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
 import { Mascot, type Mood } from "./Mascot";
-import { MergeChoice } from "./MergeChoice";
 import { NewTopic } from "./NewTopic";
 import { ReviewView } from "./ReviewView";
-import { TrailNode } from "./TrailNode";
+import { TrailNode, ZIGZAG } from "./TrailNode";
 import { BETA, VERSION } from "@/lib/config";
 import { CONTACT } from "@/lib/legal";
 import { notifyDue } from "@/lib/reminders";
-import { ZIGZAG } from "@/lib/sample";
 import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
@@ -24,11 +22,12 @@ type View = "trilha" | "licao" | "revisar" | "novo" | "conta";
 export function App() {
   const s = useAppState();
   const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
-  const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, conflict, resolve, signOut, welcome } = useSync();
+  const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome } = useSync();
   const [pick, setView] = useState<View>("trilha");
   // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
-  const view: View = recovery || linkError ? "conta" : pick;
-  const showStats = hydrated && !loading && !conflict && !(view === "conta" && !user);
+  // sem conta, só existe o ecrã de entrada
+  const view: View = !user || recovery || linkError ? "conta" : pick;
+  const showStats = hydrated && !loading && !(view === "conta" && !user);
   const [lesson, setLesson] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
@@ -42,10 +41,10 @@ export function App() {
   }
 
   const trail = activeTrail(s);
-  const total = trail.concepts.length;
-  const pct = Math.round((trail.done / total) * 100);
+  const total = trail?.concepts.length ?? 0;
+  const pct = total ? Math.round((trail!.done / total) * 100) : 0;
   const dueCount = useMemo(() => dueCards(s).length, [s]);
-  const current = Math.min(trail.done, total - 1);
+  const current = trail ? Math.min(trail.done, total - 1) : 0;
   const streakAtRisk = s.streak > 0 && s.lastDay !== new Date().toLocaleDateString("sv");
 
   // Lembretes: selo no título da aba e aviso do sistema quando o app está em segundo plano.
@@ -84,7 +83,7 @@ export function App() {
 
   const items = [
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
-    { id: "licao", label: "Lição", icon: <Book />, onClick: () => openLesson(current) },
+    { id: "licao", label: "Lição", icon: <Book />, onClick: () => (trail ? openLesson(current) : go("novo")) },
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "conta", label: ready && !user ? "Entrar" : "Conta", icon: <User />, onClick: () => go("conta") },
   ];
@@ -116,7 +115,9 @@ export function App() {
           </div></div>
         )}
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
-        {!hydrated ? null : conflict ? <MergeChoice conflict={conflict} onPick={resolve} /> : <>
+        {!hydrated ? null : user && loading && view !== "conta" ? (
+          <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
+        ) : <>
         {view === "novo" && (
           <NewTopic trails={s.trails}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha"); notify(`Abri a trilha “${t.topic}”`); }}
@@ -131,19 +132,27 @@ export function App() {
             onSignedIn={(t) => { go("trilha"); notify(t); }} onSignOut={signOut} />
         )}
 
-        {view === "licao" && (
+        {(view === "trilha" || view === "licao") && !trail && (
+          <div className="hero-new">
+            <div className="hero-mascot"><Mascot /></div>
+            <h1 className="h-screen">Escolhe o teu primeiro tema</h1>
+            <p className="sub">Escreve qualquer tema e eu monto-te uma trilha com lições, cartões e testes.</p>
+            <button type="button" className="btn block" onClick={() => go("novo")}><span className="face">Criar um tema</span></button>
+          </div>
+        )}
+
+        {view === "licao" && trail && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify}
             onBack={() => go("trilha")} onNext={() => { setLesson((i) => i + 1); celebrate(); window.scrollTo({ top: 0 }); }} />
         )}
 
-        {view === "trilha" && (
+        {view === "trilha" && trail && (
           <>
             <div className="unit">
               <div>
                 <div className="eyebrow">{trail.level}</div>
                 <h1 className="h-screen">{trail.topic}</h1>
               </div>
-              {trail.example && <span className="chip ex ch">Exemplo</span>}
             </div>
 
             {dueCount > 0 && (
@@ -169,7 +178,7 @@ export function App() {
 
             {trail.sources.length > 0 ? (
               <div className="sources">{trail.sources.map((src) => <a key={src.url} className="chip ch srcchip" href={src.url} target="_blank" rel="noreferrer">{src.site ?? "Fonte"} · {src.title}</a>)}</div>
-            ) : !trail.example && (
+            ) : (
               <span className="chip ch warnchip">Sem fonte encontrada. Confirma o conteúdo com cuidado.</span>
             )}
 
@@ -192,7 +201,7 @@ export function App() {
       </main>
       <footer className="foot"><LegalLinks /></footer>
 
-      <Island items={items} current={view === "novo" ? "" : view} />
+      {user && <Island items={items} current={view === "novo" ? "" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>

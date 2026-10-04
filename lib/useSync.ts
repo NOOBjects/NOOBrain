@@ -2,7 +2,6 @@
 
 import type { User } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
-import { isBlank, merge, sameProgress } from "./merge";
 import { getRaw, initial, parse, replace } from "./store";
 import { supabase } from "./supabase";
 import type { State } from "./types";
@@ -39,13 +38,11 @@ async function push(uid: string, s: State, setStatus: (x: SyncStatus) => void) {
 }
 
 export type SyncStatus = "off" | "syncing" | "saved" | "error";
-export type Conflict = { local: State; remote: State };
 
 /**
  * Mantém o estado do navegador e a nuvem iguais enquanto há uma conta ativa.
- * - Progresso deste navegador já é da conta (OWNER = id): vence o `updatedAt` mais recente.
- * - Progresso feito sem conta e diferente do da conta: a pessoa escolhe (juntar, conta ou aparelho).
- * - Progresso de outra conta: é trocado pelo da conta que entrou, sem misturar.
+ * - A nuvem manda. Só se o progresso deste navegador já for desta conta (OWNER = id) e mais recente, fica o do navegador.
+ * - Conta sem nada na nuvem: começa do zero, a não ser que o navegador já fosse dela.
  */
 export function useSync() {
   const state = useAppState();
@@ -54,7 +51,6 @@ export function useSync() {
   const [ready, setReady] = useState(!supabase); // sem Supabase configurado, não há o que esperar
   const [status, setStatus] = useState<SyncStatus>("off");
   const [settled, setSettled] = useState<string | null>(null); // conta cujo estado inicial já foi conciliado
-  const [conflict, setConflict] = useState<Conflict | null>(null);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [welcome, setWelcome] = useState(false);
   const synced = useRef<string | null>(null); // conta autorizada a receber as mudanças locais
@@ -90,16 +86,8 @@ export function useSync() {
       if (error) { setStatus("error"); setSettled(uid); return; }
       const remote = data?.data as State | undefined;
       const local = parse(getRaw());
-      const owner = getOwner();
-      if (remote && owner === null && !isBlank(local) && !sameProgress(local, remote)) {
-        setConflict({ local, remote });
-        setStatus("off");
-        setSettled(uid);
-        return;
-      }
-      let next = local;
-      if (remote && (owner !== uid || remote.updatedAt > local.updatedAt)) next = remote;
-      else if (!remote && owner !== null && owner !== uid) next = initial; // conta nova num navegador com progresso de outra conta
+      const mine = getOwner() === uid; // o progresso deste navegador já é desta conta
+      const next = remote ? (mine && local.updatedAt > remote.updatedAt ? local : remote) : mine ? local : initial;
       if (next !== local) replace(next);
       setOwner(uid);
       synced.current = uid;
@@ -117,23 +105,10 @@ export function useSync() {
     return () => clearTimeout(t);
   }, [state, user]);
 
-  /** Resposta à tela de conflito. */
-  async function resolve(choice: "juntar" | "conta" | "aparelho") {
-    if (!conflict || !user) return;
-    const next = choice === "juntar" ? merge(conflict.local, conflict.remote)
-      : choice === "conta" ? conflict.remote
-      : { ...conflict.local, updatedAt: Date.now() };
-    replace(next);
-    setOwner(user.id);
-    synced.current = user.id;
-    setConflict(null);
-    await push(user.id, next, setStatus);
-  }
-
-  /** Terminar sessão. keep = false apaga o progresso deste navegador (continua guardado na conta). */
-  async function signOut(keep: boolean) {
+  /** Terminar sessão: o progresso continua na conta; este navegador fica limpo. */
+  async function signOut() {
     await supabase!.auth.signOut(); // primeiro sair, para a limpeza abaixo não subir para a nuvem
-    if (!keep) replace(initial);
+    replace(initial);
     setOwner(null);
     setStatus("off");
   }
@@ -147,8 +122,6 @@ export function useSync() {
     endRecovery: () => setRecovery(false),
     linkError,
     clearLinkError: () => setLinkError(null),
-    conflict,
-    resolve,
     signOut,
     welcome,
   };

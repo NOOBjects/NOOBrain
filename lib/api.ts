@@ -15,7 +15,7 @@ export const newId = () => `t${Date.now().toString(36)}${Math.random().toString(
 
 export async function createTrail(topic: string, level: string): Promise<Trail> {
   const d = await post<{ topic: string; level: string; concepts: Concept[]; sources: Source[] }>("/api/trail", { topic, level });
-  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, concepts: d.concepts, sources: d.sources, example: false, done: 0 };
+  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, concepts: d.concepts, sources: d.sources, done: 0 };
 }
 
 const pending = new Map<string, Promise<void>>();

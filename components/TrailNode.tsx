@@ -2,6 +2,9 @@ import type { CSSProperties } from "react";
 import { Bolt, Check, Lock } from "./Icons";
 import { Mascot } from "./Mascot";
 
+// Deslocamento horizontal de cada nó, em px, para a trilha ziguezaguear.
+export const ZIGZAG = [0, 34, 52, 34, 0, -34, -52, -34];
+
 export type NodeState = "done" | "cur" | "lock";
 
 const LABEL: Record<NodeState, string> = { done: "feito", cur: "atual", lock: "bloqueado" };

@@ -11,7 +11,6 @@ export type Trail = {
   level: string;
   concepts: Concept[];
   sources: Source[];
-  example: boolean;
   done: number; // quantos conceitos já foram concluídos
 };
 
