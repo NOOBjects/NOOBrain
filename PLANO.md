@@ -13,6 +13,23 @@ As regras gerais estão no `CLAUDE.md`.
 ## Já feito
 Identidade e mascote · tema → trilha com IA (Groq gratuito) e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e lembretes push com o app fechado · temas parecidos, cache e catálogo partilhado (9 temas, 72 lições) · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT, captcha, idade mínima de 13 anos · perfil com @nome e avatar, definições, apagar conta · Explorar, landing e páginas de tema para o Google (sitemap enviado) · IA só com conta, cotas diárias, cabeçalhos de segurança · ranking semanal e perfil público · mural de ideias com votos · animações leves · ilha de menu, responsivo, tema claro e escuro · privacidade e termos · ícones, manifesto, robots e sitemap · funções em Paris (`cdg1`) · aviso no login quando o app abre dentro de outra app · Novidades, boas-vindas à beta e avisos de atualização (Fase 11) · ensinar de facto II (Fase 13: aquecimento, completar frase, ordenar passos, resposta curta corrigida pela IA, exemplos que se apagam, teste de nível, prompts em PT-PT) · ensinar de facto I (Fase 12: corrigir o erro, domínio 2/3, perguntas falhadas na revisão, revisão intercalada, retenção aos 7 dias) · cada ecrã com endereço e "voltar" sem passar pelo login (Fase 10) · correções da auditoria (Fase 9: Rever no iOS 16, temas impróprios recusados, lição partilhada protegida).
 
+## Estado atual e o que falta (atualizado a 05/10/2026)
+Quem continuar (outro modelo, na nuvem): ler esta secção primeiro. O trabalho local do Rodrigo parou aqui.
+
+**Publicado na `main`** (versão 0.9.5 em `lib/changelog.ts`):
+- Fases 9 a 13 (ver "Já feito"), mais os pedidos do Rodrigo depois de as testar: "voltar" que nunca regressa ao login nem ao perfil (`App.tsx`: marca `nb` no histórico e recarrega ao voltar da cache do navegador); mascote só onde reage, ícones grandes (`HeroIco`) nos outros ecrãs; boas-vindas da beta na cor da marca; Novidades por categorias (Novo / Melhorias / Corrigido) com as regras no `AGENTS.md`; teste com correção legível (ícone de certo ou errado, "Resposta certa" e "Porquê" separados); ordenar passos **arrastando** pela pega (rato, dedo ou setas do teclado); aquecimento que diz logo se acertaste.
+- Migrações já aplicadas no Supabase: `reports_user`, `novidades` (`push_subscriptions.news_sent`), `diagnostic` (`catalog_trails.diagnostic`).
+
+**Pendente, por ordem**
+1. **hCaptcha (o Rodrigo pediu para o tirar).** O código já está pronto num commit **só no computador dele** e no ramo `sem-captcha` do GitHub (`components/Account.tsx` sem captcha, `.env.example`, changelog). **Não publicar na `main` antes de o Rodrigo desligar o captcha no Supabase** (Authentication → Attack Protection → "Enable Captcha protection"); senão ninguém consegue entrar. Depois: juntar o ramo à `main` (a entrada do changelog tem de passar a 0.9.6, por cima da 0.9.5), `npm run build`, publicar, e com o ok do Rodrigo `npm uninstall @hcaptcha/react-hcaptcha`. Sem captcha, contas falsas em massa são o risco: vigiar `auth.users` nos primeiros dias; as cotas da IA e o limite por IP já limitam o custo.
+2. **Catálogo: lições refeitas com os campos novos** (aquecimento, completar frase, ordenar, resposta curta, exemplos que se apagam, teste de nível). Estado a 05/10 ao fim do dia: 7 temas completos; **Primeiros socorros** com 6 de 8 lições novas; **Teoria das cores** sem nenhuma (e sem `diagnostic`). A IA devolveu 502 várias vezes no fim (provável limite diário do Groq gratuito: esperar). Só se corre no computador do Rodrigo (`SEED_TOKEN` e chave secreta só existem no `.env.local`), com `npm run dev` noutro terminal: `npm run seed:catalog -- --refresh "--only=Primeiros socorros,Teoria das cores"`. Verificar com SQL: por tema, lições com `lesson ? 'warmup'` = nº de conceitos e `diagnostic is not null`. Enquanto faltar, o app funciona: as lições antigas não têm os campos novos e mostram-se como antes.
+3. **Conferir no site** as linhas novas da tabela "Verificação" (Fases 9 a 13). Nada disto foi testado com conta no navegador (o captcha impedia o login em `localhost`; sem captcha, fica fácil): lição completa com aquecimento, teste com os 4 tipos de pergunta, "Quase lá" e repetir o teste, perguntas falhadas na revisão, retenção no Perfil, teste de nível ao criar tema, "voltar" depois de entrar com o Google e depois de criar o perfil.
+4. **Pequenos ajustes de qualidade a ver com o Rodrigo**: (a) algumas lições geradas trazem ortografia antiga ou brasileira ("electrones", "factos" vs "fatos"); considerar uma passagem de revisão ortográfica PT-PT depois de a IA responder; (b) cada tentativa falhada do teste dá 5 XP por certa, o que se pode repetir só por XP (limitar a 1.ª tentativa por conceito e sessão, se for abuso); (c) a mesma pergunta de "ordenar" repete-se em vários conceitos do mesmo tema (pedir à IA passos específicos do conceito); (d) o "Quase lá" usa o mascote: trocar por ícone se o Rodrigo quiser menos mascote.
+5. **Roteiro: Fases 14 a 18** (por baixo). Antes de executar cada uma, detalhá-la com código testado, como foi feito nas Fases 9 a 11.
+6. **Rodrigo**: desenhos (ícones das categorias, olhos e acessórios do mascote, emblema "Feito com IA · NOOBjects"); link do Ko-fi; testar no telemóvel (Google no Android e no iPhone, app instalado). **O Rodrigo já confirmou as Redirect URLs do Supabase** (`https://noobrain.vercel.app/**` e `http://localhost:*/**`).
+
+**Pedidos do Rodrigo ainda sem fase** (anotados em "Ideias para depois"): imagens, voz e vídeo nas lições. A voz já está na Fase 17 (línguas); imagens, vídeo e esquemas mais ricos estão em "Ideias para depois".
+
 ## Registo de alterações (changelog)
 Vive em `lib/changelog.ts` e aparece no app em Novidades.
 
@@ -30,7 +47,7 @@ Vive em `lib/changelog.ts` e aparece no app em Novidades.
 - Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
 
 ## Por decidir ou fazer (Rodrigo)
-1. **Antes de publicar a Fase 10**: confirmar que as Redirect URLs do Supabase (Authentication → URL Configuration) aceitam `/entrar`: `https://noobrain.vercel.app/**` e `http://localhost:3000/**` (com `/**`). Se só lá estiver o endereço sem `/**`, o login funciona, mas a janela do Google não se fecha sozinha.
+1. ~~Redirect URLs do Supabase~~ confirmadas a 05/10/2026.
 2. **Testar no telemóvel**: depois da Fase 10, o login do Google no Android (Chrome), no iPhone (Safari) e no app instalado; e o que ficou da Fase 8 (CPU 4x mais lenta).
 3. **Ko-fi**: criar a conta e dar o link. Vai para `lib/config.ts` → `KOFI_URL` e substitui o "Fundraising em breve" (Sobre, Novidades e boas-vindas da beta).
 4. **Desenhos** (para as Fases 15 e 16): ícones das categorias do Explorar, olhos e acessórios do mascote, emblema "Feito com IA · NOOBjects".
@@ -162,6 +179,15 @@ Os resumos vêm de artigos e sínteses, não li os livros completos (Make It Sti
 | 11 | selo Beta | abre Novidades; o cartão de novidades deixa de aparecer |
 | 11 | agendamento com a versão `aviso: true` | um aviso "Novidades no NOOBrain" por aparelho; tocar abre Novidades; `news_sent` = versão |
 | 11 | iPhone sem o app instalado → "Sim, avisa-me" | toast a explicar "Adicionar ao ecrã principal" |
+| 12 | no teste, errar uma pergunta | mostra "Resposta certa" e "Porquê"; volta no fim da ronda até acertar; a barra só avança nas resolvidas |
+| 12 | acertar menos de 2/3 à primeira | ecrã "Quase lá"; o conceito seguinte continua fechado; "Rever a explicação" e "Repetir o teste" funcionam |
+| 12 | errar uma pergunta de escolha múltipla e abrir Rever | a pergunta aparece com as opções; certa = "Bom", errada volta em 10 min |
+| 12 | Perfil depois de rever um cartão com intervalo de 7 dias ou mais | "Retenção aos 7 dias: X%" |
+| 13 | abrir uma lição refeita | aquecimento com resposta imediata → explicação → cartões → teste com completar, ordenar e resposta curta |
+| 13 | ordenar passos arrastando (rato e dedo) e com as setas do teclado na pega | a lista reordena-se ao arrastar; "Verificar" corrige |
+| 13 | resposta curta sem ligação ou com a cota esgotada | "Sem correção" e conta como certa |
+| 13 | criar tema novo no Iniciante | "Queres um teste rápido?"; 3 de 3 sugere o Intermediário |
+| 13 | lição antiga (sem campos novos) | abre como antes, sem erros |
 | sempre | janela anónima no site | só o ecrã de entrada, com Beta e temas |
 | sempre | conta nova | 0 XP, sem trilhas, "Cria o teu perfil" com a caixa dos 13 anos |
 | sempre | `update profiles set xp = 999` pelo navegador | recusado |
@@ -190,4 +216,29 @@ O que a pesquisa encontrou (outubro de 2026):
 3. Anúncios só se nada mais resultar.
 
 ## Ideias para depois
-Vazio: tudo o que estava aqui entrou nas Fases 11 a 18. Ideias novas entram aqui numa linha; o Opus planeia-as depois.
+Ideias novas entram aqui numa linha; antes de as executar, detalhar com código testado. O Rodrigo decide a ordem.
+
+**Pedidas pelo Rodrigo (05/10/2026)**
+- **Imagens nas lições**: fotos e diagramas com licença livre (Wikimedia Commons tem API sem chave) com legenda, atribuição e texto alternativo; a IA só escolhe o termo de pesquisa, nunca gera nem copia imagens. Esquemas próprios em SVG estão na Fase 17.
+- **Vídeo**: só ligações e incorporações de sítios com licença ou privacidade (YouTube no modo `youtube-nocookie`, Wikimedia), escolhidas à mão pelo Rodrigo por tema ou validadas (a IA não inventa links); nunca alojar vídeo (plano gratuito).
+- **Voz além das línguas**: ler a lição em voz alta (`speechSynthesis`, grátis), ditar perguntas ao tutor (`SpeechRecognition`), modo "ouvir enquanto andas".
+
+**Ensino**
+- Mais exercícios de arrastar: ligar pares (termo ↔ definição), etiquetar um esquema, agrupar por categoria.
+- "Desafio do dia": 5 perguntas misturadas de tudo o que já aprendeste (intercalar), com XP a dobrar.
+- Congelar a sequência (um dia de folga por semana) para não punir a vida real.
+- Cartões próprios: criar e editar cartões; exportar para Anki.
+- Trilha a partir de um texto, PDF ou ligação colados pela pessoa (com cota própria e verificação de adequação).
+- Lição de "revisão final" com perguntas de todos os conceitos da trilha, ligada à retenção (Fase 12).
+- Níveis além de Iniciante e Intermediário, e salto de nível sugerido pelo desempenho, não só pelo teste de entrada.
+
+**Social e conteúdo**
+- Partilhar uma trilha por ligação (cópia para outra pessoa); trilhas populares criadas por utilizadores no Explorar, com moderação.
+- Metas semanais partilháveis no perfil público.
+
+**Qualidade e confiança**
+- Revisão ortográfica PT-PT depois de a IA responder; lista de brasileirismos a evitar nos prompts.
+- Validar o XP no servidor (por lição concluída) se o ranking ganhar peso.
+- Painel de qualidade: lições mais reportadas ("Reportar erro"), com botão para as refazer.
+- Acessibilidade: tamanho da letra, fonte para dislexia, auditoria com leitor de ecrã, contraste em ambos os temas.
+- Inglês da interface (i18n) se o app sair de Portugal.
