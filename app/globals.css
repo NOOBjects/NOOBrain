@@ -230,6 +230,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .chip.beta { background: var(--sun); color: var(--on-sun); padding: 5px 9px; font: 700 11px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; }
 .beta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+button.chip.beta { cursor: pointer; }
+button.chip.beta:hover:not(:disabled) { background: var(--sun-deep); color: var(--on-sun); }
+/* listas das novidades e das boas-vindas */
+.news-list { margin: 8px 0 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.release h2 { margin: 6px 0 0; font: 700 18px/1.25 var(--font-display); }
+/* janela por cima do app (boas-vindas da beta): <dialog> nativo; o painel chanfrado vai dentro */
+dialog.sheet { border: 0; padding: 0; background: transparent; color: inherit; width: min(100% - 32px, 460px); max-height: calc(100dvh - 32px); overflow: auto; }
+dialog.sheet::backdrop { background: color-mix(in srgb, var(--ink) 55%, transparent); }
+dialog.sheet .hero-mascot { margin-inline: auto; }
+dialog.sheet h2 { margin: 10px 0 4px; }
+dialog.sheet .pane.tint { margin-top: 14px; }
 .eyebrow { font: 600 12px/1.2 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
 .ico { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.2em; }
 

@@ -25,4 +25,6 @@ export type State = {
   lastDay: string | null;
   cards: Record<string, CardState>;
   updatedAt: number;
+  seenVersion?: string; // última versão cujas novidades já viu (sem valor = ainda não viu o aviso da beta)
+  notify?: { reviews?: boolean; news?: boolean }; // avisos que quer: reviews sem valor = sim; news sem valor = ainda não respondeu
 };

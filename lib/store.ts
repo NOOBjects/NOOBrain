@@ -53,6 +53,9 @@ export function replace(s: State) {
   write(s);
 }
 
+/** Quer este tipo de aviso? Os lembretes de revisão estão ligados por omissão; as novidades só com um "sim". */
+export const wants = (s: State, kind: "reviews" | "news") => (kind === "reviews" ? s.notify?.reviews !== false : s.notify?.news === true);
+
 export const activeTrail = (s: State): Trail | undefined => s.trails.find((t) => t.id === s.active) ?? s.trails[0];
 
 // ---------- sequência de dias ----------

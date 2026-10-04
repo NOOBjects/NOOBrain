@@ -86,8 +86,9 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
       </div></section>
 
       <section className="pane gap"><div className="in set">
-        <div className="eyebrow">Lembretes</div>
+        <div className="eyebrow">Avisos</div>
         <ReminderToggle />
+        <ReminderToggle kind="news" quiet />
         <button type="button" className="btn soft sm" onClick={() => void sendTest()}><span className="face">Enviar aviso de teste</span></button>
         {test && <p className="sub small" role="status">{test}</p>}
       </div></section>

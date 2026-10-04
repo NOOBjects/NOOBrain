@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Account } from "./Account";
+import { Announce } from "./Announce";
 import { Explore } from "./Explore";
 import { Bolt, Book, Compass, Flame, Idea, Plus, Route, Sync, User } from "./Icons";
 import { Ideas } from "./Ideas";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
+import { News } from "./News";
 import { Mascot, type Mood } from "./Mascot";
 import { NewTopic } from "./NewTopic";
 import { Onboarding } from "./Onboarding";
@@ -22,8 +24,8 @@ import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias";
-const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias"]; // "trilha" é o endereço sem ?v=
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias" | "novidades";
+const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias", "novidades"]; // "trilha" é o endereço sem ?v=
 
 // Cada ecrã tem endereço próprio (/?v=revisar, /?v=licao&c=2). Assim o "voltar" do telemóvel anda entre ecrãs, como num site,
 // e recarregar a página não perde o sítio. O Next deixa usar pushState sem recarregar (ver guia "single-page-applications").
@@ -74,14 +76,6 @@ export function App({ landing }: { landing?: ReactNode }) {
   const showStats = hydrated && !loading && !(view === "conta" && !user);
   const [toast, setToast] = useState<string | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
-  // Aviso da beta: uma vez por conta (a chave leva o id da pessoa).
-  const betaKey = user ? `noobrain:beta-seen:${user.id}` : null;
-  const [betaDone, setBetaDone] = useState<string | null>(null);
-  const betaSeen = !betaKey || !hydrated || betaDone === betaKey || (() => { try { return localStorage.getItem(betaKey) === "1"; } catch { return false; } })();
-  function closeBeta() {
-    setBetaDone(betaKey);
-    try { if (betaKey) localStorage.setItem(betaKey, "1"); } catch { /* sem armazenamento: o aviso volta */ }
-  }
 
   const trail = activeTrail(s);
   const total = trail?.concepts.length ?? 0;
@@ -95,9 +89,9 @@ export function App({ landing }: { landing?: ReactNode }) {
   // Lembretes: selo no título da aba e aviso do sistema quando o app está em segundo plano.
   const due = useRef(dueCount);
   useEffect(() => {
-    due.current = dueCount;
+    due.current = s.notify?.reviews === false ? 0 : dueCount; // lembretes de revisão desligados: sem aviso local
     document.title = dueCount > 0 ? `(${dueCount}) NOOBrain` : "NOOBrain";
-  }, [dueCount]);
+  }, [dueCount, s.notify?.reviews]);
   useEffect(() => {
     const tick = () => notifyDue(due.current);
     const id = setInterval(tick, 60_000);
@@ -165,7 +159,9 @@ export function App({ landing }: { landing?: ReactNode }) {
         <div className="brand">
           <div className="brand-mascot"><Mascot mood={mood} /></div>
           <div className="brand-text"><div className="name"><b>NOOB</b>rain</div><div className="by">por NOOBjects</div></div>
-          {BETA && <span className="chip ch beta" title={`Versão beta ${VERSION}`}>Beta</span>}
+          {BETA && (user && profile
+            ? <button type="button" className="chip ch beta" title={`Versão beta ${VERSION}: ver as novidades`} onClick={() => go("novidades")}>Beta</button>
+            : <span className="chip ch beta" title={`Versão beta ${VERSION}`}>Beta</span>)}
         </div>
         {showStats && <div className="stats">
           <span className="stat s" title="Dias seguidos"><Flame />{s.streak}</span>
@@ -175,20 +171,12 @@ export function App({ landing }: { landing?: ReactNode }) {
       </header>
 
       <main key={view} className="content view-in">
-        {BETA && user && profile && !betaSeen && (
-          <div className="pane tint gap" role="status"><div className="in">
-            <b>O NOOBrain está em beta</b>
-            <p className="sub small">Algumas coisas podem falhar ou mudar. As tuas ideias ajudam a decidir o que vem a seguir. Fundraising em breve.</p>
-            <div className="beta-row">
-              <button type="button" className="btn sm" onClick={closeBeta}><span className="face">Começar</span></button>
-              <button type="button" className="btn soft sm" onClick={() => { closeBeta(); go("ideias"); }}><span className="face">Dar uma ideia</span></button>
-            </div>
-          </div></div>
-        )}
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
         {!hydrated ? landing : booting ? (
           <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
+        {user && profile && view === "trilha" && <Announce state={s} uid={user.id} onNews={() => go("novidades")} toast={notify} />}
+        {view === "novidades" && <News state={s} onIdeas={() => go("ideias")} />}
         {view === "novo" && (
           <NewTopic trails={s.trails}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha", undefined, true); notify(`Abri a trilha “${t.topic}”`); }}
@@ -310,9 +298,9 @@ export function App({ landing }: { landing?: ReactNode }) {
         )}
         </>}
       </main>
-      <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} /></footer>
+      <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} onNews={user && profile ? () => go("novidades") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" || view === "novidades" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
 
       <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
     </div>

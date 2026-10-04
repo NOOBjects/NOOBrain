@@ -1,5 +1,7 @@
 // Lembretes de revisão. Com o app aberto ou em segundo plano, o próprio navegador avisa (`notifyDue`).
 // Com o app fechado, o servidor envia um aviso push (`/api/cron/remind`) para as subscrições guardadas aqui.
+import { VERSION } from "./config";
+import { getRaw, parse, update } from "./store";
 import { supabase } from "./supabase";
 
 const VAPID = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -35,6 +37,7 @@ async function subscribePush(reg: ServiceWorkerRegistration) {
   const j = sub.toJSON();
   await supabase.from("push_subscriptions").upsert({
     endpoint: sub.endpoint, user_id: uid, p256dh: j.keys?.p256dh ?? "", auth: j.keys?.auth ?? "", tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    news_sent: VERSION, // um aparelho novo não recebe o aviso da versão que já está a ver
   });
 }
 
@@ -58,6 +61,22 @@ export async function disable() {
     await supabase?.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
     await sub.unsubscribe();
   } catch { /* nada a limpar */ }
+}
+
+/**
+ * Liga ou desliga um tipo de aviso na conta ("reviews" = lembretes de revisão, "news" = novidades).
+ * Ligar pede a permissão do aparelho, se ainda não houver. Desligar o último tipo desliga os avisos do aparelho.
+ * Devolve false se o aparelho não deixou ligar (sem suporte, permissão recusada ou iPhone sem o app no ecrã principal).
+ */
+export async function setNotify(kind: "reviews" | "news", on: boolean) {
+  const before = parse(getRaw()).notify ?? {};
+  // Quem liga só as novidades num aparelho sem avisos não passa a receber também os lembretes de revisão.
+  const quiet = on && kind === "news" && snapshot() !== "on" && before.reviews === undefined ? { reviews: false } : {};
+  update((s) => ({ ...s, notify: { ...s.notify, ...quiet, [kind]: on } }));
+  if (on) return enable();
+  const n = parse(getRaw()).notify ?? {};
+  if (n.reviews === false && !n.news) await disable();
+  return true;
 }
 
 /** Mostra o lembrete se estiver ligado, houver cartões vencidos e a pessoa não estiver olhando o app. */

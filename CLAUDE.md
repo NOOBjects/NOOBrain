@@ -50,6 +50,7 @@ Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado
 | fontes (wikis), cache, limite por IP | `lib/sources.ts`, `lib/cache.ts`, `lib/limit.ts` |
 | temas parecidos | `lib/topic.ts` + `lib/topic.test.ts` (`npm run check:topic`) |
 | ícones do site, metadados, manifesto | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `app/opengraph-image.png`, `app/layout.tsx`, `app/manifest.ts` |
+| novidades, versão, avisos de atualização | `lib/changelog.ts`, `News.tsx`, `Announce.tsx`, `ReminderToggle.tsx` |
 | e-mails do Supabase | `emails/` (ver `emails/README.md`) |
 
 ## Antes de dizer que terminou
@@ -70,4 +71,4 @@ Erros comuns:
 - **Supabase**: projeto `NOOBrain`, ref `klrgitkxdhofsqwyisvn`, Paris, conta dev.noobjects@gmail.com. Tabelas `progress` e `reports`, com RLS. Login por e-mail (SMTP do Gmail) e Google. A chave pública é pública por natureza; a proteção é o RLS. Antes de mudar o banco, lista as tabelas; apagar tabelas, colunas ou dados pede confirmação.
 - **IA**: chave em `AI_API_KEY`. Fornecedor: **Groq gratuito** (o Gemini gratuito não pode servir a UE nem menores). Sem faturação: a IA tem de ficar sempre gratuita. Idade mínima do app: 13 anos.
 - **Variáveis na Vercel e segredos**: quem as põe é o Rodrigo (as permissões bloqueiam o agente). Diz-lhe o nome exato e onde.
-- **Publicar** (só quando pedido): verificação acima → `git status` sem `.env*` → commit em português com a linha de coautoria → `git push`. No fim, abrir o site e confirmar.
+- **Publicar** (só quando pedido): verificação acima → mudança visível: entrada nova no topo de `lib/changelog.ts` → `git status` sem `.env*` → commit em português com a linha de coautoria → `git push`. No fim, abrir o site e confirmar.
