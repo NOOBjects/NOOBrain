@@ -1,7 +1,16 @@
 export type Source = { title: string; url: string; site?: string };
 export type Card = { term: string; definition: string };
 export type Question = { q: string; options: string[]; answer: number; why: string };
-export type Lesson = { intro: string[]; example: string; cards: Card[]; quiz: Question[] };
+/** Pergunta de aquecimento: sem "porquê"; a resposta certa aparece no fim da explicação. */
+export type Warmup = { q: string; options: string[]; answer: number };
+/** Completar a frase: `text` traz "___" no lugar da resposta; `accept` são variantes aceites. */
+export type Cloze = { text: string; answer: string; accept: string[] };
+/** Ordenar passos: `steps` está na ordem certa; o app baralha. */
+export type Order = { prompt: string; steps: string[] };
+/** Resposta curta, avaliada pela IA; `ref` é o que uma boa resposta tem de dizer. */
+export type Short = { q: string; ref: string };
+// Os campos depois de `quiz` são opcionais: as lições antigas continuam a funcionar.
+export type Lesson = { intro: string[]; example: string; solution?: string; cards: Card[]; quiz: Question[]; warmup?: Warmup; cloze?: Cloze[]; order?: Order[]; short?: Short[] };
 export type Concept = { title: string; summary: string; lesson?: Lesson };
 
 export type Trail = {
@@ -12,6 +21,7 @@ export type Trail = {
   concepts: Concept[];
   sources: Source[];
   done: number; // quantos conceitos já foram concluídos
+  diagnostic?: Question[]; // 3 perguntas para escolher o nível (só vêm da IA ao criar o tema)
 };
 
 /** Estado de um cartão na revisão espaçada: caixa (0 a 4) e quando vence (ms desde 1970). */

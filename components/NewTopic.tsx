@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { HeroIco, Idea } from "./Icons";
+import { Quiz } from "./Quiz";
 import { createTrail } from "@/lib/api";
 import { update } from "@/lib/store";
 import { sameTopic } from "@/lib/topic";
@@ -19,6 +20,8 @@ export function NewTopic({ trails, onOpen, onDone }: {
   const [force, setForce] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Teste rápido para escolher o nível: só no Iniciante e se a trilha trouxe as perguntas.
+  const [check, setCheck] = useState<{ trail: Trail; stage: "ask" | "quiz" | "easy" } | null>(null);
 
   // Já existe uma trilha sobre o mesmo assunto, mesmo escrito com outras palavras? Então abrimos essa, sem gastar IA.
   const match = !force ? trails.find((t) => t.level === level && sameTopic(t.topic, topic)) : undefined;
@@ -31,12 +34,54 @@ export function NewTopic({ trails, onOpen, onDone }: {
     setLoading(true);
     try {
       const trail = await createTrail(topic, level);
-      update((s) => ({ ...s, trails: [trail, ...s.trails], active: trail.id }));
+      update((s) => ({ ...s, trails: [{ ...trail, diagnostic: undefined }, ...s.trails], active: trail.id }));
+      if (trail.diagnostic?.length === 3 && level === "Iniciante") { setLoading(false); return setCheck({ trail, stage: "ask" }); }
       onDone(trail.topic);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");
       setLoading(false);
     }
+  }
+
+  async function goIntermediate(from: Trail) {
+    setLoading(true);
+    setError(null);
+    try {
+      const harder = await createTrail(from.topic, "Intermediário");
+      update((s) => ({ ...s, trails: [{ ...harder, diagnostic: undefined }, ...s.trails.filter((x) => x.id !== from.id)], active: harder.id }));
+      onDone(harder.topic);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");
+      setLoading(false);
+    }
+  }
+
+  if (check) {
+    const { trail } = check;
+    return (
+      <div className="newtopic">
+        <div className="hero-new">
+          <HeroIco><Idea /></HeroIco>
+          {check.stage === "ask" && <>
+            <h1 className="h-screen">Queres um teste rápido?</h1>
+            <p className="sub">São 3 perguntas para ver se o nível Iniciante é o certo para ti.</p>
+            <button type="button" className="btn block" onClick={() => setCheck({ trail, stage: "quiz" })}><span className="face">Fazer o teste</span></button>
+            <button type="button" className="btn soft block" onClick={() => onDone(trail.topic)}><span className="face">Saltar</span></button>
+          </>}
+          {check.stage === "easy" && <>
+            <h1 className="h-screen">Foi fácil!</h1>
+            <p className="sub">Acertaste as 3 à primeira. Queres começar no nível Intermediário?</p>
+            {error && <div className="note ch" role="alert">{error}</div>}
+            <button type="button" className="btn block" disabled={loading} onClick={() => void goIntermediate(trail)}><span className="face">{loading ? "A montar a trilha…" : "Sim, Intermediário"}</span></button>
+            <button type="button" className="btn soft block" disabled={loading} onClick={() => onDone(trail.topic)}><span className="face">Ficar no Iniciante</span></button>
+          </>}
+        </div>
+        {check.stage === "quiz" && (
+          <Quiz items={trail.diagnostic!.map((q) => ({ kind: "mc" as const, ...q }))} retry={false}
+            onFinish={(first) => (first === 3 ? setCheck({ trail, stage: "easy" }) : onDone(trail.topic))} />
+        )}
+      </div>
+    );
   }
 
   return (

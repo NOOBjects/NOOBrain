@@ -6,6 +6,17 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.9.4",
+    date: "2026-10-05",
+    title: "Lições mais ativas",
+    novo: [
+      "Antes de cada explicação, uma pergunta de aquecimento: pensar primeiro ajuda a lembrar depois.",
+      "Novos tipos de pergunta no teste: completar a frase, ordenar passos e responder numa frase, com correção e explicação.",
+      "Ao criar um tema, um teste rápido de 3 perguntas ajuda a escolher o nível.",
+    ],
+    melhorias: ["Os exemplos vão perdendo ajudas ao longo da trilha: primeiro vês a resolução, depois completas um passo, por fim resolves tu.", "Lições dos temas iniciais refeitas com tudo isto."],
+  },
+  {
     version: "0.9.3",
     date: "2026-10-04",
     title: "Aprender de verdade: corrigir, dominar e rever",

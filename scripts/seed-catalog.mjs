@@ -1,12 +1,14 @@
 // Enche o catálogo com os temas iniciais. Corre-se no computador, com o servidor local ligado:
 //   1) npm run dev            (noutro terminal)
-//   2) npm run seed:catalog
+//   2) npm run seed:catalog              (só o que falta)
+//      npm run seed:catalog -- --refresh   (refaz trilhas e lições já guardadas)
 // Precisa de SEED_TOKEN e SUPABASE_SECRET_KEY no .env.local (nunca na Vercel).
 // Espera entre pedidos para caber nos limites gratuitos da IA (8000 tokens por minuto por modelo).
 const BASE = process.env.SEED_URL || "http://localhost:3000";
 const TOKEN = process.env.SEED_TOKEN;
 const DELAY = Number(process.env.SEED_DELAY) || 20_000;
 const LEVEL = "Iniciante";
+const REFRESH = process.argv.includes("--refresh");
 const TOPICS = [
   "Fotossíntese", "Sistema Solar", "Fernando Pessoa", "Inglês para iniciantes", "Revolução dos Cravos",
   "Inteligência Artificial", "Finanças pessoais", "Primeiros socorros", "Teoria das cores",
@@ -32,10 +34,10 @@ async function post(path, body) {
 
 for (const topic of TOPICS) {
   console.log(`\n${topic}`);
-  const trail = await post("/api/trail", { topic, level: LEVEL });
+  const trail = await post("/api/trail", { topic, level: LEVEL, refresh: REFRESH });
   for (const [i, c] of trail.concepts.entries()) {
     console.log(`  ${i + 1}/${trail.concepts.length} ${c.title}`);
-    await post("/api/lesson", { topic: trail.topic, level: LEVEL, title: c.title, summary: c.summary });
+    await post("/api/lesson", { topic: trail.topic, level: LEVEL, title: c.title, summary: c.summary, refresh: REFRESH });
   }
 }
 console.log("\nFeito.");

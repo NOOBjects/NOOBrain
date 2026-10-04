@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { Deck } from "./Deck";
 import { Mascot } from "./Mascot";
-import { Quiz } from "./Quiz";
+import { Quiz, type QuizItem } from "./Quiz";
 import { Tutor } from "./Tutor";
-import { ensureLesson } from "@/lib/api";
+import { ensureLesson, judgeAnswer } from "@/lib/api";
 import { applyRating, bumpStreak, rate, update } from "@/lib/store";
-import type { Trail } from "@/lib/types";
+import type { Lesson, Trail } from "@/lib/types";
 
 const STEPS = ["Aprender", "Memorizar", "Testar"];
+
+/** As perguntas de escolha múltipla vêm primeiro (o índice delas é o das perguntas guardadas na revisão); depois os outros tipos. */
+const quizItems = (l: Lesson): QuizItem[] => [
+  ...l.quiz.map((q) => ({ kind: "mc" as const, ...q })),
+  ...(l.cloze ?? []).map((c) => ({ kind: "cloze" as const, ...c })),
+  ...(l.order ?? []).map((o) => ({ kind: "order" as const, ...o })),
+  ...(l.short ?? []).map((s) => ({ kind: "short" as const, ...s })),
+];
 
 /** Lição guiada: 1) entender o conceito, 2) fixar na memória com cartões, 3) testar com o quiz. O tutor fica à mão em qualquer passo. */
 export function LessonView({ trail, index, onBack, onNext, notify }: {
@@ -27,6 +35,8 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
   const [tutor, setTutor] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ first: number; total: number; gain: number; fresh: boolean; pass: boolean } | null>(null);
+  const [warm, setWarm] = useState<number | null>(null); // resposta ao aquecimento (-1 = passou)
+  const [showSol, setShowSol] = useState(false);
   const [attempt, setAttempt] = useState(0); // muda a cada "Repetir o teste", para o teste recomeçar
 
   useEffect(() => {
@@ -38,14 +48,15 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
   // Domínio: o conceito só fica concluído com pelo menos 2/3 das perguntas certas à primeira.
   function finishQuiz(first: number, missed: number[]) {
-    const total = lesson!.quiz.length;
+    const total = quizItems(lesson!).length;
     const pass = first >= Math.ceil((total * 2) / 3);
     const fresh = index === trail.done; // só o conceito atual libera o próximo
     const gain = pass ? (fresh ? 10 * first + 10 : 5 * first) : 5 * first;
     const key = `${trail.id}:${index}`;
     update((s) => {
       const cards = { ...s.cards };
-      for (const k of missed) { // as perguntas falhadas entram na revisão espaçada
+      for (const k of missed) { // as perguntas de escolha múltipla falhadas entram na revisão espaçada
+        if (k >= lesson!.quiz.length) continue;
         const id = `${key}:q${k}`;
         if (!cards[id]) cards[id] = rate(undefined, 0);
       }
@@ -135,17 +146,37 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
           {step === 0 && (
             <section className="step" aria-label="Aprender">
+              {lesson.warmup && warm === null ? (
+                <>
+                  <p className="step-intro">Antes de começar: o que achas? Não conta para nada, é só para pensares no assunto.</p>
+                  <h2 className="q">{lesson.warmup.q}</h2>
+                  <div className="opts" role="group" aria-label="Alternativas">
+                    {lesson.warmup.options.map((o, k) => <button key={k} type="button" className="opt pane" onClick={() => setWarm(k)}><span className="in">{o}</span></button>)}
+                  </div>
+                  <button type="button" className="linkbtn" onClick={() => setWarm(-1)}>Não faço ideia, vamos ver</button>
+                </>
+              ) : <>
               <p className="step-intro">Primeiro, percebe o que é.</p>
               <div className="blocks">
                 {blocks.slice(0, reveal).map((b, i) => (
                   <div key={i} className={`pane reveal${i === blocks.length - 1 ? " tint" : ""}`}><div className="in"><p>{b}</p></div></div>
                 ))}
               </div>
+              {reveal >= blocks.length && lesson.solution && (showSol
+                ? <div className="pane reveal"><div className="in"><p><b>Solução:</b> {lesson.solution}</p></div></div>
+                : <button type="button" className="btn soft block" onClick={() => setShowSol(true)}><span className="face">Mostrar a solução</span></button>)}
+              {reveal >= blocks.length && lesson.warmup && warm !== null && (
+                <div className="pane tint reveal"><div className="in">
+                  <p><b>Lembras-te da pergunta do início?</b> {lesson.warmup.q}</p>
+                  <p>Resposta: {lesson.warmup.options[lesson.warmup.answer]}. {warm === lesson.warmup.answer ? "Acertaste." : warm >= 0 ? "Não faz mal: agora já sabes." : ""}</p>
+                </div></div>
+              )}
               {reveal < blocks.length ? (
                 <button type="button" className="btn block" onClick={() => setReveal((r) => r + 1)}><span className="face">Continuar</span></button>
               ) : (
                 <button type="button" className="btn block" onClick={() => go(1)}><span className="face">Percebi, vamos memorizar</span></button>
               )}
+              </>}
             </section>
           )}
 
@@ -167,7 +198,8 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
           {step === 2 && (
             <section className="step" aria-label="Testar">
               <p className="step-intro">Por fim, testa os teus conhecimentos.</p>
-              <Quiz key={attempt} questions={lesson.quiz} onFinish={finishQuiz} />
+              <Quiz key={attempt} items={quizItems(lesson)} onFinish={finishQuiz}
+                judge={(s, answer) => judgeAnswer({ topic: trail.topic, title: concept.title, question: s.q, ref: s.ref, answer })} />
             </section>
           )}
 

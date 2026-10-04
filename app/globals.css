@@ -256,6 +256,9 @@ dialog.sheet .welcome { padding: 0; }
 .hero-ico { display: block; width: 84px; margin: 0 auto 6px; filter: drop-shadow(0 var(--depth) 0 var(--brand-deep)); }
 .hero-ico > .ch { --c: 16px; display: grid; place-items: center; width: 84px; height: 84px; background: var(--brand); color: var(--on-brand); font-size: 44px; }
 /* Novidades: grupos por tipo de mudança */
+.ord { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.ord li { display: flex; align-items: center; gap: 8px; }
+.ord li > .pane { flex: 1; min-width: 0; }
 .rel-group { margin-top: 14px; }
 .rel-tag { --c: 6px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--brand-soft); color: var(--brand); font: 700 12px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; }
 .rel-group.novo .rel-tag { background: var(--brand); color: var(--on-brand); }
