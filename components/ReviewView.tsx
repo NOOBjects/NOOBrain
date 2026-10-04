@@ -35,8 +35,8 @@ export function ReviewView({ state }: { state: State }) {
   return (
     <div>
       <div className="eyebrow">Revisão espaçada</div>
-      <h1 className="h-screen">{due.length ? `${due.length} ${due.length === 1 ? "cartão" : "cartões"} para hoje` : "Nada para revisar agora"}</h1>
-      <p className="sub">Você revisa no momento em que está prestes a esquecer. Cada acerto espaça mais a próxima revisão.</p>
+      <h1 className="h-screen">{due.length ? `${due.length} ${due.length === 1 ? "cartão" : "cartões"} para hoje` : "Nada para rever agora"}</h1>
+      <p className="sub">Revês no momento em que estás prestes a esquecer. Cada acerto espaça mais a próxima revisão.</p>
 
       {due.length > 0 ? (
         <>
@@ -45,15 +45,15 @@ export function ReviewView({ state }: { state: State }) {
               <div key={topic} className="pane"><div className="in due-row"><div><b>{topic}</b><div className="sub small">{items![0].concept}{items!.length > 1 ? " e outros" : ""}</div></div><span className="due-n">{items!.length}</span></div></div>
             ))}
           </div>
-          <button type="button" className="btn block" onClick={() => setQueue(due)}><span className="face">Revisar agora</span></button>
+          <button type="button" className="btn block" onClick={() => setQueue(due)}><span className="face">Rever agora</span></button>
         </>
       ) : (
         <div className="empty">
           <div className="hero-mascot"><Mascot /></div>
           <p className="sub center">
             {learned
-              ? "Seus cartões estão em dia. Volte mais tarde, eles aparecem quando chegar a hora de rever."
-              : "Conclua o quiz de um conceito na trilha. Os cartões dele entram aqui para revisão."}
+              ? "Os teus cartões estão em dia. Volta mais tarde: aparecem quando chegar a hora de rever."
+              : "Conclui o teste de um conceito na trilha. Os cartões dele entram aqui para revisão."}
           </p>
         </div>
       )}
@@ -61,7 +61,7 @@ export function ReviewView({ state }: { state: State }) {
       <div className="pane gap"><div className="in remind-box"><div className="eyebrow">Lembretes</div><ReminderToggle /></div></div>
 
       <div className="pane tint gap"><div className="in ladder-box">
-        <div className="eyebrow">Intervalos de um cartão que você acerta</div>
+        <div className="eyebrow">Intervalos de um cartão que acertas</div>
         <div className="ladder"><i />1 dia <i />3 dias <i />7 dias <i />16 dias <i />35 dias</div>
       </div></div>
     </div>

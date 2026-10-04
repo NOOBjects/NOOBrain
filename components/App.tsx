@@ -11,6 +11,8 @@ import { MergeChoice } from "./MergeChoice";
 import { NewTopic } from "./NewTopic";
 import { ReviewView } from "./ReviewView";
 import { TrailNode } from "./TrailNode";
+import { BETA, VERSION } from "@/lib/config";
+import { CONTACT } from "@/lib/legal";
 import { notifyDue } from "@/lib/reminders";
 import { ZIGZAG } from "@/lib/sample";
 import { activeTrail, dueCards, update } from "@/lib/store";
@@ -30,6 +32,14 @@ export function App() {
   const [lesson, setLesson] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
+  // Aviso da beta: uma vez por conta (a chave leva o id da pessoa).
+  const betaKey = user ? `noobrain:beta-seen:${user.id}` : null;
+  const [betaDone, setBetaDone] = useState<string | null>(null);
+  const betaSeen = !betaKey || !hydrated || betaDone === betaKey || (() => { try { return localStorage.getItem(betaKey) === "1"; } catch { return false; } })();
+  function closeBeta() {
+    setBetaDone(betaKey);
+    try { if (betaKey) localStorage.setItem(betaKey, "1"); } catch { /* sem armazenamento: o aviso volta */ }
+  }
 
   const trail = activeTrail(s);
   const total = trail.concepts.length;
@@ -75,7 +85,7 @@ export function App() {
   const items = [
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
     { id: "licao", label: "Lição", icon: <Book />, onClick: () => openLesson(current) },
-    { id: "revisar", label: "Revisar", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
+    { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "conta", label: ready && !user ? "Entrar" : "Conta", icon: <User />, onClick: () => go("conta") },
   ];
 
@@ -85,6 +95,7 @@ export function App() {
         <div className="brand">
           <div className="brand-mascot"><Mascot mood={mood} /></div>
           <div className="brand-text"><div className="name"><b>NOOB</b>rain</div><div className="by">por NOOBjects</div></div>
+          {BETA && <span className="chip ch beta" title={`Versão beta ${VERSION}`}>Beta</span>}
         </div>
         {showStats && <div className="stats">
           <span className="stat s" title="Dias seguidos"><Flame />{s.streak}</span>
@@ -94,6 +105,16 @@ export function App() {
       </header>
 
       <main className="content">
+        {BETA && user && !betaSeen && (
+          <div className="pane tint gap" role="status"><div className="in">
+            <b>O NOOBrain está em beta</b>
+            <p className="sub small">Algumas coisas podem falhar ou mudar. As tuas ideias ajudam a decidir o que vem a seguir.</p>
+            <div className="beta-row">
+              <button type="button" className="btn sm" onClick={closeBeta}><span className="face">Começar</span></button>
+              <a className="btn soft sm" href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`} onClick={closeBeta}><span className="face">Dar uma ideia</span></a>
+            </div>
+          </div></div>
+        )}
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
         {!hydrated ? null : conflict ? <MergeChoice conflict={conflict} onPick={resolve} /> : <>
         {view === "novo" && (
@@ -127,19 +148,19 @@ export function App() {
 
             {dueCount > 0 && (
               <div className="nudge pane tint"><div className="in">
-                <div><b>{dueCount === 1 ? "1 cartão" : `${dueCount} cartões`} para revisar</b><div className="sub small">Revisar agora fixa o que você aprendeu.</div></div>
-                <button type="button" className="btn sm" onClick={() => go("revisar")}><span className="face">Revisar</span></button>
+                <div><b>{dueCount === 1 ? "1 cartão" : `${dueCount} cartões`} para rever</b><div className="sub small">Rever agora fixa o que aprendeste.</div></div>
+                <button type="button" className="btn sm" onClick={() => go("revisar")}><span className="face">Rever</span></button>
               </div></div>
             )}
             {streakAtRisk && (
               <div className="nudge pane"><div className="in">
-                <div><b>Sua sequência de {s.streak} {s.streak === 1 ? "dia" : "dias"} termina hoje</b><div className="sub small">Conclua uma lição para mantê-la.</div></div>
+                <div><b>A tua sequência de {s.streak} {s.streak === 1 ? "dia" : "dias"} termina hoje</b><div className="sub small">Conclui uma lição para a manteres.</div></div>
                 <button type="button" className="btn sm" onClick={() => openLesson(current)}><span className="face">Estudar</span></button>
               </div></div>
             )}
 
             {s.trails.length > 1 && (
-              <div className="topic-chips" role="group" aria-label="Seus temas">
+              <div className="topic-chips" role="group" aria-label="Os teus temas">
                 {s.trails.map((t) => (
                   <button key={t.id} type="button" className="chip ch" aria-pressed={t.id === trail.id} onClick={() => update((x) => ({ ...x, active: t.id }))}>{t.topic}</button>
                 ))}
@@ -149,7 +170,7 @@ export function App() {
             {trail.sources.length > 0 ? (
               <div className="sources">{trail.sources.map((src) => <a key={src.url} className="chip ch srcchip" href={src.url} target="_blank" rel="noreferrer">{src.site ?? "Fonte"} · {src.title}</a>)}</div>
             ) : !trail.example && (
-              <span className="chip ch warnchip">Sem fonte encontrada. Confira o conteúdo com cuidado.</span>
+              <span className="chip ch warnchip">Sem fonte encontrada. Confirma o conteúdo com cuidado.</span>
             )}
 
             <div className="pane gap"><div className="in prog">
@@ -161,10 +182,10 @@ export function App() {
               {trail.concepts.map((c, i) => (
                 <TrailNode key={c.title + i} title={c.title} offset={ZIGZAG[i % ZIGZAG.length]}
                   state={i < trail.done ? "done" : i === trail.done ? "cur" : "lock"}
-                  onClick={() => (i <= trail.done ? openLesson(i) : notify("Conclua o conceito atual para liberar este."))} />
+                  onClick={() => (i <= trail.done ? openLesson(i) : notify("Conclui o conceito atual para desbloquear este."))} />
               ))}
             </div>
-            {trail.done >= total && <p className="sub center">Trilha concluída. Que tal revisar os cartões ou criar um novo tema?</p>}
+            {trail.done >= total && <p className="sub center">Trilha concluída. Que tal rever os cartões ou criar um novo tema?</p>}
           </>
         )}
         </>}

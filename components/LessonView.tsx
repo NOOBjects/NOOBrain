@@ -70,14 +70,14 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
         <div className="result">
           <div className="result-mascot"><Mascot mood="happy" /></div>
           <h2 className="h-screen">Conceito dominado</h2>
-          <p className="sub">Você acertou {result.correct} de {lesson?.quiz.length} no teste.</p>
+          <p className="sub">Acertaste {result.correct} de {lesson?.quiz.length} no teste.</p>
           <div className="xp">+{result.gain} XP</div>
           {result.first
-            ? <p className="sub small">Os cartões deste conceito entram na sua revisão espaçada. Eu aviso quando for hora de rever.</p>
-            : <p className="sub small">Você já tinha concluído este conceito, então o XP é menor.</p>}
+            ? <p className="sub small">Os cartões deste conceito entram na tua revisão espaçada. Eu aviso quando for hora de rever.</p>
+            : <p className="sub small">Já tinhas concluído este conceito, por isso o XP é menor.</p>}
           <div className="result-actions">
             {hasNext && <button type="button" className="btn" onClick={onNext}><span className="face">Próximo conceito</span></button>}
-            <button type="button" className="btn soft" onClick={() => { notify("Progresso salvo"); onBack(); }}><span className="face">Voltar à trilha</span></button>
+            <button type="button" className="btn soft" onClick={() => { notify("Progresso guardado"); onBack(); }}><span className="face">Voltar à trilha</span></button>
           </div>
         </div>
       ) : !lesson ? (
@@ -86,12 +86,12 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
             <>
               <div className="hero-mascot"><Mascot mood="sad" /></div>
               <div className="note ch" role="alert">{error}</div>
-              <button type="button" className="btn" onClick={() => setError(null)}><span className="face">Tentar de novo</span></button>
+              <button type="button" className="btn" onClick={() => setError(null)}><span className="face">Tentar outra vez</span></button>
             </>
           ) : (
             <>
               <div className="hero-mascot"><Mascot mood="think" /></div>
-              <p className="sub center">Preparando a lição: explicação, cartões e teste. Leva alguns segundos.</p>
+              <p className="sub center">A preparar a lição: explicação, cartões e teste. Leva uns segundos.</p>
             </>
           )}
         </div>
@@ -101,7 +101,7 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
             {STEPS.map((label, i) => (
               <li key={label}>
                 <button type="button" disabled={i > reached} aria-current={step === i ? "step" : undefined}
-                  className={`stp${i < step || i < reached ? " done" : ""}${step === i ? " cur" : ""}`} onClick={() => setStep(i)}>
+                  className={`stp ch${i < step || i < reached ? " done" : ""}${step === i ? " cur" : ""}`} onClick={() => setStep(i)}>
                   <span className="stp-n">{i + 1}</span><span className="stp-l">{label}</span>
                 </button>
               </li>
@@ -110,7 +110,7 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
           {step === 0 && (
             <section className="step" aria-label="Aprender">
-              <p className="step-intro">Primeiro, entenda o que é.</p>
+              <p className="step-intro">Primeiro, percebe o que é.</p>
               <div className="blocks">
                 {blocks.slice(0, reveal).map((b, i) => (
                   <div key={i} className={`pane reveal${i === blocks.length - 1 ? " tint" : ""}`}><div className="in"><p>{b}</p></div></div>
@@ -119,21 +119,21 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
               {reveal < blocks.length ? (
                 <button type="button" className="btn block" onClick={() => setReveal((r) => r + 1)}><span className="face">Continuar</span></button>
               ) : (
-                <button type="button" className="btn block" onClick={() => go(1)}><span className="face">Entendi, vamos memorizar</span></button>
+                <button type="button" className="btn block" onClick={() => go(1)}><span className="face">Percebi, vamos memorizar</span></button>
               )}
             </section>
           )}
 
           {step === 1 && (
             <section className="step" aria-label="Memorizar">
-              <p className="step-intro">Agora fixe na memória. Vire cada cartão e diga o quanto lembrou. Os que você errar voltam até você acertar.</p>
+              <p className="step-intro">Agora fixa na memória. Vira cada cartão e diz o quanto te lembraste. Os que errares voltam até acertares.</p>
               <Deck
                 requeue
                 items={lesson.cards.map((c, k) => ({ id: `${trail.id}:${index}:${k}`, term: c.term, definition: c.definition }))}
                 onRate={rateCard}
                 onEnd={() => go(2)}
                 endTitle="Memorizado"
-                endText="Hora de testar o que você aprendeu."
+                endText="Hora de testar o que aprendeste."
                 endLabel="Ir para o teste"
               />
             </section>
@@ -141,14 +141,14 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
           {step === 2 && (
             <section className="step" aria-label="Testar">
-              <p className="step-intro">Por fim, teste seus conhecimentos.</p>
+              <p className="step-intro">Por fim, testa os teus conhecimentos.</p>
               <Quiz questions={lesson.quiz} onFinish={finishQuiz} />
             </section>
           )}
 
           <div className="tutor-box">
             <button type="button" className="btn soft sm" aria-expanded={tutor} onClick={() => setTutor((t) => !t)}>
-              <span className="face">{tutor ? "Fechar o tutor" : "Tirar dúvida com o tutor"}</span>
+              <span className="face">{tutor ? "Fechar o tutor" : "Tirar uma dúvida com o tutor"}</span>
             </button>
             <div hidden={!tutor} className="tutor-panel"><Tutor topic={trail.topic} title={concept.title} lesson={lesson} /></div>
           </div>

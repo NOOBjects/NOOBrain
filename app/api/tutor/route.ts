@@ -9,14 +9,14 @@ const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/\
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
 export async function POST(request: Request) {
-  if (!allow(`tutor:${clientKey(request)}`, 8)) return fail("Muitas perguntas seguidas. Espere um minuto.", 429);
+  if (!allow(`tutor:${clientKey(request)}`, 8)) return fail("Muitas perguntas seguidas. Espera um minuto.", 429);
 
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
   const title = clean(body?.title, 60);
   const lesson = clean(body?.lesson, 1500);
   const question = clean(body?.question, 300);
-  if (!topic || !title || question.length < 2) return fail("Escreva uma pergunta.", 400);
+  if (!topic || !title || question.length < 2) return fail("Escreve uma pergunta.", 400);
 
   const history = (Array.isArray(body?.history) ? body.history : [])
     .slice(-6)
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   try {
     const out = await generateJson<{ answer: string }>(prompt, SCHEMA);
     const answer = clean(out.answer, 1200);
-    if (!answer) return fail("Não consegui responder. Tente reformular.", 502);
+    if (!answer) return fail("Não consegui responder. Tenta reformular.", 502);
     return Response.json({ answer });
   } catch (e) {
     return aiErrorResponse(e);

@@ -36,7 +36,7 @@ const clean = (s: unknown, max: number) => (typeof s === "string" ? s.replace(/\
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
 export async function POST(request: Request) {
-  if (!allow(`lesson:${clientKey(request)}`, 6)) return fail("Muitos pedidos seguidos. Espere um minuto.", 429);
+  if (!allow(`lesson:${clientKey(request)}`, 6)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
   const body = await request.json().catch(() => null);
   const topic = clean(body?.topic, 60);
@@ -79,7 +79,7 @@ ${text}` : "Não há texto de referência: seja conservador.",
         .filter((q) => q.q && q.options.length === 4 && q.options.every(Boolean) && Number.isInteger(q.answer) && q.answer >= 0 && q.answer <= 3)
         .slice(0, 4),
     };
-    if (!lesson.intro.length || lesson.cards.length < 3 || lesson.quiz.length < 2) return fail("A lição veio incompleta. Tente de novo.", 502);
+    if (!lesson.intro.length || lesson.cards.length < 3 || lesson.quiz.length < 2) return fail("A lição veio incompleta. Tenta outra vez.", 502);
     const result = { lesson };
     remember(cacheKey, result);
     return Response.json(result);

@@ -56,7 +56,7 @@ export function Quiz({ questions, onFinish }: { questions: Question[]; onFinish:
             <span className="face">{i + 1 >= questions.length ? "Finalizar" : "Continuar"}</span>
           </button>
           <button type="button" className="linkbtn" disabled={reported} onClick={() => { setReported(true); reportError("quiz", `${q.q} | marcada: ${q.options[sel ?? 0]} | certa: ${q.options[q.answer]}`); }}>
-            {reported ? "Obrigado, registrado" : "Reportar erro"}
+            {reported ? "Obrigado, registado" : "Reportar erro"}
           </button>
         </div>
       )}

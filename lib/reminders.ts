@@ -39,8 +39,8 @@ export async function notifyDue(count: number) {
     if (Date.now() - last < EVERY) return;
     localStorage.setItem(LAST, String(Date.now()));
     const reg = await navigator.serviceWorker.ready;
-    await reg.showNotification("Hora de revisar", {
-      body: count === 1 ? "1 cartão está esperando por você." : `${count} cartões estão esperando por você.`,
+    await reg.showNotification("Hora de rever", {
+      body: count === 1 ? "1 cartão está à tua espera." : `${count} cartões estão à tua espera.`,
       tag: "noobrain-due",
     });
   } catch { /* sem permissão ou sem service worker */ }

@@ -7,7 +7,7 @@ import type { Concept, Lesson, Source, Trail } from "./types";
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Algo deu errado. Tente de novo.");
+  if (!res.ok) throw new Error(data.error ?? "Algo correu mal. Tenta outra vez.");
   return data as T;
 }
 

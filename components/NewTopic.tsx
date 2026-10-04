@@ -26,7 +26,7 @@ export function NewTopic({ trails, onOpen, onDone }: {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (match) return onOpen(match);
-    if (topic.trim().length < 2) return setError("Digite um tema ou escolha uma sugestão.");
+    if (topic.trim().length < 2) return setError("Escreve um tema ou escolhe uma sugestão.");
     setError(null);
     setLoading(true);
     try {
@@ -35,7 +35,7 @@ export function NewTopic({ trails, onOpen, onDone }: {
       update((s) => ({ ...s, trails: [trail, ...s.trails.filter((t) => !t.example)], active: trail.id }));
       onDone(trail.topic);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sem conexão. Tente de novo.");
+      setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");
       setLoading(false);
     }
   }
@@ -44,8 +44,8 @@ export function NewTopic({ trails, onOpen, onDone }: {
     <div className="newtopic">
       <div className="hero-new">
         <div className="hero-mascot"><Mascot mood={loading ? "think" : error ? "sad" : "idle"} /></div>
-        <h1 className="h-screen">O que você quer aprender?</h1>
-        <p className="sub">Digite qualquer tema. A trilha é montada para você.</p>
+        <h1 className="h-screen">O que queres aprender?</h1>
+        <p className="sub">Escreve qualquer tema. A trilha é montada para ti.</p>
       </div>
 
       <form onSubmit={submit}>
@@ -64,15 +64,15 @@ export function NewTopic({ trails, onOpen, onDone }: {
         </div>
         {match && (
           <div className="note info ch" role="status">
-            Você já tem a trilha “{match.topic}” neste nível. Vou abrir essa em vez de criar outra.
+            Já tens a trilha “{match.topic}” neste nível. Vou abrir essa em vez de criar outra.
             <button type="button" className="linkbtn" onClick={() => setForce(true)}>Criar uma nova mesmo assim</button>
           </div>
         )}
         {error && <div className="note ch" role="alert">{error}</div>}
         <button type="submit" className="btn block" disabled={loading}>
-          <span className="face">{loading ? "Montando a trilha…" : match ? "Abrir trilha existente" : "Gerar trilha"}</span>
+          <span className="face">{loading ? "A montar a trilha…" : match ? "Abrir trilha existente" : "Gerar trilha"}</span>
         </button>
-        {loading && <p className="sub center" role="status">Buscando fontes abertas e organizando os conceitos. Leva alguns segundos.</p>}
+        {loading && <p className="sub center" role="status">A procurar fontes abertas e a organizar os conceitos. Leva uns segundos.</p>}
       </form>
     </div>
   );

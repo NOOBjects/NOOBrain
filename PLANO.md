@@ -76,7 +76,8 @@ DeepSeek e Mistral foram descartados:
    - Termos: "Para usar o NOOBrain precisas de ter pelo menos 13 anos".
 7. Teste: gerar 1 trilha e 1 lição no `npm run dev` e confirmar que vêm em PT-PT e com o formato certo.
 
-## Fase 0: correções rápidas e beta visível
+## Fase 0: correções rápidas e beta visível — FEITA (04/10/2026)
+Notas: o valor interno do nível "Intermediário" não mudou (está nas trilhas guardadas e nas rotas); o comentário e os prompts internos ainda têm algum português do Brasil, sem efeito para a pessoa. A caixa de ideias é um `mailto:` até à Fase 7.
 1. **Selo da ilha cortado**: o `.isl` tem `clip-path` (classe `ch`), que corta o `.badge` posicionado fora. Em `app/globals.css`, `.badge { top: 3px; right: 3px; }`. Testar com 1 e 2 dígitos.
 2. **Passos Aprender/Memorizar/Testar**:
    - em `LessonView.tsx`, o botão passa a ter `` className={`stp ch…`} ``;

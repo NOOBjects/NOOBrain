@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { UPDATED } from "@/lib/legal";
+import { BETA, VERSION } from "@/lib/config";
+import { CONTACT, UPDATED } from "@/lib/legal";
 
 /** Casca das páginas de texto legal: título, data e botão para voltar à app. */
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
@@ -21,6 +22,7 @@ export function LegalLinks() {
   return (
     <p className="sub small legal-links">
       <Link href="/privacidade">Política de privacidade</Link> · <Link href="/termos">Termos de serviço</Link>
+      {BETA && <><br />Versão beta {VERSION} · <a href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`}>Dar uma ideia</a></>}
     </p>
   );
 }

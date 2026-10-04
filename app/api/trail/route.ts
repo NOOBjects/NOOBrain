@@ -28,12 +28,12 @@ const LEVELS = ["Iniciante", "Intermediário"];
 const fail = (message: string, status: number) => Response.json({ error: message }, { status });
 
 export async function POST(request: Request) {
-  if (!allow(`trail:${clientKey(request)}`, 4)) return fail("Muitos pedidos seguidos. Espere um minuto.", 429);
+  if (!allow(`trail:${clientKey(request)}`, 4)) return fail("Muitos pedidos seguidos. Espera um minuto.", 429);
 
   const body = await request.json().catch(() => null);
   const topic = typeof body?.topic === "string" ? body.topic.replace(/\s+/g, " ").trim() : "";
   const level = LEVELS.includes(body?.level) ? body.level : "Iniciante";
-  if (topic.length < 2 || topic.length > 60) return fail("Digite um tema com 2 a 60 caracteres.", 400);
+  if (topic.length < 2 || topic.length > 60) return fail("Escreve um tema com 2 a 60 caracteres.", 400);
 
   // Mesmo assunto com palavras diferentes ("Fernando Pessoa" e "Fernando Pessoa poeta") reaproveita a trilha pronta.
   const cacheKey = `trail:${topicKey(topic)}:${level}`;
@@ -62,7 +62,7 @@ ${text}`
       .filter((c) => typeof c?.title === "string" && typeof c?.summary === "string")
       .slice(0, 8)
       .map((c) => ({ title: c.title.trim().slice(0, 60), summary: c.summary.trim().slice(0, 400) }));
-    if (concepts.length < 4) return fail("A IA devolveu poucos conceitos. Tente de novo.", 502);
+    if (concepts.length < 4) return fail("A IA devolveu poucos conceitos. Tenta outra vez.", 502);
     const result = { topic, level, concepts, sources };
     remember(cacheKey, result);
     return Response.json(result);
