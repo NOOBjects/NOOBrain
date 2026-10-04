@@ -771,3 +771,4 @@ textarea.field { resize: vertical; font: inherit; }
 .xp-gain { position: absolute; top: 100%; right: 0; font: 700 13px/1 var(--font-display); color: var(--ok-ink); animation: gain 1.2s forwards; pointer-events: none; }
 .landing { display: grid; gap: 14px; max-width: 460px; margin: 40px auto 0; text-align: center; }
 .landing-blocks { display: grid; gap: 12px; text-align: left; }
+.chip.ai { background: var(--ink); color: var(--bg); padding: 5px 10px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }

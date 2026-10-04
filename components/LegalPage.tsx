@@ -22,6 +22,7 @@ export function LegalLinks({ onIdea }: { onIdea?: () => void }) {
   return (
     <p className="sub small legal-links">
       <Link href="/privacidade">Política de privacidade</Link> · <Link href="/termos">Termos de serviço</Link>
+      <br />✦ Feito com IA · NOOBjects
       {BETA && <><br />Versão beta {VERSION} · {onIdea ? <button type="button" className="linkbtn" onClick={onIdea}>Dar uma ideia</button> : <a href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`}>Dar uma ideia</a>}</>}
     </p>
   );
