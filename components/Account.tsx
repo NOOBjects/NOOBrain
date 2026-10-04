@@ -4,7 +4,7 @@ import type { AuthError } from "@supabase/supabase-js";
 import Link from "next/link";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff } from "./Icons";
+import { Eye, EyeOff, HeroIco, Sync } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
 import { supabase } from "@/lib/supabase";
 import { distance } from "@/lib/topic";
@@ -184,7 +184,7 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
     return (
       <div className="account">
         <div className="loading" role="status">
-          <div className="hero-mascot"><Mascot mood="think" /></div>
+          <HeroIco><Sync /></HeroIco>
           <p className="sub">A verificar a sessão…</p>
         </div>
       </div>

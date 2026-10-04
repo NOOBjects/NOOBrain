@@ -238,9 +238,28 @@ button.chip.beta:hover:not(:disabled) { background: var(--sun-deep); color: var(
 /* janela por cima do app (boas-vindas da beta): <dialog> nativo; o painel chanfrado vai dentro */
 dialog.sheet { border: 0; padding: 0; background: transparent; color: inherit; width: min(100% - 32px, 460px); max-height: calc(100dvh - 32px); overflow: auto; }
 dialog.sheet::backdrop { background: color-mix(in srgb, var(--ink) 55%, transparent); }
-dialog.sheet .hero-mascot { margin-inline: auto; }
-dialog.sheet h2 { margin: 10px 0 4px; }
-dialog.sheet .pane.tint { margin-top: 14px; }
+/* boas-vindas: painel na cor da marca, linhas com ícone amarelo, pergunta num bloco claro */
+dialog.sheet .welcome { padding: 0; }
+.w-head { display: grid; gap: 8px; justify-items: start; padding: 20px 20px 16px; }
+.w-head h2 { margin: 0; font: 700 clamp(24px, 7vw, 30px)/1.1 var(--font-display); }
+.w-head p { margin: 0; font-size: 15px; line-height: 1.4; opacity: 0.92; }
+.w-list { list-style: none; margin: 0; padding: 0 20px; display: grid; gap: 12px; }
+.w-list li { display: flex; align-items: center; gap: 12px; }
+.w-list li > div { display: grid; gap: 1px; min-width: 0; }
+.w-list b { font: 700 16px/1.2 var(--font-display); }
+.w-list span { font-size: 13px; line-height: 1.35; opacity: 0.88; }
+.w-ico { --c: 8px; flex: none; display: grid; place-items: center; width: 44px; height: 44px; background: var(--sun); color: var(--on-sun); font-size: 28px; }
+.w-ask { --c: 12px; display: grid; gap: 6px; margin: 18px 12px 12px; padding: 14px; background: var(--surface); color: var(--ink); }
+.w-ask span { font-size: 13px; color: var(--ink-2); }
+.w-ask .beta-row { margin-top: 6px; }
+/* ícone grande no lugar do mascote */
+.hero-ico { display: block; width: 84px; margin: 0 auto 6px; filter: drop-shadow(0 var(--depth) 0 var(--brand-deep)); }
+.hero-ico > .ch { --c: 16px; display: grid; place-items: center; width: 84px; height: 84px; background: var(--brand); color: var(--on-brand); font-size: 44px; }
+/* Novidades: grupos por tipo de mudança */
+.rel-group { margin-top: 14px; }
+.rel-tag { --c: 6px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--brand-soft); color: var(--brand); font: 700 12px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; }
+.rel-group.novo .rel-tag { background: var(--brand); color: var(--on-brand); }
+.rel-group.melhorias .rel-tag { background: var(--sun); color: var(--on-sun); }
 .eyebrow { font: 600 12px/1.2 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
 .ico { width: 1.15em; height: 1.15em; flex: none; vertical-align: -0.2em; }
 

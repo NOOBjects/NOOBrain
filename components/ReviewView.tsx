@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Deck } from "./Deck";
-import { Mascot } from "./Mascot";
+import { HeroIco, Sync } from "./Icons";
 import { ReminderToggle } from "./ReminderToggle";
 import { dueCards, rate, update } from "@/lib/store";
 import type { State } from "@/lib/types";
@@ -50,7 +50,7 @@ export function ReviewView({ state }: { state: State }) {
         </>
       ) : (
         <div className="empty">
-          <div className="hero-mascot"><Mascot /></div>
+          <HeroIco><Sync /></HeroIco>
           <p className="sub center">
             {learned
               ? "Os teus cartões estão em dia. Volta mais tarde: aparecem quando chegar a hora de rever."

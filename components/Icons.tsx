@@ -36,3 +36,20 @@ export const EyeOff = () => (
     <path {...stroke} d="M4 20 L20 4" />
   </Svg>
 );
+export const Spark = () => <Svg><path fill="currentColor" d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" /></Svg>;
+export const Up = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M12 20 V5 M5 12 L12 5 L19 12" /></Svg>;
+export const Bug = () => (
+  <Svg>
+    <path fill="currentColor" d="M9 7 H15 L17 10 V16 L15 19 H9 L7 16 V10 Z" />
+    <path {...stroke} strokeWidth={2.5} d="M3 10 L7 12 M21 10 L17 12 M3 18 L7 16 M21 18 L17 16 M9 4 L10 7 M15 4 L14 7" />
+  </Svg>
+);
+export const Hammer = () => (
+  <Svg>
+    <path {...stroke} d="M5 20 L13 12" />
+    <path fill="currentColor" d="M10 4 H18 L21 8 L17 12 L13 8 Z" />
+  </Svg>
+);
+export const Heart = () => <Svg><path fill="currentColor" d="M12 20 L4 12 V8 L7 5 H10 L12 7 L14 5 H17 L20 8 V12 Z" /></Svg>;
+/** Ícone grande num quadrado chanfrado: no lugar do mascote nos ecrãs onde ele só repetia. */
+export const HeroIco = ({ children }: { children: ReactNode }) => <span className="hero-ico" aria-hidden="true"><span className="ch">{children}</span></span>;

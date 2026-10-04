@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Mascot } from "./Mascot";
+import { Check, HeroIco } from "./Icons";
 import { supabase } from "@/lib/supabase";
 
 /** Fim do login do Google aberto numa janela à parte: o Supabase lê a sessão do endereço e avisa o separador do app; depois fecha-se. */
@@ -17,7 +17,7 @@ export function LoginDone() {
   }, []);
   return (
     <main className="account">
-      <div className="hero-mascot"><Mascot mood="happy" /></div>
+      <HeroIco><Check /></HeroIco>
       <p className="sub center">A concluir a entrada. Esta janela fecha-se sozinha.</p>
     </main>
   );

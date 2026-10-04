@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Mascot } from "./Mascot";
+import { Compass, HeroIco } from "./Icons";
 import { newId } from "@/lib/api";
 import { update } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
@@ -41,7 +41,7 @@ export function Explore({ state, initialQuery = "", onStart, onNew }: { state: S
   return (
     <div className="explore">
       <div className="hero-new">
-        <div className="hero-mascot"><Mascot mood={rows ? "idle" : "think"} /></div>
+        <HeroIco><Compass /></HeroIco>
         <h1 className="h-screen">Explorar temas</h1>
         <p className="sub">Trilhas que já estão prontas. Começa uma e estudas logo, sem esperar.</p>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mascot } from "./Mascot";
+import { HeroIco, Idea } from "./Icons";
 import { createTrail } from "@/lib/api";
 import { update } from "@/lib/store";
 import { sameTopic } from "@/lib/topic";
@@ -42,7 +42,7 @@ export function NewTopic({ trails, onOpen, onDone }: {
   return (
     <div className="newtopic">
       <div className="hero-new">
-        <div className="hero-mascot"><Mascot mood={loading ? "think" : error ? "sad" : "idle"} /></div>
+        <HeroIco><Idea /></HeroIco>
         <h1 className="h-screen">O que queres aprender?</h1>
         <p className="sub">Escreve qualquer tema. A trilha é montada para ti.</p>
       </div>

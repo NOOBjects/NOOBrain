@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactN
 import { Account } from "./Account";
 import { Announce } from "./Announce";
 import { Explore } from "./Explore";
-import { Bolt, Book, Compass, Flame, Idea, Plus, Route, Sync, User } from "./Icons";
+import { Bolt, Book, Compass, Flame, HeroIco, Idea, Plus, Route, Sync, User } from "./Icons";
 import { Ideas } from "./Ideas";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
@@ -30,6 +30,7 @@ const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "defi
 // Cada ecrã tem endereço próprio (/?v=revisar, /?v=licao&c=2). Assim o "voltar" do telemóvel anda entre ecrãs, como num site,
 // e recarregar a página não perde o sítio. O Next deixa usar pushState sem recarregar (ver guia "single-page-applications").
 const NAV = "noobrain:nav";
+const IN_APP = { nb: 1 }; // marca as entradas do histórico criadas já com sessão iniciada
 function onNav(cb: () => void) {
   window.addEventListener("popstate", cb);
   window.addEventListener(NAV, cb);
@@ -39,7 +40,7 @@ function onNav(cb: () => void) {
 function navigate(v: View, c?: number, replace = false) {
   const search = v === "trilha" || v === "conta" ? "" : `?v=${v}${c === undefined ? "" : `&c=${c}`}`;
   if (search === window.location.search) return;
-  window.history[replace ? "replaceState" : "pushState"](null, "", search || window.location.pathname);
+  window.history[replace ? "replaceState" : "pushState"](IN_APP, "", search || window.location.pathname);
   window.dispatchEvent(new Event(NAV));
 }
 
@@ -127,6 +128,18 @@ export function App({ landing }: { landing?: ReactNode }) {
     return () => clearTimeout(id);
   }, [user, profile]);
 
+  // Com sessão e perfil feitos, "voltar" nunca regressa a ecrãs de antes (entrada, perfil): o histórico anterior à marca é ignorado.
+  useEffect(() => {
+    if (!user || !profile) return;
+    if (window.history.state?.nb !== 1) window.history.replaceState(IN_APP, "");
+    const back = () => { if (window.history.state?.nb !== 1) window.history.go(1); };
+    // Voltar a esta página vindo de outra (cache do navegador) mostraria o ecrã de entrada de antes: recarrega.
+    const show = (e: PageTransitionEvent) => { if (e.persisted) window.location.reload(); };
+    window.addEventListener("popstate", back);
+    window.addEventListener("pageshow", show);
+    return () => { window.removeEventListener("popstate", back); window.removeEventListener("pageshow", show); };
+  }, [user, profile]);
+
   const notify = (m: string) => setToast(m);
   function celebrate() {
     setMood("happy");
@@ -173,7 +186,7 @@ export function App({ landing }: { landing?: ReactNode }) {
       <main key={view} className="content view-in">
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
         {!hydrated ? landing : booting ? (
-          <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
+          <div className="loading" role="status"><HeroIco><Sync /></HeroIco><p className="sub center">A carregar o teu progresso…</p></div>
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
         {user && profile && view === "trilha" && <Announce state={s} uid={user.id} onNews={() => go("novidades")} toast={notify} />}
         {view === "novidades" && <News state={s} onIdeas={() => go("ideias")} />}
@@ -213,7 +226,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {(view === "trilha" || view === "licao") && !trail && (
           <div className="hero-new">
-            <div className="hero-mascot"><Mascot /></div>
+            <HeroIco><Route /></HeroIco>
             <h1 className="h-screen">Escolhe o teu primeiro tema</h1>
             <p className="sub">Escreve qualquer tema e eu monto-te uma trilha com lições, cartões e testes.</p>
             <button type="button" className="btn block" onClick={() => go("explorar")}><span className="face">Explorar temas</span></button>

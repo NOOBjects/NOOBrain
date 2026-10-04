@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Mascot } from "./Mascot";
-import { LATEST } from "@/lib/changelog";
+import { Bug, Hammer, Heart, Idea } from "./Icons";
+import { highlights, LATEST } from "@/lib/changelog";
 import { needsInstall, setNotify } from "@/lib/reminders";
 import { update } from "@/lib/store";
 import type { State } from "@/lib/types";
@@ -43,7 +43,7 @@ export function Announce({ state, uid, onNews, toast }: { state: State; uid: str
       <div className="pane tint gap" role="status"><div className="in">
         <div className="eyebrow">Novidades · versão {LATEST.version}</div>
         <b>{LATEST.title}</b>
-        <ul className="news-list sub small">{LATEST.items.slice(0, 3).map((t) => <li key={t}>{t}</li>)}</ul>
+        <ul className="news-list sub small">{highlights(LATEST).map((t) => <li key={t}>{t}</li>)}</ul>
         <div className="beta-row">
           <button type="button" className="btn sm" onClick={() => { markSeen(); onNews(); }}><span className="face">Ver tudo</span></button>
           <button type="button" className="btn soft sm" onClick={markSeen}><span className="face">Fechar</span></button>
@@ -67,24 +67,26 @@ function Welcome({ toast }: { toast: (m: string) => void }) {
   }
   return (
     <dialog ref={ref} className="sheet" aria-labelledby="welcome-t" onCancel={(e) => e.preventDefault()}>
-      <div className="pane"><div className="in">
-        <div className="hero-mascot"><Mascot mood="happy" /></div>
-        <span className="chip ch beta">Beta {LATEST.version}</span>
-        <h2 id="welcome-t" className="h-screen">Boas-vindas à beta do NOOBrain</h2>
-        <ul className="news-list">
-          <li><b>Está em construção.</b> Algumas coisas podem falhar ou mudar.</li>
-          <li><b>Tu decides o que vem a seguir.</b> Partilha e vota ideias na aba Ideias.</li>
-          <li><b>Viste um erro?</b> Usa «Reportar erro» no teste ou no tutor.</li>
-          <li><b>É gratuito.</b> Fundraising em breve.</li>
+      <div className="pane is-mine"><div className="in welcome">
+        <div className="w-head">
+          <span className="chip ch beta">Beta {LATEST.version}</span>
+          <h2 id="welcome-t">Boas-vindas ao NOOBrain</h2>
+          <p>Aprende o que quiseres, ao teu ritmo. Estamos a construir isto contigo.</p>
+        </div>
+        <ul className="w-list">
+          <li><span className="w-ico ch"><Hammer /></span><div><b>Em construção</b><span>Algumas coisas podem falhar ou mudar.</span></div></li>
+          <li><span className="w-ico ch"><Idea /></span><div><b>Tu decides o que vem a seguir</b><span>Partilha e vota ideias na aba Ideias.</span></div></li>
+          <li><span className="w-ico ch"><Bug /></span><div><b>Viste um erro?</b><span>Usa «Reportar erro» no teste ou no tutor.</span></div></li>
+          <li><span className="w-ico ch"><Heart /></span><div><b>É gratuito</b><span>Fundraising em breve.</span></div></li>
         </ul>
-        <div className="pane tint"><div className="in">
-          <b>Queres receber um aviso quando houver novidades?</b>
-          <p className="sub small">Só nas atualizações importantes. Podes mudar isto quando quiseres em Novidades.</p>
+        <div className="w-ask ch">
+          <b>Queres um aviso quando houver novidades?</b>
+          <span>Só nas atualizações importantes. Podes mudar isto em Novidades.</span>
           <div className="beta-row">
             <button type="button" className="btn sm" onClick={() => close(true)}><span className="face">Sim, avisa-me</span></button>
             <button type="button" className="btn soft sm" onClick={() => close(false)}><span className="face">Agora não</span></button>
           </div>
-        </div></div>
+        </div>
       </div></div>
     </dialog>
   );
