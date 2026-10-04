@@ -24,8 +24,13 @@ export default function Page() {
       <ul>
         <li><b>Temas e perguntas ao tutor</b> são enviados a um serviço de inteligência artificial (Groq) para criar trilhas, lições e respostas. O Groq é nosso subcontratante: os dados são processados nos EUA e no Reino Unido e não são usados para treinar modelos. Mesmo assim, não escrevas dados pessoais nos temas nem nas perguntas.</li>
         <li><b>Pesquisas nas wikis</b> (Wikipédia, Wikilivros, Wikiversidade e Wikisource) usam o tema que escreveste para encontrar fontes abertas.</li>
-        <li><b>«Reportar erro»</b> envia-nos o texto que escreveres nesse formulário, sem o teu nome.</li>
+        <li><b>«Reportar erro»</b> guarda o texto que escreveres nesse formulário, ligado à tua conta, e só nós o lemos.</li>
+        <li><b>Catálogo partilhado:</b> as trilhas e lições geradas ficam guardadas para servirem a toda a gente. Guardamos o tema e o conteúdo gerado, nunca quem o pediu.</li>
+        <li><b>Contadores de uso da IA</b> (quantos pedidos fizeste por dia) são guardados durante 30 dias, para aplicar os limites diários.</li>
       </ul>
+
+      <h2>Lembretes</h2>
+      <p>Se ligares os lembretes, guardamos a subscrição do teu aparelho (um endereço técnico do navegador e o teu fuso horário) para te enviar avisos de revisão. Podes desligá-los nas Definições e a subscrição é apagada.</p>
 
       <h2>Dados técnicos</h2>
       <p>O site é alojado na Vercel (funções em Paris). O teu endereço IP é usado por curtos instantes, em memória, para limitar o número de pedidos por pessoa e evitar abusos. A Vercel pode registar dados técnicos normais de qualquer site (como o endereço IP e o tipo de navegador).</p>

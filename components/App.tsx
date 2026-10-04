@@ -16,7 +16,7 @@ import { Settings } from "./Settings";
 import { TrailNode, ZIGZAG } from "./TrailNode";
 import { BETA, VERSION } from "@/lib/config";
 import { CONTACT } from "@/lib/legal";
-import { notifyDue } from "@/lib/reminders";
+import { disable as disableReminders, notifyDue } from "@/lib/reminders";
 import { activeTrail, dueCards, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useSync } from "@/lib/useSync";
@@ -177,7 +177,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {view === "definicoes" && user && profile && (
           <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
-            onSignOut={async () => { setView("trilha"); await signOut(); }} onBack={() => go("perfil")} />
+            onSignOut={async () => { setView("trilha"); await disableReminders(); await signOut(); }} onBack={() => go("perfil")} />
         )}
 
         {(view === "trilha" || view === "licao") && !trail && (

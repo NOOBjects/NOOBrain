@@ -35,6 +35,7 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
   const [reset, setReset] = useState("");
   const [del, setDel] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [test, setTest] = useState<string | null>(null);
 
   function pickTheme(t: Theme) {
     setTheme(t);
@@ -48,6 +49,14 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
     const a = Object.assign(document.createElement("a"), { href: url, download: "noobrain.json" });
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function sendTest() {
+    setTest(null);
+    const { data } = await supabase!.auth.getSession();
+    const res = await fetch("/api/push/test", { method: "POST", headers: { authorization: `Bearer ${data.session?.access_token ?? ""}` } });
+    const body = await res.json().catch(() => ({}));
+    setTest(res.ok ? "Enviado. Se não chegar, confirma as permissões do navegador." : body.error ?? "Não consegui enviar.");
   }
 
   async function deleteAccount() {
@@ -73,6 +82,8 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
       <section className="pane gap"><div className="in set">
         <div className="eyebrow">Lembretes</div>
         <ReminderToggle />
+        <button type="button" className="btn soft sm" onClick={() => void sendTest()}><span className="face">Enviar aviso de teste</span></button>
+        {test && <p className="sub small" role="status">{test}</p>}
       </div></section>
 
       <section className="pane gap"><div className="in set">

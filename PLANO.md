@@ -312,7 +312,8 @@ Limites gratuitos de referência:
 - Supabase: 500 MB de base, 5 GB de tráfego, 50 000 utilizadores ativos por mês, 500 000 invocações.
 - Vercel Hobby: 1 milhão de invocações, 4 h de CPU ativa e 100 GB de transferência por mês.
 
-## Fase 5: notificações no telemóvel
+## Fase 5: notificações no telemóvel — FEITA no código (04/10/2026), faltam as variáveis e o Vault (Rodrigo)
+Notas: migração `push_subscriptions`, `pg_cron` e `pg_net` ativos, tarefas `noobrain-lembretes` (de hora a hora) e `noobrain-limpeza` agendadas. As chaves VAPID e o CRON_SECRET foram geradas para o `.env.local` (copiar para a Vercel). Enquanto o Vault não tiver o `cron_secret`, a tarefa horária falha sem efeito.
 1. `npm install web-push`; gerar as chaves com `npx web-push generate-vapid-keys`.
    - **Rodrigo** põe na Vercel: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=mailto:dev.noobjects@gmail.com` e `CRON_SECRET`.
 2. Migração:

@@ -1,10 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { disable, enable, serverSnapshot, snapshot, subscribe } from "@/lib/reminders";
+import { disable, enable, needsInstall, serverSnapshot, snapshot, subscribe } from "@/lib/reminders";
 
 export function ReminderToggle() {
   const state = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  if (needsInstall()) return <p className="sub small">No iPhone, os avisos só funcionam com o NOOBrain no ecrã principal: Partilhar → Adicionar ao ecrã principal.</p>;
   if (state === "na") return <p className="sub small">Os lembretes não estão disponíveis neste navegador ou foram bloqueados nas permissões do site.</p>;
   return (
     <div className="remind">
