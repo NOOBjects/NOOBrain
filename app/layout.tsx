@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   appleWebApp: { title: "NOOBrain" },
   openGraph: { type: "website", siteName: "NOOBrain", title: "NOOBrain", description, locale: "pt_PT" },
   twitter: { card: "summary_large_image" },
+  // Google Search Console (código público; não apagar, senão a verificação cai)
+  verification: { google: "F0M2HB1yt5vAGHrdWXXQJ-WhpBBKT34Q37PBHWpdQPk" },
 };
 
 // Cor da barra do navegador no telemóvel = fundo do site (--bg claro e escuro em globals.css)
