@@ -25,11 +25,12 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 - Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
 
 ## Por decidir ou fazer (Rodrigo)
-1. **Criar a conta no Groq** ([console.groq.com](https://console.groq.com), com dev.noobjects@gmail.com) e uma chave. Pô-la em `AI_API_KEY` no `.env.local` e na Vercel (Production e Preview).
-   - Depois, **apagar a chave antiga do Gemini** no Google AI Studio: foi escrita no chat.
+1. ~~Conta no Groq~~: **feita**. A chave já está em `AI_API_KEY` na Vercel. **Atenção: até a Fase A ser publicada, criar temas no site falha** (a chave é do Groq e o código ainda chama o Gemini). Falta:
+   - o Rodrigo pôr a mesma chave no `.env.local` (trocar a linha `AI_API_KEY=`), para testar no computador;
+   - apagar a chave antiga do Gemini no Google AI Studio.
 2. ~~Publicação automática~~: **resolvido** (cada push na `main` publica sozinho).
 3. **Ko-fi**: criar a conta e dar o link. Entra no "Sobre" e no aviso da beta (Fase 2), em `lib/config.ts` → `KOFI_URL`.
-4. **SEO**: a etiqueta do Search Console já está no site (`app/layout.tsx`, `verification`). Falta carregar em Validar e enviar o `sitemap.xml`.
+4. **SEO**: a etiqueta do Search Console já está no site (`app/layout.tsx`, `verification`). Validado e `sitemap.xml` enviado. O "Não foi possível obter" no 1.º dia é normal; o Google tenta de novo. Se continuar após 2 dias, reenviar.
 5. Dinheiro e alojamento além das doações: ver a última secção. Nada a fazer até ao fim da beta.
 
 ## Regras de execução
@@ -40,7 +41,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 
 ---
 
-## Fase A: IA gratuita com o Groq (antes de tudo)
+## Fase A: IA gratuita com o Groq (URGENTE: a IA no site está parada até isto ser publicado)
 **Porque mudar.** Os termos do Gemini (verificados a 04/10/2026) proíbem o plano gratuito para utilizadores na UE e proíbem apps acessíveis a menores de 18. O **Groq** ([termos](https://console.groq.com/docs/legal/services-agreement)) tem:
 - plano gratuito sem proibição de produção;
 - "Groq is not permitted to use Inputs or Outputs for training";
