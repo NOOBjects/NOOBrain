@@ -1,6 +1,7 @@
 "use client";
 
 import type { AuthError, User } from "@supabase/supabase-js";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
@@ -395,7 +396,7 @@ export function Account({ user, ready, status, recovery, onRecovered, linkError,
               </div>
             )}
             <button type="submit" className="btn block" disabled={busy}><span className="face">{busy ? "Um momento…" : LABEL[mode]}</span></button>
-            {mode === "criar" && <p className="sub small">O teu e-mail e o teu progresso ficam guardados na União Europeia.</p>}
+            {mode === "criar" && <p className="sub small">O teu e-mail e o teu progresso ficam guardados na União Europeia. Ao criares conta, aceitas os <Link href="/termos">Termos</Link> e a <Link href="/privacidade">Política de privacidade</Link>.</p>}
             {mode === "esqueci" && <button type="button" className="linkbtn" onClick={() => go("entrar")}>Voltar a entrar</button>}
             {changing && <button type="button" className="linkbtn" onClick={() => { setChanging(false); setMsg(null); }}>Cancelar</button>}
           </form>

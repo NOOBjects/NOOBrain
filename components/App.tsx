@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Account } from "./Account";
 import { Bolt, Book, Flame, Plus, Route, Sync, User } from "./Icons";
 import { Island } from "./Island";
+import { LegalLinks } from "./LegalPage";
 import { LessonView } from "./LessonView";
 import { Mascot, type Mood } from "./Mascot";
 import { MergeChoice } from "./MergeChoice";
@@ -168,6 +169,7 @@ export function App() {
         )}
         </>}
       </main>
+      <footer className="foot"><LegalLinks /></footer>
 
       <Island items={items} current={view === "novo" ? "" : view} />
 
