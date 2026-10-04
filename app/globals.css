@@ -768,3 +768,5 @@ textarea.field { resize: vertical; font: inherit; }
 .opt.is-wrong { animation: shake 0.3s; }
 .stat.x { position: relative; }
 .xp-gain { position: absolute; top: 100%; right: 0; font: 700 13px/1 var(--font-display); color: var(--ok-ink); animation: gain 1.2s forwards; pointer-events: none; }
+.landing { display: grid; gap: 14px; max-width: 460px; margin: 40px auto 0; text-align: center; }
+.landing-blocks { display: grid; gap: 12px; text-align: left; }
