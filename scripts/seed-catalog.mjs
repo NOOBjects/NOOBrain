@@ -32,7 +32,8 @@ async function post(path, body) {
   throw new Error(`${path} falhou 3 vezes`);
 }
 
-for (const topic of TOPICS) {
+const ONLY = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",") ?? TOPICS; // ex.: --only=Primeiros socorros,Teoria das cores
+for (const topic of ONLY) {
   console.log(`\n${topic}`);
   const trail = await post("/api/trail", { topic, level: LEVEL, refresh: REFRESH });
   for (const [i, c] of trail.concepts.entries()) {

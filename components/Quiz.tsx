@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "./Icons";
-import { Mascot } from "./Mascot";
+import { useRef, useState } from "react";
+import { Check, Close, Grip, Idea } from "./Icons";
 import { reportError } from "@/lib/api";
 
 export type QuizItem =
@@ -12,7 +11,8 @@ export type QuizItem =
   | { kind: "short"; q: string; ref: string };
 
 type Judge = (item: Extract<QuizItem, { kind: "short" }>, answer: string) => Promise<{ correct: boolean; feedback: string }>;
-type Checked = { ok: boolean; head: string; why: string; report: string; title?: string };
+/** Resultado de uma pergunta: `answer` e `steps` só aparecem quando errou; `label` muda o nome do bloco de explicação. */
+type Checked = { ok: boolean; why: string; report: string; title?: string; answer?: string; steps?: string[]; label?: string };
 
 /** Sem acentos, maiúsculas nem pontuação: "Água." e "agua" contam como iguais. */
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -35,26 +35,35 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
     e?.preventDefault();
     if (item.kind === "mc") {
       const ok = sel === item.answer;
-      onCheck({ ok, head: `Quase. A resposta é: ${item.options[item.answer]}`, why: item.why, report: `${item.q} | marcada: ${item.options[sel ?? 0]} | certa: ${item.options[item.answer]}` });
+      onCheck({ ok, answer: item.options[item.answer], why: item.why, report: `${item.q} | marcada: ${item.options[sel ?? 0]} | certa: ${item.options[item.answer]}` });
     } else if (item.kind === "cloze") {
       const ok = [item.answer, ...item.accept].some((a) => norm(a) === norm(text));
-      onCheck({ ok, head: `Quase. A resposta é: ${item.answer}`, why: item.text.replace("___", item.answer), report: `${item.text} | escrita: ${text} | certa: ${item.answer}` });
+      onCheck({ ok, answer: item.answer, why: item.text.replace("___", item.answer), report: `${item.text} | escrita: ${text} | certa: ${item.answer}` });
     } else if (item.kind === "order") {
       const ok = perm.every((v, i) => v === i);
-      onCheck({ ok, head: "Quase. A ordem certa é:", why: item.steps.map((s, k) => `${k + 1}. ${s}`).join("  "), report: `${item.prompt} | ordem dada: ${perm.map((v) => v + 1).join("")}` });
+      onCheck({ ok, steps: item.steps, why: "", report: `${item.prompt} | ordem dada: ${perm.map((v) => v + 1).join("")}` });
     } else {
       setBusy(true);
       try {
         const r = await judge!(item, text);
-        onCheck({ ok: r.correct, head: "Quase.", why: r.feedback, report: `${item.q} | resposta: ${text} | avaliação: ${r.feedback}` });
+        onCheck({ ok: r.correct, label: "Correção", why: r.feedback, report: `${item.q} | resposta: ${text} | avaliação: ${r.feedback}` });
       } catch {
-        onCheck({ ok: true, head: "", title: "Sem correção", why: "Não consegui avaliar a resposta agora. Conta como certa.", report: item.q }); // sem ligação ou cota: não penaliza
+        onCheck({ ok: true, title: "Sem correção", why: "Não consegui avaliar a resposta agora. Conta como certa.", report: item.q }); // sem ligação ou cota: não penaliza
       }
       setBusy(false);
     }
   }
 
-  const move = (k: number, d: -1 | 1) => setPerm((p) => { const a = [...p]; [a[k], a[k + d]] = [a[k + d], a[k]]; return a; });
+  // Ordenar: arrastar pela pega (rato ou dedo) ou, com o teclado, setas para cima e para baixo na pega.
+  const list = useRef<HTMLOListElement>(null);
+  const [drag, setDrag] = useState<number | null>(null); // passo que está a ser arrastado
+  const put = (v: number, to: number) => setPerm((p) => { const a = p.filter((x) => x !== v); a.splice(Math.max(0, Math.min(a.length, to)), 0, v); return a; });
+  function dragMove(e: React.PointerEvent) {
+    if (drag === null || !list.current) return;
+    const rows = [...list.current.children] as HTMLElement[];
+    const to = rows.findIndex((r) => { const b = r.getBoundingClientRect(); return e.clientY >= b.top && e.clientY <= b.bottom; });
+    if (to >= 0 && perm[to] !== drag) put(drag, to);
+  }
   const ready = item.kind === "mc" ? sel !== null : item.kind === "order" ? true : text.trim().length >= 2;
 
   return (
@@ -85,12 +94,17 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
         <>
           <div className="eyebrow">Ordena os passos</div>
           <h2 className="q">{item.prompt}</h2>
-          <ol className="ord">
+          <p className="sub small">Arrasta pela pega para pôr os passos pela ordem certa.</p>
+          <ol className="ord" ref={list} onPointerMove={dragMove} onPointerUp={() => setDrag(null)} onPointerCancel={() => setDrag(null)}>
             {perm.map((v, k) => (
-              <li key={v}>
-                <span className="pane"><span className="in">{item.steps[v]}</span></span>
-                <button type="button" className="iconbtn" disabled={done || k === 0} onClick={() => move(k, -1)} aria-label="Subir"><ChevronUp /></button>
-                <button type="button" className="iconbtn" disabled={done || k === perm.length - 1} onClick={() => move(k, 1)} aria-label="Descer"><ChevronDown /></button>
+              <li key={v} className={drag === v ? "dragging" : undefined}>
+                <span className="pane"><span className="in">
+                  <span className="ord-n">{k + 1}</span>
+                  <span className="ord-t">{item.steps[v]}</span>
+                  <button type="button" className="grip" disabled={done} aria-label={`Mover: ${item.steps[v]}. Setas para cima e para baixo.`}
+                    onPointerDown={(e) => { list.current?.setPointerCapture(e.pointerId); setDrag(v); }}
+                    onKeyDown={(e) => { if (e.key === "ArrowUp") { e.preventDefault(); put(v, k - 1); } if (e.key === "ArrowDown") { e.preventDefault(); put(v, k + 1); } }}><Grip /></button>
+                </span></span>
               </li>
             ))}
           </ol>
@@ -150,12 +164,14 @@ export function Quiz({ items, onFinish, judge, retry = true }: { items: QuizItem
 
       {res && (
         <div className={`feedback ${res.ok ? "ok" : "bad"}`} role="status">
-          <div className="row">
-            <div className="fb-mascot"><Mascot mood={res.ok ? "happy" : "sad"} /></div>
-            <h3>{res.title ?? (res.ok ? "Correto!" : res.head)}</h3>
+          <div className="fb-head">
+            <span className="fb-ico ch">{res.ok ? <Check /> : <Close />}</span>
+            <h3>{res.title ?? (res.ok ? "Correto!" : "Não foi desta")}</h3>
           </div>
-          <p>{res.why}</p>
-          {!res.ok && retry && <p className="sub small">Esta pergunta volta no fim, até acertares.</p>}
+          {!res.ok && res.answer && <div className="fb-block"><span className="eyebrow">Resposta certa</span><b className="fb-answer">{res.answer}</b></div>}
+          {!res.ok && res.steps && <div className="fb-block"><span className="eyebrow">Ordem certa</span><ol className="fb-steps">{res.steps.map((s) => <li key={s}>{s}</li>)}</ol></div>}
+          {res.why && <div className="fb-block"><span className="eyebrow"><Idea />{res.label ?? "Porquê"}</span><p>{res.why}</p></div>}
+          {!res.ok && retry && <p className="fb-note">Esta pergunta volta no fim, até acertares.</p>}
           <button type="button" className={`btn block ${res.ok ? "ok" : "bad"}`} autoFocus onClick={next}>
             <span className="face">{last ? "Finalizar" : "Continuar"}</span>
           </button>

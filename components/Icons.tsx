@@ -53,3 +53,5 @@ export const Hammer = () => (
 export const Heart = () => <Svg><path fill="currentColor" d="M12 20 L4 12 V8 L7 5 H10 L12 7 L14 5 H17 L20 8 V12 Z" /></Svg>;
 /** Ícone grande num quadrado chanfrado: no lugar do mascote nos ecrãs onde ele só repetia. */
 export const HeroIco = ({ children }: { children: ReactNode }) => <span className="hero-ico" aria-hidden="true"><span className="ch">{children}</span></span>;
+export const Close = () => <Svg><path {...stroke} d="M6 6 L18 18 M18 6 L6 18" /></Svg>;
+export const Grip = () => <Svg><path fill="currentColor" d="M8 5 H11 V8 H8 Z M13 5 H16 V8 H13 Z M8 10.5 H11 V13.5 H8 Z M13 10.5 H16 V13.5 H13 Z M8 16 H11 V19 H8 Z M13 16 H16 V19 H13 Z" /></Svg>;

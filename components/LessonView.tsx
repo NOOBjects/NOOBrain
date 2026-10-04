@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Deck } from "./Deck";
+import { Check, Close, Idea } from "./Icons";
 import { Mascot } from "./Mascot";
 import { Quiz, type QuizItem } from "./Quiz";
 import { Tutor } from "./Tutor";
@@ -36,6 +37,7 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ first: number; total: number; gain: number; fresh: boolean; pass: boolean } | null>(null);
   const [warm, setWarm] = useState<number | null>(null); // resposta ao aquecimento (-1 = passou)
+  const [warmGo, setWarmGo] = useState(false); // já viu se acertou e seguiu para a explicação
   const [showSol, setShowSol] = useState(false);
   const [attempt, setAttempt] = useState(0); // muda a cada "Repetir o teste", para o teste recomeçar
 
@@ -146,14 +148,30 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
           {step === 0 && (
             <section className="step" aria-label="Aprender">
-              {lesson.warmup && warm === null ? (
+              {lesson.warmup && !warmGo ? (
                 <>
-                  <p className="step-intro">Antes de começar: o que achas? Não conta para nada, é só para pensares no assunto.</p>
+                  <div className="eyebrow"><Idea /> Aquecimento · não conta para nada</div>
                   <h2 className="q">{lesson.warmup.q}</h2>
-                  <div className="opts" role="group" aria-label="Alternativas">
-                    {lesson.warmup.options.map((o, k) => <button key={k} type="button" className="opt pane" onClick={() => setWarm(k)}><span className="in">{o}</span></button>)}
+                  <div className="opts" role="radiogroup" aria-label="Alternativas">
+                    {lesson.warmup.options.map((o, k) => {
+                      const w = lesson.warmup!;
+                      const state = warm === null ? "" : k === w.answer ? "is-right" : k === warm ? "is-wrong" : "";
+                      return <button key={k} type="button" role="radio" aria-checked={warm === k} disabled={warm !== null} className={`opt pane ${state}`} onClick={() => setWarm(k)}><span className="in">{o}</span></button>;
+                    })}
                   </div>
-                  <button type="button" className="linkbtn" onClick={() => setWarm(-1)}>Não faço ideia, vamos ver</button>
+                  {warm === null ? (
+                    <button type="button" className="linkbtn" onClick={() => { setWarm(-1); setWarmGo(true); }}>Não faço ideia, vamos ver</button>
+                  ) : (
+                    <div className={`feedback ${warm === lesson.warmup.answer ? "ok" : "bad"}`} role="status">
+                      <div className="fb-head">
+                        <span className="fb-ico ch">{warm === lesson.warmup.answer ? <Check /> : <Close />}</span>
+                        <h3>{warm === lesson.warmup.answer ? "Boa intuição!" : "Não faz mal"}</h3>
+                      </div>
+                      {warm !== lesson.warmup.answer && <div className="fb-block"><span className="eyebrow">Resposta certa</span><b className="fb-answer">{lesson.warmup.options[lesson.warmup.answer]}</b></div>}
+                      <p className="fb-note">A explicação a seguir mostra porquê.</p>
+                      <button type="button" className={`btn block ${warm === lesson.warmup.answer ? "ok" : "bad"}`} autoFocus onClick={() => setWarmGo(true)}><span className="face">Continuar</span></button>
+                    </div>
+                  )}
                 </>
               ) : <>
               <p className="step-intro">Primeiro, percebe o que é.</p>
@@ -165,12 +183,6 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
               {reveal >= blocks.length && lesson.solution && (showSol
                 ? <div className="pane reveal"><div className="in"><p><b>Solução:</b> {lesson.solution}</p></div></div>
                 : <button type="button" className="btn soft block" onClick={() => setShowSol(true)}><span className="face">Mostrar a solução</span></button>)}
-              {reveal >= blocks.length && lesson.warmup && warm !== null && (
-                <div className="pane tint reveal"><div className="in">
-                  <p><b>Lembras-te da pergunta do início?</b> {lesson.warmup.q}</p>
-                  <p>Resposta: {lesson.warmup.options[lesson.warmup.answer]}. {warm === lesson.warmup.answer ? "Acertaste." : warm >= 0 ? "Não faz mal: agora já sabes." : ""}</p>
-                </div></div>
-              )}
               {reveal < blocks.length ? (
                 <button type="button" className="btn block" onClick={() => setReveal((r) => r + 1)}><span className="face">Continuar</span></button>
               ) : (
