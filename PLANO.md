@@ -445,7 +445,7 @@ Só CSS, só `transform` e `opacity`. A regra `prefers-reduced-motion` existente
 - Barra de progresso com `transform: scaleX`.
 - Testar no telemóvel com a CPU 4x mais lenta.
 
-## Fase 9: didática (ensinar DE FACTO) — PLANEADA, por fazer
+## Notas de pesquisa: didática (ensinar DE FACTO) — só ideias, NÃO é uma fase; o planeamento é do Opus
 Pesquisa feita a 04/10/2026. Cada ponto abaixo tem a fonte; o que não tem fonte é hipótese minha e está marcado.
 
 ### O que a investigação diz (resumo)
@@ -463,7 +463,7 @@ Pesquisa feita a 04/10/2026. Cada ponto abaixo tem a fonte; o que não tem fonte
 - Bem: passos pequenos (explicação curta → cartões → teste), feedback com explicação, revisão espaçada por caixas (1, 3, 7, 16, 35 dias), tutor.
 - Falta: a lição **começa por ler** (passivo); o teste é só escolha múltipla (reconhecer, não recordar); **errar não obriga a corrigir** e o conceito abre com qualquer nota; as perguntas do teste **não entram na revisão**; a revisão não mistura temas; não há modelos que se "apagam" aos poucos; não há imagens; para línguas, nada de áudio nem fala.
 
-### Passos (por ordem de impacto; cada um é uma entrega pequena)
+### Ideias de mudança (sugestão de ordem de impacto; por planear)
 1. **Domínio antes de avançar** (`LessonView.tsx`, `Quiz.tsx`): o conceito só conta como concluído com ≥ 2 de 3 certas; as erradas voltam no fim da ronda até acertar (corrigir antes de seguir). Mantém o XP menor se repetir.
 2. **Recordar primeiro** (`LessonView.tsx`, `lib/ai.ts`): antes da explicação, 1 pergunta de pré-teste ("o que achas que é...?", sem nota, só para ativar o que já sabes), depois a explicação, depois os cartões. Hipótese minha, apoiada em "gerar" e "ativar conhecimento prévio"; medir se as notas sobem.
 3. **Perguntas na revisão** (`lib/store.ts`, `ReviewView.tsx`): as perguntas do teste que a pessoa errou entram na fila de revisão espaçada, ao lado dos cartões.
@@ -518,4 +518,4 @@ O que a pesquisa encontrou (outubro de 2026):
 3. Anúncios só se nada mais resultar.
 
 ## Ideias para depois
-Dashboard de administrador (gerir ideias, estados e respostas, ver relatórios de erro, números de uso; hoje faz-se no painel do Supabase) · Vozes e conversa para línguas (ver Fase 9, passo 8) · Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
+Animações sofisticadas em todo o app (transições entre ecrãs, micro-interações, mascote reativo, celebrações; a Fase 8 só fez o básico, leve, com transform e opacity) · Dashboard de administrador (gerir ideias, estados e respostas, ver relatórios de erro, números de uso; hoje faz-se no painel do Supabase) · Vozes e conversa para línguas (ver as notas de pesquisa sobre didática, ideia 8) · Sistema de feedback + tutorial (guiar quem chega e recolher opinião dentro do app) · Página Explorar mais trabalhada (ícones, categorias, filtros) · Criação de temas mais inteligente (a base já pede mais contexto quando o tema é ambíguo; evoluir com sugestões de desambiguação e, no futuro, escolher entre significados) · Emblema "Feito com IA · NOOBjects" mais trabalhado, alinhado com a identidade do estúdio (inclusão de IAs) · Criador de personagem para o avatar (mais variações: cores, olhos, acessórios, desbloqueados com XP ou conquistas; hoje há 6 cores do mascote) · Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
