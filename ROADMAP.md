@@ -2,6 +2,8 @@
 
 Ordem de prioridade: de cima para baixo. Marque como feito ao concluir.
 
+**Em curso: [PLANO-BETA.md](PLANO-BETA.md)** (fases 0 a 8, executar por ordem).
+
 ## Feito
 - [x] Identidade NOOBjects, mascote animado (pupila quadrada que se adapta ao canto do olho), tokens
 - [x] Tema → trilha com IA gratuita (Gemini), fila de 9 pedidos/min, modelos reserva
