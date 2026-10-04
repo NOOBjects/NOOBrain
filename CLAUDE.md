@@ -19,7 +19,7 @@ App web para aprender qualquer tema, estilo Duolingo com a identidade da NOOBjec
 - `lib/ai.ts`: **único** ponto de contato com a IA (Google Gemini, plano gratuito, 10 pedidos/min). Fila de 9/min, modelos reserva, tentativas em 500/503. Trocar de provedor = editar só este arquivo.
 - `lib/sources.ts` (busca nas wikis), `lib/cache.ts` (cache em memória do servidor), `lib/limit.ts` (limite por IP), `lib/topic.ts` (+ `topic.test.ts`, rodar `npm run check:topic`).
 - Rotas: `app/api/trail`, `lesson`, `tutor`, `report`.
-- Banco (Supabase, **Europa, Paris, projeto `noobrain-eu`**): tabelas `progress` e `reports`, ambas com RLS. Migração já aplicada.
+- Banco (Supabase, **Europa, Paris, projeto `NOOBrain`, ref `klrgitkxdhofsqwyisvn`**): tabelas `progress` e `reports`, ambas com RLS. Migração já aplicada.
 
 ## Regras do projeto
 - Visual: azul NOOB, **cantos chanfrados a 45° (nunca arredondados)**, profundidade por sombra sólida de 4px sem blur. Cores, cantos e sombras só nos tokens. Verde/vermelho só para certo/errado.
@@ -32,6 +32,6 @@ Veja `ROADMAP.md`.
 
 ## Publicação
 - No ar em https://noobrain.vercel.app (Vercel, equipe NOOBjects `noob-jects`, funções em Paris `cdg1`, ver `vercel.json`). Variáveis de produção já cadastradas na Vercel.
-- Atualizar: `git commit`, `git push` e depois `npx vercel deploy --prod --scope noob-jects` (o CLI já está logado).
-- GitHub: https://github.com/apenasdrei/NOOBrain (ramo `main`). Falta ligar o repositório ao projeto na Vercel para deploy automático.
-- Supabase: projeto europeu `noobrain-eu` (Paris). O projeto de São Paulo `noobrain` foi pausado e deve ser apagado pelo usuário no painel.
+- Atualizar: `git commit` e `git push` na `main`. Se a Vercel já estiver ligada ao GitHub, publica sozinha; senão `npx vercel deploy --prod --scope noob-jects`.
+- GitHub: https://github.com/NOOBjects/NOOBrain (ramo `main`). Só ramos, sem worktrees.
+- Supabase: projeto `NOOBrain` (Paris, conta dev.noobjects@gmail.com). Login por e-mail (SMTP do Gmail) e Google.

@@ -16,7 +16,7 @@ Ordem de prioridade: de cima para baixo. Marque como feito ao concluir.
 
 ## Próximo (pedido pelo usuário)
 - [ ] **Animações em quase tudo**: troca de página, entrar num conceito, mascote reagindo, botões, cartões, trilha
-- [ ] **Entrar com o Google**: configurar o Google e o Supabase (ver PLANO-LOGIN.md, secção 4) e ligar NEXT_PUBLIC_GOOGLE_LOGIN=1
+- [ ] **Entrar com o Google**: já funciona no localhost; falta confirmar no site depois de publicar
 - [ ] **Mais fontes** para cobrir qualquer assunto: busca na web com resultados citados (ex.: Gemini com Google Search, Brave ou Tavily), Open Library para livros
 - [ ] **Catálogo compartilhado**: lição/trilha gerada uma vez serve a todos. Precisa de uma chave secreta de escrita no servidor (decisão do usuário: usar a "secret key" do Supabase ou um token próprio com função no banco)
 - [ ] **Lembretes com o app fechado** (push de verdade): service worker com Web Push, chaves VAPID e uma tarefa agendada na Vercel

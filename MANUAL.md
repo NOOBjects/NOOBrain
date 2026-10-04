@@ -109,7 +109,7 @@ Se uma regra daqui conflitar com o seu costume, **a regra daqui vence**.
 4. A chave fica em `AI_API_KEY` no `.env.local`. Nunca imprima a chave em log.
 
 ### 3.5 Mexer no banco (Supabase)
-1. Projeto: `noobrain-eu` (Paris). Tabelas: `progress` e `reports`, ambas com RLS.
+1. Projeto: `NOOBrain`, ref `klrgitkxdhofsqwyisvn` (Paris). Tabelas: `progress` e `reports`, ambas com RLS.
 2. Antes de mudar, liste as tabelas e leia a estrutura atual.
 3. Toda tabela nova: `alter table ... enable row level security;` + política que só deixa a pessoa ver/editar as próprias linhas.
 4. Apagar tabela, coluna ou dados: **pergunte antes**.
@@ -124,7 +124,7 @@ Só quando o usuário pedir para publicar/enviar.
 1. Seção 4 passou.
 2. `git status` → confira que não há `.env.local` nem chaves na lista.
 3. `git add -A` e `git commit -m "frase curta em português dizendo o que mudou"` (termine a mensagem com a linha de coautoria que o sistema indicar).
-4. `git push` (vai para https://github.com/apenasdrei/NOOBrain).
+4. `git push` (vai para https://github.com/NOOBjects/NOOBrain).
 5. Site: se a Vercel ainda não estiver ligada ao GitHub, rode `npx vercel deploy --prod --scope noob-jects`. Endereço: https://noobrain.vercel.app.
 6. Abra o endereço e confirme que carrega.
 
