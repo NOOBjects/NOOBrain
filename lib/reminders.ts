@@ -1,5 +1,5 @@
 // Lembretes de revisão. Funcionam enquanto o app está aberto ou instalado em segundo plano.
-// Lembrete com o app totalmente fechado exige "push" no servidor e fica no roteiro (ROADMAP.md).
+// Lembrete com o app totalmente fechado exige "push" no servidor e fica no roteiro (PLANO.md, Fase 5).
 const ON = "noobrain:remind";
 const LAST = "noobrain:lastnotify";
 const EVERY = 4 * 3600_000; // no máximo um lembrete a cada 4 horas

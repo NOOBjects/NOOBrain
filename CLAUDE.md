@@ -1,37 +1,73 @@
 @AGENTS.md
-@MANUAL.md
 
-# NOOBrain (leia isto antes de abrir arquivos)
+# NOOBrain: regras do projeto (ler antes de agir)
 
-App web para aprender qualquer tema, estilo Duolingo com a identidade da NOOBjects (estúdio do usuário, que é designer e leigo em código). Responder em português, curto, explicando o essencial como a um cliente inteligente. O usuário decide o quê, eu decido o como.
+App web para aprender qualquer tema, estilo Duolingo, com a identidade da NOOBjects. O Rodrigo é designer e leigo em código: ele decide o quê, tu decides o como. Responde em português de Portugal, curto, como a um cliente inteligente. Textos do app sempre em **PT-PT, tratando por "tu"**.
+Trabalho em curso e roteiro: **`PLANO.md`** (ler só quando a tarefa for de lá).
 
-## O que o app faz
-1. **Tema → trilha**: a pessoa digita um tema; a IA monta 6 a 8 conceitos em ordem, a partir de fontes abertas (Wikipédia, Wikilivros, Wikiversidade, Wikisource).
-2. **Lição guiada por conceito**: Aprender (explicação revelada por blocos) → Memorizar (cartões; "De novo" volta até acertar) → Testar (quiz de 3 perguntas). Tutor de chat disponível em qualquer passo.
-3. **Revisão espaçada** dos cartões (caixas de 0 a 35 dias), com selo na ilha, aviso na trilha, contador no título da aba e notificação opcional.
-4. **XP e sequência de dias**. Conta opcional (Supabase) sincroniza o progresso; sem conta tudo fica no navegador.
-5. **Detecção de temas parecidos** (`lib/topic.ts`): "Fernando Pessoa" e "Fernando Pessoa poeta" abrem a mesma trilha em vez de gerar outra.
+## Como trabalhar
+1. Diz para ti numa frase o que muda na tela ou no comportamento.
+2. Usa o mapa abaixo; procura com Grep/Glob e lê só o trecho necessário.
+3. Faz a **menor** mudança que resolve. Não melhores o que não foi pedido.
+4. Verifica (secção "Antes de dizer que terminou") e responde: o que mudou e onde ver.
 
-## Stack e onde está cada coisa
-- Next.js 16 (App Router) + TypeScript, CSS puro em `app/globals.css` (tokens no topo). Sem Tailwind.
-- `components/`: `App.tsx` (casca e navegação), `Island.tsx` (menu flutuante), `LessonView.tsx` (lição guiada), `Deck.tsx` (cartões), `Quiz.tsx`, `Tutor.tsx`, `ReviewView.tsx`, `NewTopic.tsx`, `Account.tsx`, `Mascot.tsx` (mascote SVG animado), `TrailNode.tsx`.
-- `lib/store.ts`: estado inteiro no localStorage (`noobrain:v2`) + revisão espaçada + sequência. `lib/useSync.ts`: copia o estado para o Supabase quando há login (vence o `updatedAt` mais novo).
-- `lib/ai.ts`: **único** ponto de contato com a IA (Google Gemini, plano gratuito, 10 pedidos/min). Fila de 9/min, modelos reserva, tentativas em 500/503. Trocar de provedor = editar só este arquivo.
-- `lib/sources.ts` (busca nas wikis), `lib/cache.ts` (cache em memória do servidor), `lib/limit.ts` (limite por IP), `lib/topic.ts` (+ `topic.test.ts`, rodar `npm run check:topic`).
-- Rotas: `app/api/trail`, `lesson`, `tutor`, `report`.
-- Banco (Supabase, **Europa, Paris, projeto `NOOBrain`, ref `klrgitkxdhofsqwyisvn`**): tabelas `progress` e `reports`, ambas com RLS. Migração já aplicada.
+**Pára e pergunta** se: o pedido tem duas leituras com resultados diferentes; é preciso apagar dados, mexer em contas, publicar, pagar ou instalar um pacote novo; muda o visual de algo não citado; o mesmo erro falhou 2 vezes.
 
-## Regras do projeto
-- Visual: azul NOOB, **cantos chanfrados a 45° (nunca arredondados)**, profundidade por sombra sólida de 4px sem blur. Cores, cantos e sombras só nos tokens. Verde/vermelho só para certo/errado.
-- Nunca colocar chaves no código. `.env.local` está fora do Git; `.env.example` mostra as variáveis. A chave pública do Supabase é pública por natureza; a proteção é o RLS.
-- Antes de dizer que terminou: `npm run build`, `npm run lint` e, se mexeu em `lib/topic.ts`, `npm run check:topic`.
-- Ações irreversíveis ou públicas (apagar dados, publicar, mexer em contas) pedem confirmação.
+## Nunca / sempre
+| Nunca | Sempre |
+|---|---|
+| `border-radius` | cantos chanfrados a 45°: `.ch` (corte em `--c`), `.pane`, `.btn` |
+| cor escrita direto no componente | tokens de `app/globals.css` (claro em `:root`, escuro no bloco `prefers-color-scheme`) |
+| sombra com desfoque | sombra sólida 4px: `filter: drop-shadow(0 var(--depth) 0 var(--cor-deep))` |
+| verde/vermelho de enfeite | `--ok` só para certo, `--bad` só para errado |
+| Tailwind, CSS-in-JS, biblioteca nova sem ok | CSS puro em `app/globals.css` |
+| chave ou segredo no código | `.env.local` (fora do Git) + só o nome em `.env.example` |
+| chamar a IA fora de `lib/ai.ts` | tudo por `lib/ai.ts` (trocar de provedor = só esse ficheiro) |
+| tabela no Supabase sem RLS | RLS ligado + política por utilizador |
+| mexer à mão em `package-lock.json`, `.next/`, `node_modules/` | deixar com o `npm` |
+| `push --force`, `reset --hard`, apagar ficheiros sem pedir | perguntar |
+| worktrees | só ramos; trabalhar na pasta do projeto |
 
-## Estado e roteiro
-Veja `ROADMAP.md`.
+**Next.js 16 é diferente do que conheces**: antes de usar rotas, `params`, cache, metadata, imagens ou middleware, lê o guia em `node_modules/next/dist/docs/`.
 
-## Publicação
-- No ar em https://noobrain.vercel.app (Vercel, equipe NOOBjects `noob-jects`, funções em Paris `cdg1`, ver `vercel.json`). Variáveis de produção já cadastradas na Vercel.
-- Atualizar: `git commit` e `git push` na `main`. Se a Vercel já estiver ligada ao GitHub, publica sozinha; senão `npx vercel deploy --prod --scope noob-jects`.
-- GitHub: https://github.com/NOOBjects/NOOBrain (ramo `main`). Só ramos, sem worktrees.
-- Supabase: projeto `NOOBrain` (Paris, conta dev.noobjects@gmail.com). Login por e-mail (SMTP do Gmail) e Google.
+Padrões de UI (copiar, não inventar):
+- botão `<button type="button" className="btn"><span className="face">Texto</span></button>`, com as variantes `soft`, `sm`, `block`;
+- caixa `<div className="pane"><div className="in">…</div></div>`, com as variantes `tint`, `is-right`, `is-wrong`, `is-mine`.
+
+Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado, eventos ou `localStorage`.
+
+## Mapa: quero mudar X → abro Y
+| X | Y |
+|---|---|
+| cores, cantos, sombras, fontes, pontos de quebra | `app/globals.css` |
+| navegação e casca | `components/App.tsx`; menu flutuante `Island.tsx` |
+| lição (Aprender → Memorizar → Testar) | `LessonView.tsx`, `Deck.tsx`, `Quiz.tsx`, `Tutor.tsx` |
+| revisão, novo tema, conta | `ReviewView.tsx`, `NewTopic.tsx`, `Account.tsx` (+ `lib/supabase.ts`, `lib/useSync.ts`) |
+| mascote, nó da trilha, ícones | `Mascot.tsx` + `lib/mascot-paths.ts`, `TrailNode.tsx`, `Icons.tsx` |
+| lembretes | `ReminderToggle.tsx`, `lib/reminders.ts`, `public/sw.js` |
+| estado, XP, sequência, revisão espaçada | `lib/store.ts` (localStorage `noobrain:v2`); tipos em `lib/types.ts` |
+| IA (prompts, modelos, fila de 9/min) | `lib/ai.ts`; rotas `app/api/trail`, `lesson`, `tutor`, `report` |
+| fontes (wikis), cache, limite por IP | `lib/sources.ts`, `lib/cache.ts`, `lib/limit.ts` |
+| temas parecidos | `lib/topic.ts` + `lib/topic.test.ts` (`npm run check:topic`) |
+| ícones do site, metadados, manifesto | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `app/opengraph-image.png`, `app/layout.tsx`, `app/manifest.ts` |
+| e-mails do Supabase | `emails/` (ver `emails/README.md`) |
+
+## Antes de dizer que terminou
+- `npm run build`: sem `Error`, mostra a lista de rotas.
+- `npm run lint`: sem `error` (avisos em ficheiros não mexidos: ignorar).
+- `npm run check:topic`: se mexeste em `lib/topic.ts`. Corrige o código, não o teste.
+- Mudança visível: ver no navegador (claro e escuro, telemóvel e computador).
+- 2 tentativas falhadas no mesmo erro: pára, mostra o erro e diz o que tentaste.
+
+Erros comuns:
+- "Can't resolve": import errado; copia o formato de um ficheiro vizinho.
+- "window/localStorage is not defined": falta `"use client"` ou o acesso tem de estar num `useEffect`.
+- IA com 429: limite por minuto; espera. IA com 500/503: Google sobrecarregado; `lib/ai.ts` já tenta outro modelo.
+- `Ã©` no terminal: é só a exibição; os ficheiros são UTF-8.
+
+## Infraestrutura
+- **Site**: https://noobrain.vercel.app (Vercel, equipa `noob-jects`, plano Hobby, funções em Paris `cdg1`). A Vercel está ligada ao GitHub `NOOBjects/NOOBrain` (ramo `main`). Se um push não publicar sozinho, o Rodrigo cria a publicação no painel (Deployments → Create Deployment → `main`).
+- **Supabase**: projeto `NOOBrain`, ref `klrgitkxdhofsqwyisvn`, Paris, conta dev.noobjects@gmail.com. Tabelas `progress` e `reports`, com RLS. Login por e-mail (SMTP do Gmail) e Google. A chave pública é pública por natureza; a proteção é o RLS. Antes de mudar o banco, lista as tabelas; apagar tabelas, colunas ou dados pede confirmação.
+- **IA**: Google Gemini (chave `AI_API_KEY`). Os termos do Gemini exigem plano pago para utilizadores na UE e proíbem apps para menores de 18: ver `PLANO.md`, Fase A.
+- **Variáveis na Vercel e segredos**: quem as põe é o Rodrigo (as permissões bloqueiam o agente). Diz-lhe o nome exato e onde.
+- **Publicar** (só quando pedido): verificação acima → `git status` sem `.env*` → commit em português com a linha de coautoria → `git push`. No fim, abrir o site e confirmar.
