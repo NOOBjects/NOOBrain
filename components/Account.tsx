@@ -15,6 +15,13 @@ const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
 // Chave pública do hCaptcha (a secret está só no painel do Supabase).
 const CAPTCHA_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITEKEY || "4f9600c6-0b00-4992-94ec-72de30520826";
 const LAST_EMAIL = "noobrain:email";
+
+/** Navegador embutido noutra app (Instagram, Facebook, TikTok, WebView...): o Google costuma bloquear o login aí. */
+function inAppBrowser() {
+  const ua = navigator.userAgent;
+  if (/FBAN|FBAV|Instagram|Line\/|Snapchat|TikTok|BytedanceWebview|MicroMessenger|LinkedInApp|Twitter|; wv\)/i.test(ua)) return true;
+  return /iPhone|iPad|iPod/.test(ua) && !/Safari|CriOS|FxiOS|EdgiOS|OPiOS/.test(ua); // WebView do iOS não traz "Safari"
+}
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 type Mode = "entrar" | "criar" | "esqueci" | "nova" | "enviado";
@@ -123,6 +130,13 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
     return () => clearTimeout(t);
   }, [wait]);
 
+  // Voltar atrás a partir da página do Google traz esta página de volta "congelada" com o botão a girar: desbloquear.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) { setBusy(false); setMsg(null); } };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+  const [embedded] = useState(() => typeof navigator !== "undefined" && inAppBrowser());
   const captchaRef = useRef<HCaptcha>(null);
   // O hCaptcha só carrega quando a pessoa começa a usar o formulário (pesa muito na página inicial).
   const [armed, setArmed] = useState(false);
@@ -285,9 +299,16 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
 
         {GOOGLE && (mode === "entrar" || mode === "criar") && (
           <>
+            {embedded && (
+              <div className="note ch" role="note">
+                Parece que abriste o NOOBrain dentro de outra app (como o WhatsApp). O Google pode bloquear o login aqui. Abre o link no Chrome ou no Safari, ou entra com e-mail.
+                <button type="button" className="linkbtn" onClick={() => void navigator.clipboard?.writeText(window.location.origin).then(() => setMsg({ ok: true, text: "Link copiado. Cola-o no Chrome ou no Safari." }))}>Copiar o link</button>
+              </div>
+            )}
             <button type="button" className="btn soft block" disabled={busy} onClick={google}>
               <span className="face"><i className="gicon" aria-hidden="true" />Continuar com o Google</span>
             </button>
+            {mode === "criar" && <p className="sub small">Com o Google, a conta é criada logo, se ainda não existir.</p>}
             <div className="or" aria-hidden="true"><span>ou com e-mail</span></div>
           </>
         )}

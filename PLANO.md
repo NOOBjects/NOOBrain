@@ -15,6 +15,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 Regra: de cada vez que algo muda, acrescentar uma linha no topo, com a data e o que mudou para quem usa. A ideia de mostrar isto dentro do app ("Novidades") está em "Ideias para depois".
 
 **2026-10-04** (um dia de trabalho, versão beta 0.9)
+- Login com o Google: aviso quando o app é aberto dentro de outra app (o Google bloqueia aí), botão para copiar o link, e o botão deixa de ficar preso ao voltar atrás a partir do Google.
 - Página inicial mais rápida: o captcha só carrega quando começas a escrever no formulário. Lighthouse (telemóvel) numa página de tema: desempenho 99, acessibilidade 100, boas práticas 100, SEO 100; na página inicial: desempenho 83 (era 62 com o captcha à entrada), boas práticas 100, SEO 100 (meta do plano: 90 no desempenho; falta pouco, o JavaScript do app pesa). O Google já não mostra destaque para "Course" (descontinuado em 2025): é normal o teste de resultados ricos não mostrar nada.
 - Perfil no telemóvel: o conteúdo já não sai do ecrã e o avatar volta a mostrar o mascote.
 - Telemóvel: o menu de baixo (ilha) cortava o botão Perfil com 6 abas; agora os botões repartem a largura (só ícones em ecrãs estreitos).
