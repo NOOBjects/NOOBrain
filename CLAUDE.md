@@ -68,6 +68,6 @@ Erros comuns:
 ## Infraestrutura
 - **Site**: https://noobrain.vercel.app (Vercel, equipa `noob-jects`, plano Hobby, funções em Paris `cdg1`). A Vercel está ligada ao GitHub `NOOBjects/NOOBrain` (ramo `main`). Se um push não publicar sozinho, o Rodrigo cria a publicação no painel (Deployments → Create Deployment → `main`).
 - **Supabase**: projeto `NOOBrain`, ref `klrgitkxdhofsqwyisvn`, Paris, conta dev.noobjects@gmail.com. Tabelas `progress` e `reports`, com RLS. Login por e-mail (SMTP do Gmail) e Google. A chave pública é pública por natureza; a proteção é o RLS. Antes de mudar o banco, lista as tabelas; apagar tabelas, colunas ou dados pede confirmação.
-- **IA**: Google Gemini (chave `AI_API_KEY`). Os termos do Gemini exigem plano pago para utilizadores na UE e proíbem apps para menores de 18: ver `PLANO.md`, Fase A.
+- **IA**: chave em `AI_API_KEY`. Hoje é o Gemini; vai passar para o **Groq gratuito** (`PLANO.md`, Fase A), porque o Gemini gratuito não pode servir a UE nem menores. Sem faturação: a IA tem de ficar sempre gratuita. Idade mínima do app: 13 anos.
 - **Variáveis na Vercel e segredos**: quem as põe é o Rodrigo (as permissões bloqueiam o agente). Diz-lhe o nome exato e onde.
 - **Publicar** (só quando pedido): verificação acima → `git status` sem `.env*` → commit em português com a linha de coautoria → `git push`. No fim, abrir o site e confirmar.

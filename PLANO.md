@@ -9,7 +9,7 @@ Executar **uma fase de cada vez, por ordem**. No fim de cada fase:
 As regras gerais estão no `CLAUDE.md`.
 
 ## Já feito
-Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e aviso · temas parecidos e cache · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT · ilha de menu · responsivo · páginas de privacidade e termos · favicon, ícones, imagem de partilha, manifesto, robots e sitemap · Vercel ligada ao GitHub.
+Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e aviso · temas parecidos e cache · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT · ilha de menu · responsivo · páginas de privacidade e termos · favicon, ícones, imagem de partilha, manifesto, robots e sitemap · ícone do projeto na Vercel · README com visual · funções confirmadas em Paris (`cdg1`).
 
 ## Decisões tomadas pelo Rodrigo (não voltar a perguntar)
 - Login obrigatório para tudo. Sem conta, só o ecrã de entrada, que mostra os temas disponíveis. Quem entra começa do zero.
@@ -17,14 +17,23 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 - Sugestões: mural público com votos. O Rodrigo responde e muda o estado no painel do Supabase.
 - Push com o app fechado: aprovado o pacote `web-push`.
 - O "Sobre" diz que o app é feito quase 100% com IA e que as ideias, o design e as decisões são do Rodrigo (NOOBjects).
-- Sempre dentro dos planos gratuitos. A única exceção é o Gemini (ver Fase A).
+- Sempre dentro dos planos gratuitos, **incluindo a IA** (sem faturação).
+- A IA passa do Gemini para o **Groq** (Fase A): é gratuito, não treina com os dados e permite apps usados por menores.
+- Idade mínima: **13 anos**. Em Portugal, abaixo disso o RGPD exige consentimento dos pais (Lei 58/2019, art. 16.º).
+- Doações com **Ko-fi**: o Rodrigo cria a conta e dá o link.
+- Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
 
-## Por decidir (Rodrigo)
-1. **Idade mínima de 18 anos**, que os termos do Gemini exigem (Fase A). Aceitar, ou mudar de fornecedor de IA mais tarde.
-2. **Ligar a faturação do Gemini** (Fase A). Obrigatório para utilizadores na UE; custo estimado de cêntimos por mês na beta.
-3. Lista dos 8 temas iniciais (Fase 3.4).
-4. Dinheiro e alojamento: ver a última secção. Nada a fazer até ao fim da beta.
-5. Os pushes ainda **não publicam sozinhos**: a app da Vercel no GitHub precisa de acesso ao repositório `NOOBrain` (GitHub → NOOBjects → Settings → GitHub Apps → Vercel → Repository access).
+## Por decidir ou fazer (Rodrigo)
+1. **Criar a conta no Groq** ([console.groq.com](https://console.groq.com), com dev.noobjects@gmail.com) e uma chave. Pô-la em `AI_API_KEY` no `.env.local` e na Vercel (Production e Preview).
+   - Depois, **apagar a chave antiga do Gemini** no Google AI Studio: foi escrita no chat.
+2. **A publicação automática não funciona.** O projeto está ligado ao repositório, mas a Vercel não recebe os avisos de push (nenhuma publicação aparece, nem bloqueada).
+   - Causa provável: a conta do GitHub mudou de nome (de `apenasdrei` para `NOOBjects`) depois da ligação.
+   - Solução: Vercel → Settings → Git → **Disconnect** → **Connect Git Repository** → `NOOBjects/NOOBrain`. Depois disso, um push de teste confirma.
+3. **Ko-fi**: criar a conta e dar o link. Entra no "Sobre" e no aviso da beta (Fase 2), em `lib/config.ts` → `KOFI_URL`.
+4. **SEO** (Fase 3B):
+   - criar o Google Search Console e dar o código de verificação;
+   - decidir se compra um domínio próprio (ex.: `noobrain.pt` ou `.app`, com custo anual) ou fica com `noobrain.vercel.app`.
+5. Dinheiro e alojamento além das doações: ver a última secção. Nada a fazer até ao fim da beta.
 
 ## Regras de execução
 - Textos novos em PT-PT, tratando por "tu".
@@ -34,35 +43,39 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 
 ---
 
-## Fase A: conformidade e custos da IA (antes de tudo)
-Os termos do Gemini (verificados a 04/10/2026, [ai.google.dev/gemini-api/terms](https://ai.google.dev/gemini-api/terms)) dizem:
-- "You may use only Paid Services when making API Clients available to users in the European Economic Area, Switzerland, or the United Kingdom." **O plano gratuito não pode servir utilizadores em Portugal.**
-- "You also will not use the Services as part of a website, application, or other service … that is directed towards or is likely to be accessed by individuals under the age of 18." **O app tem de ser só para maiores de 18.**
-- A parte boa: no espaço europeu, o Google não usa os pedidos para treinar os modelos.
+## Fase A: IA gratuita com o Groq (antes de tudo)
+**Porque mudar.** Os termos do Gemini (verificados a 04/10/2026) proíbem o plano gratuito para utilizadores na UE e proíbem apps acessíveis a menores de 18. O **Groq** ([termos](https://console.groq.com/docs/legal/services-agreement)) tem:
+- plano gratuito sem proibição de produção;
+- "Groq is not permitted to use Inputs or Outputs for training";
+- apps usados por menores são permitidos, desde que o cliente cumpra a lei (para nós, o RGPD);
+- clientes europeus contratam com a Groq UK.
 
-**Tarefas do Rodrigo:**
-1. No Google AI Studio, ligar a faturação ao projeto da chave (passa a "Tier 1").
-2. No Google Cloud → Billing → Budgets, criar um alerta de orçamento (por exemplo, 5 € por mês).
-3. Anotar o RPM e o RPD que o AI Studio mostra em Rate limits.
+DeepSeek e Mistral foram descartados:
+- DeepSeek: não é gratuito e guarda os dados na China (problemas de RGPD);
+- Mistral: o gratuito é só para protótipos e treina com os dados por omissão.
 
-**Custos** (preços oficiais, por milhão de tokens):
-| Modelo | Entrada | Saída |
-|---|---|---|
-| `gemini-3.1-flash-lite` | $0,25 | $1,50 |
-| `gemini-3.7-flash` e `gemini-3.8-flash` | $0,75 | $3,75 (duplicam a 1/1/2027) |
+**Modelos e limites gratuitos** ([fonte](https://console.groq.com/docs/rate-limits)). Cada modelo tem o seu limite: 30 pedidos/min, 1000/dia, 8000 tokens/min e 200 000 tokens/dia.
+- Cadeia: `openai/gpt-oss-120b` → `qwen/qwen3.8-27b` → `openai/gpt-oss-20b`. Os três garantem JSON válido (`strict: true`).
+- Capacidade total: ~600 000 tokens/dia ≈ **130 lições novas por dia**, mais o tutor. O catálogo partilhado (Fase 3) faz com que cada lição só seja gerada uma vez.
+- `ponytail:` se a beta crescer além disto, acrescentar um 2.º fornecedor gratuito como reserva (Cloudflare Workers AI, 10 000 "neurons"/dia) em `lib/ai.ts`.
 
-Com o flash-lite, uma lição custa cerca de **$0,003**: 1000 lições ≈ $3. O catálogo partilhado (Fase 3) reduz isto muito.
-
-**Código:**
+**Código** (só `lib/ai.ts` e os esquemas nas rotas):
 1. `lib/ai.ts`:
-   - `MODELS` por omissão passa a `gemini-3.1-flash-lite`, com os reservas mais baratos disponíveis (confirmar na página de preços);
-   - pôr o raciocínio ("thinking") no nível mais baixo que o modelo aceitar (ver `thinkingConfig` na documentação da API), porque os tokens de raciocínio contam como saída;
-   - `AI_RPM` sai de uma variável com 80% do RPM do Tier 1.
-2. Idade:
-   - no registo por e-mail e no "Cria o teu perfil" (para quem entra pelo Google), caixa obrigatória "Confirmo que tenho 18 anos ou mais";
-   - gravar em `profiles.adult boolean not null check (adult)`, a acrescentar à migração da Fase 2;
-   - Termos: "O NOOBrain destina-se a maiores de 18 anos";
-   - Privacidade: o Google (Gemini, termos pagos, sem treino) passa a constar como subcontratante.
+   - `POST https://api.groq.com/openai/v1/chat/completions` com `authorization: Bearer ${AI_API_KEY}`;
+   - corpo: `{ model, messages: [{ role: "system", content: REGRAS }, { role: "user", content: prompt }], temperature: 0.4, reasoning_effort: "low", response_format: { type: "json_schema", json_schema: { name: "resposta", strict: true, schema } } }`;
+   - ler `choices[0].message.content` e fazer `JSON.parse`;
+   - 429 ou 5xx → passar ao modelo seguinte; todos esgotados → `AiError("limite")`;
+   - `MODELS` vem de `AI_MODEL` (por omissão, a cadeia acima);
+   - a fila interna passa a 25 por minuto (`AI_RPM`).
+2. Esquemas nas rotas `trail`, `lesson` e `tutor`: converter do formato Gemini (`"OBJECT"`, `"STRING"`) para JSON Schema (`"object"`, `"string"`). Com `strict`, todas as propriedades vão em `required` e cada objeto leva `additionalProperties: false`.
+3. Cortar o texto das fontes a ~6000 caracteres (`lib/sources.ts`), para caber nos 8000 tokens por minuto.
+4. `REGRAS` (mensagem de sistema, PT-PT): "És o tutor do NOOBrain, um app de aprendizagem usado também por adolescentes. Responde só sobre o tema de estudo, com linguagem adequada a todas as idades. Recusa com gentileza conteúdo sexual, violento, perigoso ou de ódio e volta ao tema. Nunca peças dados pessoais."
+5. Atualizar `.env.example`, a Privacidade e o `CLAUDE.md`. Na Privacidade: o Groq é subcontratante, os dados são processados nos EUA e no Reino Unido e não são usados para treino.
+6. **Idade de 13 anos**:
+   - no registo por e-mail e no "Cria o teu perfil", caixa obrigatória "Confirmo que tenho 13 anos ou mais";
+   - gravar em `profiles.age_ok`;
+   - Termos: "Para usar o NOOBrain precisas de ter pelo menos 13 anos".
+7. Teste: gerar 1 trilha e 1 lição no `npm run dev` e confirmar que vêm em PT-PT e com o formato certo.
 
 ## Fase 0: correções rápidas e beta visível
 1. **Selo da ilha cortado**: o `.isl` tem `clip-path` (classe `ch`), que corta o `.badge` posicionado fora. Em `app/globals.css`, `.badge { top: 3px; right: 3px; }`. Testar com 1 e 2 dígitos.
@@ -108,7 +121,7 @@ create table public.profiles (
   display_name text not null default '' check (char_length(display_name) <= 40),
   avatar smallint not null default 0 check (avatar between 0 and 5),
   bio text not null default '' check (char_length(bio) <= 160),
-  adult boolean not null check (adult),
+  age_ok boolean not null check (age_ok),
   in_ranking boolean not null default true,
   xp int not null default 0,
   streak int not null default 0,
@@ -123,7 +136,7 @@ create policy "own profile insert" on public.profiles for insert to authenticate
 create policy "own profile update" on public.profiles for update to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 revoke insert, update on public.profiles from anon, authenticated;
-grant insert (id, username, display_name, avatar, bio, adult, in_ranking) on public.profiles to authenticated;
+grant insert (id, username, display_name, avatar, bio, age_ok, in_ranking) on public.profiles to authenticated;
 grant update (username, display_name, avatar, bio, in_ranking) on public.profiles to authenticated;
 create index profiles_week on public.profiles (week_start, week_xp desc) where in_ranking;
 
@@ -160,7 +173,7 @@ create trigger progress_stats after insert or update of data on public.progress
   - @nome com verificação de disponibilidade 400 ms depois de parar de escrever (`select('id', { count: 'exact', head: true })`), com sugestão a partir do `full_name` ou do e-mail;
   - nome a mostrar;
   - avatar: o mascote com fundo `--brand`, `--brand-deep`, `--sun`, `--ink`, `--ink-3` ou `--brand-soft`;
-  - caixa dos 18 anos;
+  - caixa dos 13 anos;
   - erro `23505` → "Esse nome já está ocupado".
 - **Perfil** (substitui "Sessão iniciada"):
   - topo: avatar, nome, @nome, "Membro desde";
@@ -219,7 +232,30 @@ grant execute on function public.bump_catalog_use(text, text) to authenticated;
   - o ecrã de entrada mostra os 8 temas mais usados.
 - **Semente**: `scripts/seed-catalog.mjs`.
   - Com `npm run dev` a correr, chama `/api/trail` e `/api/lesson` com o cabeçalho `x-seed-token` (= `SEED_TOKEN`, só em `.env.local`, nunca na Vercel), com 7 s entre pedidos.
-  - Temas: Fotossíntese, Sistema Solar, Fernando Pessoa, Revolução dos Cravos, Inteligência Artificial, Finanças pessoais, Primeiros socorros, Teoria das cores.
+  - Temas: Fotossíntese, Sistema Solar, Fernando Pessoa, **Inglês para iniciantes**, Revolução dos Cravos, Inteligência Artificial, Finanças pessoais, Primeiros socorros, Teoria das cores. Para o Inglês, o prompt pede conceitos práticos (cumprimentos, verbo *to be*, números, frases do dia a dia) e cartões "inglês → português".
+
+## Fase 3B: SEO (aparecer no Google)
+Com o login obrigatório, o Google não vê nada do que está dentro do app. Por isso, o SEO precisa de **páginas públicas** com conteúdo real, geradas no servidor.
+1. **Página inicial pública** (`app/page.tsx`, sem sessão):
+   - o ecrã de entrada da Fase 1 passa a ser uma landing de verdade, gerada no servidor;
+   - `h1` "Aprende qualquer tema, um conceito de cada vez", 3 blocos (trilha, lição guiada, revisão espaçada), temas populares com links para `/temas/...` e o login;
+   - o app (componente cliente) só carrega quando há sessão.
+2. **Páginas de tema** `app/temas/[slug]/page.tsx`:
+   - uma por trilha do catálogo (`slug` = `key`), com `generateStaticParams` + revalidação diária (ver o guia de cache do Next 16);
+   - mostram o título, o nível, a lista de conceitos com os resumos, as fontes e o botão "Começar esta trilha" (leva ao login e, depois, abre a trilha);
+   - `generateMetadata`: título "Aprender <tema> passo a passo · NOOBrain" e descrição com os 2 primeiros conceitos;
+   - JSON-LD `Course` (nome, descrição, `provider` NOOBjects, `inLanguage: "pt-PT"`, `isAccessibleForFree: true`);
+   - imagem de partilha por tema com `ImageResponse` (`opengraph-image.tsx` na pasta da rota).
+3. **Perfis públicos** (`/u/[username]`, Fase 6): indexáveis só se `in_ranking`; senão, `robots: { index: false }`.
+4. **`app/sitemap.ts`** passa a listar `/`, as páginas legais e todos os `/temas/[slug]` (lidos do catálogo com a chave pública).
+5. **`app/layout.tsx`**:
+   - JSON-LD `WebApplication` (nome, URL, categoria `EducationalApplication`, `offers` grátis);
+   - `verification: { google: process.env.NEXT_PUBLIC_GSC_TOKEN }`.
+6. **Rodrigo**:
+   - [Google Search Console](https://search.google.com/search-console) → "Prefixo do URL" `https://noobrain.vercel.app` → método "Etiqueta HTML" → copiar o código para `NEXT_PUBLIC_GSC_TOKEN` na Vercel → Verificar → enviar `sitemap.xml`;
+   - o mesmo no Bing Webmaster Tools (importa do Google num clique).
+7. **Domínio próprio** (opcional, decisão do Rodrigo): dá mais confiança e marca do que `*.vercel.app`. Liga-se na Vercel → Domains. Custa um valor anual no registador.
+8. Verificar: Lighthouse (SEO e desempenho ≥ 90 no telemóvel) e o [teste de resultados ricos](https://search.google.com/test/rich-results) numa página de tema.
 
 ## Fase 4: segurança, desempenho e IA
 1. **IA só com conta**:
@@ -254,9 +290,9 @@ revoke execute on function public.consume_ai(uuid, text, int, int) from public, 
 grant execute on function public.consume_ai(uuid, text, int, int) to service_role;
 ```
    - Chamar só quando o pedido vai mesmo à IA.
-   - Limites em `lib/config.ts`: trilha 8, lição 40, tutor 60 por dia.
-   - Global: `AI_DAILY_MAX` na Vercel. Com o Tier 1 pago, é isto que limita a fatura (por exemplo, 1500 ≈ $4,5 por dia no pior caso).
-   - Mensagens: "Chegaste ao limite de hoje. Amanhã há mais." e "A IA do NOOBrain esgotou por hoje. Volta amanhã."
+   - Limites em `lib/config.ts`: trilha 5, lição 25, tutor 40 por dia.
+   - Global: `AI_DAILY_MAX` (por omissão 2500 pedidos/dia, abaixo dos 3000 que somam os três modelos gratuitos).
+   - Mensagens: "Chegaste ao limite de hoje. Amanhã há mais." e "A IA gratuita do NOOBrain esgotou por hoje. Volta amanhã."
 3. **Relatórios de erro**: `alter table public.reports add column user_id uuid references auth.users(id) on delete set null; drop policy "anyone can report" on public.reports;`. A rota grava com `admin` e o `user_id`.
 4. **Apagar conta**: `DELETE /api/account` → `admin.auth.admin.deleteUser(uid)`. Tudo apaga em cascata.
 5. **Cabeçalhos** em `next.config.ts`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
@@ -408,7 +444,7 @@ Só CSS, só `transform` e `opacity`. A regra `prefers-reduced-motion` existente
 | ilha com 2 e 12 cartões | número inteiro visível |
 | lição em claro e escuro | cantos chanfrados, passo atual azul |
 | janela anónima no site | só o ecrã de entrada, com Beta e temas |
-| conta nova | 0 XP, sem trilhas, "Cria o teu perfil" com a caixa dos 18 anos |
+| conta nova | 0 XP, sem trilhas, "Cria o teu perfil" com a caixa dos 13 anos |
 | @nome repetido | "Esse nome já está ocupado" |
 | `update profiles set xp = 999` pelo navegador | recusado |
 | mesmo tema em duas contas | a 2.ª é instantânea; `ai_daily.n` sobe uma vez |
@@ -434,10 +470,10 @@ O que a pesquisa encontrou (outubro de 2026):
 - **Alternativa de alojamento**: o Cloudflare Workers gratuito permite uso comercial (100 000 pedidos por dia), mas tem 10 ms de CPU por pedido e 3 MiB por worker, e o Next 16 precisaria do adaptador OpenNext. É arriscado; só com uma prova antes.
 - **Anúncios**: último recurso. Na UE exigem banner de consentimento, quebram o tom acolhedor e rendem pouco com poucos utilizadores.
 
-**Recomendação:**
+**Recomendação** (o Rodrigo já escolheu o Ko-fi para a beta):
 1. Na beta, Ko-fi no "Sobre" e no aviso da beta (permitido no Hobby, custo zero).
 2. Com utilizadores fiéis, plano Apoiante via Paddle + Vercel Pro ($20 por mês).
 3. Anúncios só se nada mais resultar.
 
 ## Ideias para depois
-Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (Gemini com Google Search: 5000 pesquisas grátis por mês no pago; Open Library) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.
+Meta diária de XP · arquivar ou apagar trilhas · página 404 com o mascote · aviso "sem ligação" e modo offline · e-mail de boas-vindas · conquistas · push ao autor quando a sua ideia muda de estado · mais fontes (pesquisa na web citada; Open Library para livros) · painel dos erros reportados · mapa de conceitos · e-mails pelo Resend.

@@ -43,3 +43,6 @@ next-env.d.ts
 !.env.example
 .vercel
 .env*
+
+# Claude Code (local, não versionar)
+.claude/
