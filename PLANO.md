@@ -15,6 +15,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 Regra: de cada vez que algo muda, acrescentar uma linha no topo, com a data e o que mudou para quem usa. A ideia de mostrar isto dentro do app ("Novidades") está em "Ideias para depois".
 
 **2026-10-04** (um dia de trabalho, versão beta 0.9)
+- Telemóvel: o menu de baixo (ilha) cortava o botão Perfil com 6 abas; agora os botões repartem a largura (só ícones em ecrãs estreitos).
 - Ideias: lista corrigida, aba "Ideias" na ilha; apagar trilha (com confirmação); botão "Terminar sessão" no Perfil.
 - Criação de temas: pede mais contexto quando o tema é ambíguo (ex.: só "Fernando"). Emblema "Feito com IA · NOOBjects".
 - Fase 8: animações leves. Fase 7: mural de ideias com votos. Fase 6: ranking semanal e perfil público.

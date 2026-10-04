@@ -37,7 +37,7 @@ export function Island({ items, current }: { items: IslandItem[]; current: strin
       <div className={`island-wrap${hidden ? " is-hidden" : ""}`} inert={hidden ? true : undefined} onFocus={() => setHidden((h) => (h === "scroll" ? null : h))}>
         <div className="island pane"><nav className="in" aria-label="Menu principal">
           {items.map((it) => (
-            <button key={it.id} type="button" className="isl ch" aria-current={current === it.id ? "page" : undefined} onClick={it.onClick}>
+            <button key={it.id} type="button" className="isl ch" aria-label={it.label} aria-current={current === it.id ? "page" : undefined} onClick={it.onClick}>
               {it.icon}<span className="isl-l">{it.label}</span>
               {!!it.badge && <span key={it.badge} className="badge" aria-label={`${it.badge} para rever`}>{it.badge}</span>}
             </button>

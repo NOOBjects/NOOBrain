@@ -773,3 +773,12 @@ textarea.field { resize: vertical; font: inherit; }
 .landing-blocks { display: grid; gap: 12px; text-align: left; }
 .chip.ai { background: var(--ink); color: var(--bg); padding: 5px 10px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
 .trail-del { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; }
+
+/* Ecrãs estreitos: os itens da ilha repartem a largura por igual (só ícones), para nenhum botão ficar cortado. */
+@media (max-width: 520px) {
+  .island { width: 100%; }
+  .island > .in { width: 100%; gap: 2px; padding: 6px; }
+  .isl { flex: 1 1 0; min-width: 0; justify-content: center; padding: 11px 4px; }
+  .isl .isl-l, .isl[aria-current="page"] .isl-l { display: none; }
+  .isl-hide { flex: none; width: 30px; margin-left: 0; }
+}
