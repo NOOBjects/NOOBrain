@@ -27,11 +27,9 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 ## Por decidir ou fazer (Rodrigo)
 1. **Criar a conta no Groq** ([console.groq.com](https://console.groq.com), com dev.noobjects@gmail.com) e uma chave. Pô-la em `AI_API_KEY` no `.env.local` e na Vercel (Production e Preview).
    - Depois, **apagar a chave antiga do Gemini** no Google AI Studio: foi escrita no chat.
-2. **A publicação automática não funciona.** O projeto está ligado ao repositório, mas a Vercel não recebe os avisos de push (nenhuma publicação aparece, nem bloqueada).
-   - Causa provável: a conta do GitHub mudou de nome (de `apenasdrei` para `NOOBjects`) depois da ligação.
-   - Solução: Vercel → Settings → Git → **Disconnect** → **Connect Git Repository** → `NOOBjects/NOOBrain`. Depois disso, um push de teste confirma.
+2. ~~Publicação automática~~: **resolvido** (cada push na `main` publica sozinho).
 3. **Ko-fi**: criar a conta e dar o link. Entra no "Sobre" e no aviso da beta (Fase 2), em `lib/config.ts` → `KOFI_URL`.
-4. **SEO** (Fase 3B): criar o Google Search Console e dar o código de verificação.
+4. **SEO**: a etiqueta do Search Console já está no site (`app/layout.tsx`, `verification`). Falta carregar em Validar e enviar o `sitemap.xml`.
 5. Dinheiro e alojamento além das doações: ver a última secção. Nada a fazer até ao fim da beta.
 
 ## Regras de execução
@@ -249,9 +247,9 @@ Com o login obrigatório, o Google não vê nada do que está dentro do app. Por
 4. **`app/sitemap.ts`** passa a listar `/`, as páginas legais e todos os `/temas/[slug]` (lidos do catálogo com a chave pública).
 5. **`app/layout.tsx`**:
    - JSON-LD `WebApplication` (nome, URL, categoria `EducationalApplication`, `offers` grátis);
-   - `verification: { google: process.env.NEXT_PUBLIC_GSC_TOKEN }`.
+   - a verificação do Google já está feita (`verification.google`): não apagar.
 6. **Rodrigo**:
-   - [Google Search Console](https://search.google.com/search-console) → "Prefixo do URL" `https://noobrain.vercel.app` → método "Etiqueta HTML" → copiar o código para `NEXT_PUBLIC_GSC_TOKEN` na Vercel → Verificar → enviar `sitemap.xml`;
+   - Search Console: depois de validado, enviar `sitemap.xml` em Sitemaps;
    - o mesmo no Bing Webmaster Tools (importa do Google num clique).
 7. **Domínio**: fica `noobrain.vercel.app` (decisão do Rodrigo: sem custos). Todos os URLs absolutos saem de uma constante `SITE_URL` em `lib/config.ts`, para mudar num só sítio se um dia houver domínio.
 8. Verificar: Lighthouse (SEO e desempenho ≥ 90 no telemóvel) e o [teste de resultados ricos](https://search.google.com/test/rich-results) numa página de tema.
