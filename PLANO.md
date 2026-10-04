@@ -20,6 +20,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
 - Sempre dentro dos planos gratuitos, **incluindo a IA** (sem faturação).
 - A IA passa do Gemini para o **Groq** (Fase A): é gratuito, não treina com os dados e permite apps usados por menores.
 - Idade mínima: **13 anos**. Em Portugal, abaixo disso o RGPD exige consentimento dos pais (Lei 58/2019, art. 16.º).
+- Sem domínio próprio por agora: fica `noobrain.vercel.app`.
 - Doações com **Ko-fi**: o Rodrigo cria a conta e dá o link.
 - Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
 
@@ -30,9 +31,7 @@ Identidade e mascote · tema → trilha com IA e fontes abertas · lição guiad
    - Causa provável: a conta do GitHub mudou de nome (de `apenasdrei` para `NOOBjects`) depois da ligação.
    - Solução: Vercel → Settings → Git → **Disconnect** → **Connect Git Repository** → `NOOBjects/NOOBrain`. Depois disso, um push de teste confirma.
 3. **Ko-fi**: criar a conta e dar o link. Entra no "Sobre" e no aviso da beta (Fase 2), em `lib/config.ts` → `KOFI_URL`.
-4. **SEO** (Fase 3B):
-   - criar o Google Search Console e dar o código de verificação;
-   - decidir se compra um domínio próprio (ex.: `noobrain.pt` ou `.app`, com custo anual) ou fica com `noobrain.vercel.app`.
+4. **SEO** (Fase 3B): criar o Google Search Console e dar o código de verificação.
 5. Dinheiro e alojamento além das doações: ver a última secção. Nada a fazer até ao fim da beta.
 
 ## Regras de execução
@@ -254,7 +253,7 @@ Com o login obrigatório, o Google não vê nada do que está dentro do app. Por
 6. **Rodrigo**:
    - [Google Search Console](https://search.google.com/search-console) → "Prefixo do URL" `https://noobrain.vercel.app` → método "Etiqueta HTML" → copiar o código para `NEXT_PUBLIC_GSC_TOKEN` na Vercel → Verificar → enviar `sitemap.xml`;
    - o mesmo no Bing Webmaster Tools (importa do Google num clique).
-7. **Domínio próprio** (opcional, decisão do Rodrigo): dá mais confiança e marca do que `*.vercel.app`. Liga-se na Vercel → Domains. Custa um valor anual no registador.
+7. **Domínio**: fica `noobrain.vercel.app` (decisão do Rodrigo: sem custos). Todos os URLs absolutos saem de uma constante `SITE_URL` em `lib/config.ts`, para mudar num só sítio se um dia houver domínio.
 8. Verificar: Lighthouse (SEO e desempenho ≥ 90 no telemóvel) e o [teste de resultados ricos](https://search.google.com/test/rich-results) numa página de tema.
 
 ## Fase 4: segurança, desempenho e IA
