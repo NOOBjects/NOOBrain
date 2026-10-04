@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Account } from "./Account";
-import { CatalogChips } from "./CatalogChips";
 import { Explore } from "./Explore";
 import { Bolt, Book, Compass, Flame, Plus, Route, Sync, User } from "./Icons";
 import { Island } from "./Island";
@@ -24,7 +23,9 @@ import { useSync } from "@/lib/useSync";
 
 type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes";
 
-export function App() {
+const TEMA = "noobrain:tema"; // tema escolhido numa página pública, à espera do login
+
+export function App({ landing }: { landing?: ReactNode }) {
   const s = useAppState();
   const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
   const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome, profile, reloadProfile } = useSync();
@@ -73,6 +74,28 @@ export function App() {
     const t = setTimeout(() => setToast(null), 2400);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // "Começar esta trilha" numa página pública: guarda o tema, e depois do login abre o Explorar já à procura dele.
+  const [tema, setTema] = useState("");
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("tema");
+    if (!p) return;
+    try { sessionStorage.setItem(TEMA, p); } catch { /* sem armazenamento: só não abre o Explorar */ }
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
+  useEffect(() => {
+    if (!user || !profile) return;
+    const id = setTimeout(() => {
+      try {
+        const t = sessionStorage.getItem(TEMA);
+        if (!t) return;
+        sessionStorage.removeItem(TEMA);
+        setTema(t.replace(/-/g, " "));
+        setView("explorar");
+      } catch { /* sem armazenamento */ }
+    }, 0);
+    return () => clearTimeout(id);
+  }, [user, profile]);
 
   const notify = (m: string) => setToast(m);
   function celebrate() {
@@ -124,7 +147,7 @@ export function App() {
           </div></div>
         )}
         {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
-        {!hydrated ? null : booting ? (
+        {!hydrated ? landing : booting ? (
           <div className="loading" role="status"><div className="hero-mascot"><Mascot mood="think" /></div><p className="sub center">A carregar o teu progresso…</p></div>
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha"); }} /> : <>
         {view === "novo" && (
@@ -134,7 +157,7 @@ export function App() {
         )}
 
         {view === "explorar" && (
-          <Explore state={s} onNew={() => go("novo")}
+          <Explore state={s} initialQuery={tema} onNew={() => go("novo")}
             onStart={(t) => { go("trilha"); notify(`Trilha pronta: ${t.topic}`); celebrate(); }} />
         )}
 
@@ -146,7 +169,7 @@ export function App() {
             linkError={linkError} onClearLink={() => { setView("conta"); clearLinkError(); }}
             onSignedIn={(t) => { go("trilha"); notify(t); }} />
         )}
-        {view === "conta" && !user && <CatalogChips />}
+        {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
           <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} />

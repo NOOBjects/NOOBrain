@@ -1,23 +1,15 @@
-"use client";
+import Link from "next/link";
+import type { PublicTopic } from "@/lib/catalog-public";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-
-/** "Já há lições sobre:" no ecrã de entrada: os 8 temas mais usados do catálogo. */
-export function CatalogChips() {
-  const [topics, setTopics] = useState<string[]>([]);
-  useEffect(() => {
-    let live = true;
-    supabase?.from("catalog_trails").select("topic").order("uses", { ascending: false }).limit(8).then(({ data }) => {
-      if (live && data) setTopics([...new Set(data.map((r) => r.topic as string))]);
-    });
-    return () => { live = false; };
-  }, []);
+/** "Já há lições sobre:" — ligações para as páginas públicas dos temas mais usados. Gerado no servidor. */
+export function CatalogChips({ topics }: { topics: PublicTopic[] }) {
   if (!topics.length) return null;
   return (
     <div className="catalog-chips">
-      <div className="eyebrow">Já há lições sobre:</div>
-      <div className="sources">{topics.map((t) => <span key={t} className="chip ch">{t}</span>)}</div>
+      <h2 className="eyebrow">Já há lições sobre:</h2>
+      <div className="sources">
+        {topics.map((t) => <Link key={t.slug} href={`/temas/${t.slug}`} className="chip ch srcchip">{t.topic}</Link>)}
+      </div>
     </div>
   );
 }

@@ -237,7 +237,8 @@ grant execute on function public.bump_catalog_use(text, text) to authenticated;
   - Com `npm run dev` a correr, chama `/api/trail` e `/api/lesson` com o cabeçalho `x-seed-token` (= `SEED_TOKEN`, só em `.env.local`, nunca na Vercel), com 7 s entre pedidos.
   - Temas: Fotossíntese, Sistema Solar, Fernando Pessoa, **Inglês para iniciantes**, Revolução dos Cravos, Inteligência Artificial, Finanças pessoais, Primeiros socorros, Teoria das cores. Para o Inglês, o prompt pede conceitos práticos (cumprimentos, verbo *to be*, números, frases do dia a dia) e cartões "inglês → português".
 
-## Fase 3B: SEO (aparecer no Google)
+## Fase 3B: SEO (aparecer no Google) — FEITA (04/10/2026), faltam o Lighthouse e o teste de resultados ricos
+Notas: página inicial e `/temas/[slug]` geradas no servidor (renovam todos os dias), JSON-LD, imagem de partilha por tema, sitemap com os temas do catálogo. `CatalogChips.tsx` passou a ser a lista de ligações da landing. Os perfis públicos ficam na Fase 6. O Rodrigo pode reenviar o `sitemap.xml` ao Search Console e ao Bing quando houver mais temas.
 Com o login obrigatório, o Google não vê nada do que está dentro do app. Por isso, o SEO precisa de **páginas públicas** com conteúdo real, geradas no servidor.
 1. **Página inicial pública** (`app/page.tsx`, sem sessão):
    - o ecrã de entrada da Fase 1 passa a ser uma landing de verdade, gerada no servidor;

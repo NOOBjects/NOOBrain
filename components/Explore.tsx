@@ -11,10 +11,10 @@ import type { Concept, Source, State, Trail } from "@/lib/types";
 type Row = { key: string; level: string; topic: string; concepts: Concept[]; sources: Source[]; uses: number };
 
 /** Temas que já estão no catálogo partilhado: começar um é instantâneo e não gasta IA. */
-export function Explore({ state, onStart, onNew }: { state: State; onStart: (trail: Trail) => void; onNew: () => void }) {
+export function Explore({ state, initialQuery = "", onStart, onNew }: { state: State; initialQuery?: string; onStart: (trail: Trail) => void; onNew: () => void }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [failed, setFailed] = useState(false);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
 
   useEffect(() => {
     let live = true;

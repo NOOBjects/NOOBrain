@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Chakra_Petch, Figtree } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/config";
 
 const chakra = Chakra_Petch({ variable: "--font-chakra", subsets: ["latin"], weight: ["500", "600", "700"] });
 const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"] });
@@ -9,7 +10,7 @@ const description = "Aprende qualquer tema com trilhas, tutor, cartões e revis�
 
 // Ícones e imagem de partilha vêm dos ficheiros em app/ (favicon.ico, icon.svg, apple-icon.png, opengraph-image.png).
 export const metadata: Metadata = {
-  metadataBase: new URL("https://noobrain.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   title: "NOOBrain",
   description,
   applicationName: "NOOBrain",
@@ -28,13 +29,29 @@ export const viewport: Viewport = {
   ],
 };
 
+const webApp = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "NOOBrain",
+  url: SITE_URL,
+  description,
+  applicationCategory: "EducationalApplication",
+  operatingSystem: "Web",
+  inLanguage: "pt-PT",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+  publisher: { "@type": "Organization", name: "NOOBjects" },
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-PT" className={`${chakra.variable} ${figtree.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: 'try{var t=localStorage.getItem("noobrain:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}' }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webApp) }} />
+        {children}
+      </body>
     </html>
   );
 }
