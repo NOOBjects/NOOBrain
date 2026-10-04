@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Deck } from "./Deck";
 import { HeroIco, Sync } from "./Icons";
 import { ReminderToggle } from "./ReminderToggle";
-import { dueCards, rate, update } from "@/lib/store";
+import { applyRating, dueCards, interleave, update } from "@/lib/store";
 import type { State } from "@/lib/types";
 
 export function ReviewView({ state }: { state: State }) {
@@ -17,9 +17,9 @@ export function ReviewView({ state }: { state: State }) {
   function onRate(id: string, r: 0 | 1 | 2) {
     let when = 0;
     update((s) => {
-      const next = rate(s.cards[id], r);
-      when = next.due;
-      return { ...s, cards: { ...s.cards, [id]: next } };
+      const next = applyRating(s, id, r);
+      when = next.cards[id].due;
+      return next;
     });
     return when;
   }
@@ -29,14 +29,14 @@ export function ReviewView({ state }: { state: State }) {
       <div>
         <button type="button" className="linkbtn back" onClick={() => setQueue(null)}>← Sair da revisão</button>
         <h1 className="h-screen">Revisão</h1>
-        <Deck items={queue.map((d) => ({ id: d.id, term: d.card.term, definition: d.card.definition, hint: d.topic }))} onRate={onRate} onEnd={() => setQueue(null)} endLabel="Concluir" />
+        <Deck items={queue.map((d) => ({ id: d.id, term: d.card.term, definition: d.card.definition, hint: d.topic, options: d.q?.options, answer: d.q?.answer }))} onRate={onRate} onEnd={() => setQueue(null)} endLabel="Concluir" />
       </div>
     );
 
   return (
     <div>
       <div className="eyebrow">Revisão espaçada</div>
-      <h1 className="h-screen">{due.length ? `${due.length} ${due.length === 1 ? "cartão" : "cartões"} para hoje` : "Nada para rever agora"}</h1>
+      <h1 className="h-screen">{due.length ? `${due.length} para rever hoje` : "Nada para rever agora"}</h1>
       <p className="sub">Revês no momento em que estás prestes a esquecer. Cada acerto espaça mais a próxima revisão.</p>
 
       {due.length > 0 ? (
@@ -46,7 +46,7 @@ export function ReviewView({ state }: { state: State }) {
               <div key={topic} className="pane"><div className="in due-row"><div><b>{topic}</b><div className="sub small">{items[0].concept}{items.length > 1 ? " e outros" : ""}</div></div><span className="due-n">{items.length}</span></div></div>
             ))}
           </div>
-          <button type="button" className="btn block" onClick={() => setQueue(due)}><span className="face">Rever agora</span></button>
+          <button type="button" className="btn block" onClick={() => setQueue(interleave(due))}><span className="face">Rever agora</span></button>
         </>
       ) : (
         <div className="empty">

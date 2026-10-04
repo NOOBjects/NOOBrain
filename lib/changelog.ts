@@ -6,6 +6,20 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.9.3",
+    date: "2026-10-04",
+    title: "Aprender de verdade: corrigir, dominar e rever",
+    novo: [
+      "No teste, a pergunta que erras volta ao fim até acertares, com a explicação à vista.",
+      "As perguntas que falhaste entram na revisão, junto com os cartões.",
+      "No Perfil, vês a tua retenção aos 7 dias: quanto ainda sabes uma semana depois.",
+    ],
+    melhorias: [
+      "Um conceito só fica concluído com pelo menos 2 de cada 3 perguntas certas à primeira. Se não chegares lá, revês a explicação e repetes o teste.",
+      "A revisão mistura temas e conceitos, o que ajuda a fixar.",
+    ],
+  },
+  {
     version: "0.9.2",
     date: "2026-10-04",
     title: "Boas-vindas renovadas e Novidades organizadas",

@@ -1,5 +1,5 @@
 import { topicKey } from "./topic";
-import type { Card, State, Trail } from "./types";
+import type { Card, Question, State, Trail } from "./types";
 
 // Guarda tudo no navegador (localStorage). Com conta, o componente Sync copia o mesmo estado para o Supabase.
 export const initial: State = { trails: [], active: "", xp: 0, streak: 0, lastDay: null, cards: {}, updatedAt: 0 };
@@ -93,9 +93,32 @@ export function whenText(due: number, now = Date.now()) {
   return d < 1 ? `${Math.round(min / 60)} h` : d === 1 ? "1 dia" : `${d} dias`;
 }
 
-export type DueCard = { id: string; topic: string; concept: string; card: Card };
+/** Avalia um cartão ou pergunta e, se for a 1.ª revisão feita depois de um intervalo de 7 dias ou mais, regista a retenção do conceito. */
+export function applyRating(s: State, id: string, r: 0 | 1 | 2): State {
+  const prev = s.cards[id];
+  const key = id.slice(0, id.lastIndexOf(":")); // <trilha>:<conceito>
+  const st = s.stats?.[key];
+  const stats = prev && prev.box >= 3 && st && st.r7 === undefined ? { ...s.stats, [key]: { ...st, r7: r > 0 ? (1 as const) : (0 as const) } } : s.stats;
+  return { ...s, cards: { ...s.cards, [id]: rate(prev, r) }, stats };
+}
 
-/** Cartões de conceitos já concluídos que estão vencidos (ou nunca foram avaliados). */
+/** Baralha e evita dois itens do mesmo conceito seguidos quando há alternativa (intercalar ajuda a fixar). */
+export function interleave<T extends { topic: string; concept: string }>(list: T[]): T[] {
+  const a = [...list];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  const same = (x: T, y: T) => x.topic === y.topic && x.concept === y.concept;
+  for (let i = 1; i < a.length; i++) {
+    if (!same(a[i], a[i - 1])) continue;
+    const j = a.findIndex((x, k) => k > i && !same(x, a[i - 1]));
+    if (j > 0) [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Cartão por rever; `q` existe quando é uma pergunta de teste que a pessoa falhou (o cartão é então a pergunta e a resposta). */
+export type DueCard = { id: string; topic: string; concept: string; card: Card; q?: Question };
+
+/** Cartões e perguntas falhadas de conceitos já concluídos que estão vencidos (ou nunca foram avaliados). */
 export function dueCards(s: State, now = Date.now()): DueCard[] {
   const out: DueCard[] = [];
   for (const t of s.trails)
@@ -103,6 +126,13 @@ export function dueCards(s: State, now = Date.now()): DueCard[] {
       c.lesson?.cards.forEach((card, k) => {
         const id = `${t.id}:${ci}:${k}`;
         if (!s.cards[id] || s.cards[id].due <= now) out.push({ id, topic: t.topic, concept: c.title, card });
+      }),
+    );
+  for (const t of s.trails)
+    t.concepts.slice(0, t.done).forEach((c, ci) =>
+      c.lesson?.quiz.forEach((q, k) => {
+        const id = `${t.id}:${ci}:q${k}`;
+        if (s.cards[id] && s.cards[id].due <= now) out.push({ id, topic: t.topic, concept: c.title, card: { term: q.q, definition: `${q.options[q.answer]}. ${q.why}` }, q });
       }),
     );
   return out;

@@ -17,6 +17,8 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
   const [editing, setEditing] = useState(false);
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
   const mastered = Object.values(state.cards).filter((c) => c.box >= 4).length;
+  const kept = Object.values(state.stats ?? {}).filter((c) => c.r7 !== undefined);
+  const retention = kept.length ? Math.round((kept.reduce((n, c) => n + (c.r7 ?? 0), 0) / kept.length) * 100) : null;
   const stats: [string, number][] = [
     ["XP", state.xp], ["Sequência", state.streak], ["Temas concluídos", done], ["Cartões dominados", mastered], ["XP da semana", profile.week_xp],
   ];
@@ -47,6 +49,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
           <div key={label} className="pane"><div className="in stat-box"><span className="stat-n">{n}</span><span className="eyebrow">{label}</span></div></div>
         ))}
       </div>
+      {retention !== null && <p className="sub small">Retenção aos 7 dias: {retention}% ({kept.length} {kept.length === 1 ? "conceito" : "conceitos"})</p>}
       <div className="acts">
         <button type="button" className="btn block" onClick={() => setEditing(true)}><span className="face">Editar perfil</span></button>
         <button type="button" className="btn block" onClick={async () => {

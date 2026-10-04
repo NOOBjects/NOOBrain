@@ -6,7 +6,7 @@ import { Mascot } from "./Mascot";
 import { Quiz } from "./Quiz";
 import { Tutor } from "./Tutor";
 import { ensureLesson } from "@/lib/api";
-import { bumpStreak, rate, update } from "@/lib/store";
+import { applyRating, bumpStreak, rate, update } from "@/lib/store";
 import type { Trail } from "@/lib/types";
 
 const STEPS = ["Aprender", "Memorizar", "Testar"];
@@ -26,7 +26,8 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
   const [reveal, setReveal] = useState(1); // quantos blocos da explicação já apareceram
   const [tutor, setTutor] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ correct: number; gain: number; first: boolean } | null>(null);
+  const [result, setResult] = useState<{ first: number; total: number; gain: number; fresh: boolean; pass: boolean } | null>(null);
+  const [attempt, setAttempt] = useState(0); // muda a cada "Repetir o teste", para o teste recomeçar
 
   useEffect(() => {
     if (lesson || error) return;
@@ -35,24 +36,37 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
 
   const go = (s: number) => { setStep(s); setReached((r) => Math.max(r, s)); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
-  function finishQuiz(correct: number) {
-    const first = index === trail.done; // só o conceito atual libera o próximo
-    const gain = first ? 10 * correct + 10 : 5 * correct;
-    update((s) => ({
-      ...s,
-      ...bumpStreak(s),
-      xp: s.xp + gain,
-      trails: s.trails.map((t) => (t.id === trail.id && first ? { ...t, done: t.done + 1 } : t)),
-    }));
-    setResult({ correct, gain, first });
+  // Domínio: o conceito só fica concluído com pelo menos 2/3 das perguntas certas à primeira.
+  function finishQuiz(first: number, missed: number[]) {
+    const total = lesson!.quiz.length;
+    const pass = first >= Math.ceil((total * 2) / 3);
+    const fresh = index === trail.done; // só o conceito atual libera o próximo
+    const gain = pass ? (fresh ? 10 * first + 10 : 5 * first) : 5 * first;
+    const key = `${trail.id}:${index}`;
+    update((s) => {
+      const cards = { ...s.cards };
+      for (const k of missed) { // as perguntas falhadas entram na revisão espaçada
+        const id = `${key}:q${k}`;
+        if (!cards[id]) cards[id] = rate(undefined, 0);
+      }
+      return {
+        ...s,
+        ...bumpStreak(s),
+        xp: s.xp + gain,
+        cards,
+        stats: s.stats?.[key] ? s.stats : { ...s.stats, [key]: { t: first, n: total } }, // só conta o 1.º teste do conceito
+        trails: s.trails.map((t) => (t.id === trail.id && fresh && pass ? { ...t, done: t.done + 1 } : t)),
+      };
+    });
+    setResult({ first, total, gain, fresh, pass });
   }
 
   function rateCard(id: string, r: 0 | 1 | 2) {
     let due = 0;
     update((s) => {
-      const next = rate(s.cards[id], r);
-      due = next.due;
-      return { ...s, cards: { ...s.cards, [id]: next } };
+      const next = applyRating(s, id, r);
+      due = next.cards[id].due;
+      return next;
     });
     return due;
   }
@@ -66,13 +80,24 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
       <div className="eyebrow">{trail.topic} · Conceito {index + 1} de {trail.concepts.length}</div>
       <h1 className="h-screen">{concept.title}</h1>
 
-      {result ? (
+      {result && !result.pass ? (
+        <div className="result">
+          <div className="result-mascot"><Mascot mood="think" /></div>
+          <h2 className="h-screen">Quase lá</h2>
+          <p className="sub">Acertaste {result.first} de {result.total} à primeira. Revê a explicação e tenta outra vez.</p>
+          <div className="xp">+{result.gain} XP</div>
+          <div className="result-actions">
+            <button type="button" className="btn" onClick={() => { setResult(null); setReveal(blocks.length); go(0); }}><span className="face">Rever a explicação</span></button>
+            <button type="button" className="btn soft" onClick={() => { setResult(null); setAttempt((a) => a + 1); go(2); }}><span className="face">Repetir o teste</span></button>
+          </div>
+        </div>
+      ) : result ? (
         <div className="result">
           <div className="result-mascot"><Mascot mood="happy" /></div>
           <h2 className="h-screen">Conceito dominado</h2>
-          <p className="sub">Acertaste {result.correct} de {lesson?.quiz.length} no teste.</p>
+          <p className="sub">Acertaste {result.first} de {result.total} à primeira.</p>
           <div className="xp">+{result.gain} XP</div>
-          {result.first
+          {result.fresh
             ? <p className="sub small">Os cartões deste conceito entram na tua revisão espaçada. Eu aviso quando for hora de rever.</p>
             : <p className="sub small">Já tinhas concluído este conceito, por isso o XP é menor.</p>}
           <div className="result-actions">
@@ -142,7 +167,7 @@ export function LessonView({ trail, index, onBack, onNext, notify }: {
           {step === 2 && (
             <section className="step" aria-label="Testar">
               <p className="step-intro">Por fim, testa os teus conhecimentos.</p>
-              <Quiz questions={lesson.quiz} onFinish={finishQuiz} />
+              <Quiz key={attempt} questions={lesson.quiz} onFinish={finishQuiz} />
             </section>
           )}
 
