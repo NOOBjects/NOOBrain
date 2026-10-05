@@ -86,9 +86,11 @@ function explain(error: AuthError): Msg {
     case "over_email_send_rate_limit":
     case "over_request_rate_limit": return { ok: false, text: "Demasiadas tentativas. Espera um minuto e tenta outra vez." };
     case "reauthentication_needed": return { ok: false, text: "Por segurança, termina a sessão e usa «Esqueci-me da palavra-passe»." };
+    case "captcha_failed": return { ok: false, text: "O início de sessão com e-mail está temporariamente indisponível. Usa o Google ou tenta daqui a pouco." };
     case "signup_disabled": return { ok: false, text: "De momento não é possível criar contas." };
   }
   if (error.name === "AuthRetryableFetchError") return { ok: false, text: "Sem ligação. Verifica a internet e tenta outra vez." };
+  console.error("auth", error.code, error.message);
   return { ok: false, text: "Não foi possível continuar. Tenta outra vez." };
 }
 

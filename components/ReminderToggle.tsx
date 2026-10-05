@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { needsInstall, serverSnapshot, setNotify, snapshot, subscribe } from "@/lib/reminders";
 import { wants } from "@/lib/store";
 import { useAppState } from "@/lib/useAppState";
@@ -14,6 +14,7 @@ const TEXT = {
 export function ReminderToggle({ kind = "reviews", quiet = false }: { kind?: "reviews" | "news"; quiet?: boolean }) {
   const device = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const s = useAppState();
+  const [failed, setFailed] = useState(false);
   const t = TEXT[kind];
   if (quiet && (needsInstall() || device === "na")) return null; // a explicação já aparece no outro interruptor
   if (needsInstall()) return <p className="sub small">No iPhone, os avisos só funcionam com o NOOBrain no ecrã principal: Partilhar → Adicionar ao ecrã principal.</p>;
@@ -22,9 +23,10 @@ export function ReminderToggle({ kind = "reviews", quiet = false }: { kind?: "re
   return (
     <div className="remind">
       <p className="sub small">{on ? t.on : t.off}</p>
-      <button type="button" className="btn soft sm" onClick={() => void setNotify(kind, !on)}>
+      <button type="button" className="btn soft sm" onClick={async () => setFailed(!(await setNotify(kind, !on)) && !on)}>
         <span className="face">{on ? t.stop : t.start}</span>
       </button>
+      {failed && <p className="sub small" role="alert">Não consegui ligar os avisos neste aparelho. Tenta outra vez.</p>}
     </div>
   );
 }

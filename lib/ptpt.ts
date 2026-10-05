@@ -27,7 +27,7 @@ const RULES: [RegExp, string][] = [
 
 /** Texto com a ortografia de Portugal. "Por que" no início de uma pergunta passa a "Porque é que". */
 export function ptpt(text: string): string {
-  let t = text;
+  let t = text.replace(/\\[nt]/g, " ").replace(/ {2,}/g, " "); // \n ou \t literais que a IA deixa no texto
   for (const [re, to] of RULES) t = t.replace(re, (m) => cap(m, to));
   return t.replace(/(^|[.!?]\s+|¿)Por que (?!raz[ãa]o|motivo)(?=[^?]*\?)/g, "$1Porque é que ");
 }

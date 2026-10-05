@@ -25,3 +25,8 @@ test("Por que no início de pergunta", () => {
 test("percorre objetos sem mexer em números", () => {
   assert.deepEqual(ptptDeep({ q: "Por que é liberado?", answer: 2, options: ["oxigênio", "água"] }), { q: "Porque é que é libertado?", answer: 2, options: ["oxigénio", "água"] });
 });
+
+test("tira \\n e \\t literais", () => {
+  assert.equal(ptpt("Olá\\nmundo"), "Olá mundo");
+  assert.equal(ptpt("a\\t\\tb"), "a b");
+});

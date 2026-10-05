@@ -6,6 +6,16 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.1",
+    date: "2026-10-05",
+    title: "Entrar e avisos a funcionar",
+    corrigido: [
+      "Entrar com e-mail volta a funcionar.",
+      "Os lembretes chegam à conta certa depois de mudares de conta no mesmo aparelho.",
+      "Deixou de aparecer texto estranho com «\\n» nas lições.",
+    ],
+  },
+  {
     version: "0.10",
     date: "2026-10-05",
     title: "Hábitos, conquistas e um app mais polido",

@@ -47,12 +47,13 @@ const db = {
   ],
   suggestion_votes: [],
   push_subscriptions: [],
+  catalog_starts: [],
   reports: [],
   feedback: [],
 };
 if (process.env.NO_PROFILE) db.profiles.shift();
 import(path.join(__dirname, "../../lib/topic.ts")).then(({ topicKey }) => { for (const t of trails) t.concepts.forEach((c, i) => db.catalog_lessons.push({ trail_key: t.key, level: t.level, concept_key: topicKey(c.title), lesson: lessonFor(c.title, i) })); });
-const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"] };
+const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"] };
 
 const session = () => ({ access_token: "mock-token", token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "mock-refresh", user });
 
@@ -136,6 +137,11 @@ http.createServer((req, res) => {
         if (table === "suggestions") Object.assign(r, { id: Date.now(), user_id: UID, status: "recebida", reply: null, votes: 0, created_at: now() });
         if (table === "suggestion_votes") { r.user_id = UID; const s = db.suggestions.find((x) => x.id === r.suggestion_id); if (s) s.votes++; }
         if (table === "profiles") Object.assign(r, { xp: 0, streak: 0, topics_done: 0, week_xp: 0, week_start: weekStart(), created_at: now(), in_ranking: true });
+        if (table === "catalog_starts") {
+          r.user_id = UID;
+          if (db.catalog_starts.some((x) => x.key === r.key && x.level === r.level && x.user_id === UID)) return send(res, 409, { code: "23505", message: "duplicate key" });
+          const c = db.catalog_trails.find((x) => x.key === r.key && x.level === r.level); if (c) c.uses = (c.uses ?? 0) + 1;
+        }
         const pk = PK[table];
         const i = pk ? db[table].findIndex((x) => pk.every((k) => x[k] === r[k])) : -1;
         if (i >= 0) db[table][i] = { ...db[table][i], ...r };

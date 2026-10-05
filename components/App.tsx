@@ -15,7 +15,7 @@ import { Toast, type ToastMsg } from "./Toast";
 import { TrailView } from "./TrailView";
 import { newBadges, type Badge } from "@/lib/badges";
 import { BETA, VERSION } from "@/lib/config";
-import { disable as disableReminders, notifyDue } from "@/lib/reminders";
+import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
 import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useOnline } from "@/lib/useOnline";
@@ -170,6 +170,8 @@ export function App({ landing }: { landing?: ReactNode }) {
       celebrate(true);
     }
   }, [inApp, xpToday, goal, notify, celebrate]);
+
+  useEffect(() => { if (inApp) void syncPush(); }, [inApp]);
 
   // Conquistas: na primeira verificação regista as que já existiam sem alarido; depois, cada nova abre uma janela.
   useEffect(() => {

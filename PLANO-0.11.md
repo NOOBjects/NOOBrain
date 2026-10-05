@@ -106,6 +106,8 @@ mesma conta quando o e-mail é o mesmo (a tua conta `rron…` tem `google,email`
 
 ## Fase 1 · 0.10.1 · Correções críticas
 
+> Estado: código feito (1.1–1.4) e migração `catalog_starts` aplicada. Falta: Rodrigo desligar o CAPTCHA (0.2), testes B/C após o PR, e depois a migração `drop_bump_catalog_use`.
+
 ### 1.1 Login com e-mail
 Depende do Rodrigo desligar o CAPTCHA (0.2). No código:
 - `components/Account.tsx`, função `explain`: novo caso `captcha_failed` →
