@@ -20,7 +20,8 @@ const standalone = () => window.matchMedia("(display-mode: standalone)").matches
 function snapshot(): InstallState {
   if (installed || standalone()) return "installed";
   if (saved) return "prompt";
-  if (/iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent)) return "ios";
+  // Safari, Chrome, Edge e Firefox do iPhone/iPad deixam adicionar ao ecrã principal pelo botão Partilhar
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return "ios";
   return "none";
 }
 
