@@ -41,13 +41,18 @@ Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado
 |---|---|
 | cores, cantos, sombras, fontes, pontos de quebra | `app/globals.css` |
 | navegação e casca | `components/App.tsx`; menu flutuante `Island.tsx`; ecrãs no endereço (`?v=`, função `navigate` em `App.tsx`); fim do login do Google em `app/entrar` + `LoginDone.tsx` |
-| lição (Aprender → Memorizar → Testar) | `LessonView.tsx`, `Deck.tsx`, `Quiz.tsx`, `Tutor.tsx` |
+| trilha (ecrã principal) | `TrailView.tsx` (arquivar, desafio, avisos); cabeçalho e meta diária em `App.tsx` |
+| lição (Aprender → Memorizar → Testar) | `LessonView.tsx`, `Deck.tsx`, `Quiz.tsx` (inclui ligar pares), `Tutor.tsx`, `Listen.tsx` + `lib/speech.ts` (voz) |
+| conquistas, desafio do dia, opinião, visita guiada | `lib/badges.ts` + `Badges.tsx`, `lib/challenge.ts` + `Challenge.tsx`, `Feedback.tsx`, `Tour.tsx`, `Confetti.tsx` |
+| painel de administração | `Admin.tsx` + `app/api/admin` (só contas em `ADMIN_IDS`) |
 | revisão, novo tema, conta | `ReviewView.tsx`, `NewTopic.tsx`, `Account.tsx` (+ `lib/supabase.ts`, `lib/useSync.ts`) |
 | mascote, nó da trilha, ícones | `Mascot.tsx` + `lib/mascot-paths.ts`, `TrailNode.tsx`, `Icons.tsx` |
-| lembretes | `ReminderToggle.tsx`, `lib/reminders.ts`, `public/sw.js` |
+| lembretes, sem ligação | `ReminderToggle.tsx`, `lib/reminders.ts`, `public/sw.js` (também guarda o app para abrir sem rede), `lib/useOnline.ts` |
 | estado, XP, sequência, revisão espaçada | `lib/store.ts` (localStorage `noobrain:v2`); tipos em `lib/types.ts` |
 | IA (prompts, modelos, fila de 9/min) | `lib/ai.ts`; rotas `app/api/trail`, `lesson`, `tutor`, `report` |
-| fontes (wikis), cache, limite por IP | `lib/sources.ts`, `lib/cache.ts`, `lib/limit.ts` |
+| fontes (wikis, Open Library), cache, limite por IP | `lib/sources.ts`, `lib/cache.ts`, `lib/limit.ts` |
+| categorias e catálogo no navegador | `lib/categories.ts`, `CategoryIcon.tsx`, `lib/catalog-client.ts` |
+| ortografia PT-PT das lições | `lib/ptpt.ts` + `lib/ptpt.test.ts` (`npm run check:ptpt`) |
 | temas parecidos | `lib/topic.ts` + `lib/topic.test.ts` (`npm run check:topic`) |
 | ícones do site, metadados, manifesto | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `app/opengraph-image.png`, `app/layout.tsx`, `app/manifest.ts` |
 | novidades, versão, avisos de atualização | `lib/changelog.ts`, `News.tsx`, `Announce.tsx`, `ReminderToggle.tsx` |
@@ -56,7 +61,7 @@ Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado
 ## Antes de dizer que terminou
 - `npm run build`: sem `Error`, mostra a lista de rotas.
 - `npm run lint`: sem `error` (avisos em ficheiros não mexidos: ignorar).
-- `npm run check:topic`: se mexeste em `lib/topic.ts`. Corrige o código, não o teste.
+- `npm run check:topic`: se mexeste em `lib/topic.ts`; `npm run check:ptpt`: se mexeste em `lib/ptpt.ts`. Corrige o código, não o teste.
 - Mudança visível: ver no navegador (claro e escuro, telemóvel e computador).
 - 2 tentativas falhadas no mesmo erro: pára, mostra o erro e diz o que tentaste.
 

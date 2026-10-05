@@ -5,6 +5,7 @@ import { requireUser, spend } from "@/lib/quota";
 import { allow, clientKey } from "@/lib/limit";
 import type { Lesson } from "@/lib/types";
 import { cached, remember } from "@/lib/cache";
+import { ptptDeep } from "@/lib/ptpt";
 import { findSources } from "@/lib/sources";
 import { topicKey } from "@/lib/topic";
 
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
     "- cards: 4 cartões de memória com term (até 4 palavras) e definition (1 frase).",
     "- quiz: 3 perguntas de escolha múltipla. Cada uma com q, 4 options curtas, answer (índice de 0 a 3 da opção certa, variando a posição) e why (1 a 2 frases a explicar).",
     "- cloze: 1 frase para completar: text com «___» no lugar de uma palavra ou expressão curta, answer com essa resposta e accept com variantes também aceites (vazio se não houver).",
-    "- order: se o conceito tiver passos ou etapas, 1 item com prompt e steps (3 a 5 passos curtos, já na ordem certa); caso contrário, lista vazia.",
+    "- order: só se ESTE conceito tiver passos ou etapas próprios (não os do tema em geral, que se repetiriam noutras lições), 1 item com prompt e steps (3 a 5 passos curtos e específicos deste conceito, já na ordem certa); caso contrário, lista vazia.",
     "- short: 1 pergunta de resposta curta (uma frase) sobre porquê ou como, com q e ref (o que uma boa resposta tem de dizer); se não fizer sentido, lista vazia.",
     "Usa apenas factos corretos. Se não tiveres a certeza de algo, deixa de fora em vez de inventar. Só uma opção pode estar certa.",
     /ingl[eê]s/i.test(topic) ? "O tema é uma língua: usa conceitos práticos (cumprimentos, verbo to be, números, frases do dia a dia) e, nos cartões, a palavra ou frase em inglês no term e a tradução em português no definition." : "",
@@ -108,7 +109,7 @@ ${text}` : "Não há texto de referência: sê conservador.",
   ].filter(Boolean).join("\n");
 
   try {
-    const out = await generateJson<Lesson>(prompt, SCHEMA);
+    const out = ptptDeep(await generateJson<Lesson>(prompt, SCHEMA));
     const lesson: Lesson = {
       intro: (out.intro ?? []).map((p) => clean(p, 600)).filter(Boolean).slice(0, 3),
       example: clean(out.example, 500),

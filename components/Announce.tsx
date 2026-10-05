@@ -29,10 +29,10 @@ export function Announce({ state, uid, onNews, toast }: { state: State; uid: str
   if (state.seenVersion === undefined && !legacy) return <Welcome toast={toast} />;
   if (state.notify?.news === undefined)
     return (
-      <div className="pane tint gap" role="status"><div className="in">
+      <div className="pane tint announce" role="status"><div className="in">
         <b>Queres receber um aviso quando houver novidades?</b>
         <p className="sub small">Só nas atualizações importantes. Podes mudar isto quando quiseres em Novidades.</p>
-        <div className="beta-row">
+        <div className="pair">
           <button type="button" className="btn sm" onClick={() => void answer(true, toast)}><span className="face">Sim, avisa-me</span></button>
           <button type="button" className="btn soft sm" onClick={() => void answer(false, toast)}><span className="face">Agora não</span></button>
         </div>
@@ -40,11 +40,11 @@ export function Announce({ state, uid, onNews, toast }: { state: State; uid: str
     );
   if (state.seenVersion !== LATEST.version)
     return (
-      <div className="pane tint gap" role="status"><div className="in">
+      <div className="pane tint announce" role="status"><div className="in">
         <div className="eyebrow">Novidades · versão {LATEST.version}</div>
         <b>{LATEST.title}</b>
         <ul className="news-list sub small">{highlights(LATEST).map((t) => <li key={t}>{t}</li>)}</ul>
-        <div className="beta-row">
+        <div className="pair">
           <button type="button" className="btn sm" onClick={() => { markSeen(); onNews(); }}><span className="face">Ver tudo</span></button>
           <button type="button" className="btn soft sm" onClick={markSeen}><span className="face">Fechar</span></button>
         </div>
@@ -58,7 +58,7 @@ function Welcome({ toast }: { toast: (m: string) => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
-    if (d && !d.open) d.showModal();
+    if (d && !d.open) { d.showModal(); d.scrollTop = 0; }
   }, []);
   function close(yes: boolean) {
     markSeen();
@@ -67,7 +67,7 @@ function Welcome({ toast }: { toast: (m: string) => void }) {
   }
   return (
     <dialog ref={ref} className="sheet" aria-labelledby="welcome-t" onCancel={(e) => e.preventDefault()}>
-      <div className="pane is-mine"><div className="in welcome">
+      <div className="pane hero"><div className="in">
         <div className="w-head">
           <span className="chip ch beta">Beta {LATEST.version}</span>
           <h2 id="welcome-t">Boas-vindas ao NOOBrain</h2>
@@ -79,10 +79,10 @@ function Welcome({ toast }: { toast: (m: string) => void }) {
           <li><span className="w-ico ch"><Bug /></span><div><b>Viste um erro?</b><span>Usa «Reportar erro» no teste ou no tutor.</span></div></li>
           <li><span className="w-ico ch"><Heart /></span><div><b>É gratuito</b><span>Fundraising em breve.</span></div></li>
         </ul>
-        <div className="w-ask ch">
+        <div className="w-ask">
           <b>Queres um aviso quando houver novidades?</b>
           <span>Só nas atualizações importantes. Podes mudar isto em Novidades.</span>
-          <div className="beta-row">
+          <div className="pair">
             <button type="button" className="btn sm" onClick={() => close(true)}><span className="face">Sim, avisa-me</span></button>
             <button type="button" className="btn soft sm" onClick={() => close(false)}><span className="face">Agora não</span></button>
           </div>

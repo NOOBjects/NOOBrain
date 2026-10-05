@@ -2,12 +2,13 @@
 
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ReminderToggle } from "./ReminderToggle";
 import { BETA, VERSION } from "@/lib/config";
 import { CONTACT } from "@/lib/legal";
 import type { Profile } from "@/lib/profile";
-import { initial, update } from "@/lib/store";
+import { call } from "@/lib/api";
+import { GOALS, goalOf, initial, update } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import type { State } from "@/lib/types";
 import type { SyncStatus } from "@/lib/useSync";
@@ -27,10 +28,19 @@ function readTheme(): Theme {
   try { const t = localStorage.getItem(THEME); return t === "light" || t === "dark" ? t : "auto"; } catch { return "auto"; }
 }
 
-export function Settings({ user, profile, state, status, onChangePassword, onSignOut, onBack, onProfile }: {
+const GOAL_LABEL: Record<number, string> = { 10: "Leve", 30: "Normal", 50: "Intensa" };
+
+export function Settings({ user, profile, state, status, onChangePassword, onSignOut, onBack, onProfile, onAdmin }: {
   user: User; profile: Profile; state: State; status: SyncStatus;
-  onChangePassword: () => void; onSignOut: () => Promise<void>; onBack: () => void; onProfile: () => void;
+  onChangePassword: () => void; onSignOut: () => Promise<void>; onBack: () => void; onProfile: () => void; onAdmin: () => void;
 }) {
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let live = true;
+    call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
+    return () => { live = false; };
+  }, []);
+  const goal = goalOf(state);
   const [theme, setTheme] = useState<Theme>(readTheme);
   const [reset, setReset] = useState("");
   const [del, setDel] = useState("");
@@ -86,6 +96,18 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
       </div></section>
 
       <section className="pane gap"><div className="in set">
+        <div className="eyebrow">Meta diária</div>
+        <div className="seg three" role="group" aria-label="Meta diária de XP">
+          {GOALS.map((g) => (
+            <button key={g} type="button" className="ch" aria-pressed={goal === g} onClick={() => update((s) => ({ ...s, goal: g }))}>
+              {GOAL_LABEL[g]}<small>{g} XP</small>
+            </button>
+          ))}
+        </div>
+        <p className="sub small">Uma lição dá cerca de 40 XP; cada cartão certo na revisão dá 1. A sequência tem um dia de folga por semana.</p>
+      </div></section>
+
+      <section className="pane gap"><div className="in set">
         <div className="eyebrow">Avisos</div>
         <ReminderToggle />
         <ReminderToggle kind="news" quiet />
@@ -114,7 +136,7 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
         <button type="button" className="btn soft" onClick={download}><span className="face">Descarregar os meus dados</span></button>
         <label className="lbl" htmlFor="reset">Recomeçar do zero: escreve RECOMEÇAR</label>
         <input id="reset" className="field ch" value={reset} onChange={(e) => setReset(e.target.value)} autoComplete="off" />
-        <button type="button" className="btn soft" disabled={reset !== "RECOMEÇAR"} onClick={() => { update(() => ({ ...initial })); setReset(""); }}>
+        <button type="button" className="btn soft" disabled={reset !== "RECOMEÇAR"} onClick={() => { update((x) => ({ ...initial, seenVersion: x.seenVersion, notify: x.notify, goal: x.goal, tour: true, badges: {}, asked: x.asked })); setReset(""); }}>
           <span className="face">Apagar trilhas e progresso</span>
         </button>
         <label className="lbl" htmlFor="del">Apagar conta: escreve o teu @nome ({profile.username})</label>
@@ -124,6 +146,14 @@ export function Settings({ user, profile, state, status, onChangePassword, onSig
         </button>
         {error && <div className="note ch" role="alert">{error}</div>}
       </div></section>
+
+      {isAdmin && (
+        <section className="pane gap"><div className="in set">
+          <div className="eyebrow">Administração</div>
+          <p className="sub small">Ideias, erros reportados, opiniões, números e catálogo.</p>
+          <button type="button" className="btn soft sm" onClick={onAdmin}><span className="face">Abrir o painel</span></button>
+        </div></section>
+      )}
 
       <section className="pane gap"><div className="in set">
         <div className="eyebrow">Sobre</div>

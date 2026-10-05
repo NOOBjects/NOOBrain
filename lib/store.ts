@@ -56,18 +56,46 @@ export function replace(s: State) {
 /** Quer este tipo de aviso? Os lembretes de revisão estão ligados por omissão; as novidades só com um "sim". */
 export const wants = (s: State, kind: "reviews" | "news") => (kind === "reviews" ? s.notify?.reviews !== false : s.notify?.news === true);
 
-export const activeTrail = (s: State): Trail | undefined => s.trails.find((t) => t.id === s.active) ?? s.trails[0];
+export const activeTrail = (s: State): Trail | undefined => s.trails.find((t) => t.id === s.active) ?? s.trails.find((t) => !t.archived) ?? s.trails[0];
 
-// ---------- sequência de dias ----------
-const day = (d: Date) => d.toLocaleDateString("sv"); // AAAA-MM-DD no fuso do usuário
+// ---------- sequência de dias e meta diária ----------
+export const day = (d = new Date()) => d.toLocaleDateString("sv"); // AAAA-MM-DD no fuso da pessoa
+const ago = (n: number, from = new Date()) => { const d = new Date(from); d.setDate(d.getDate() - n); return day(d); };
+/** Segunda-feira da semana de `d` (AAAA-MM-DD): cada semana tem um dia de folga para a sequência. */
+export const weekOf = (d = new Date()) => { const x = new Date(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return day(x); };
 
-/** Sequência de dias: sobe se concluiu algo ontem, reinicia se pulou um dia. */
-export function bumpStreak(s: State): Pick<State, "streak" | "lastDay"> {
-  const today = day(new Date());
-  if (s.lastDay === today) return { streak: s.streak, lastDay: today };
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  return { streak: s.lastDay === day(y) ? s.streak + 1 : 1, lastDay: today };
+/**
+ * Sequência de dias: sobe se estudou ontem, reinicia se falhou mais de um dia.
+ * Falhar UM dia gasta o dia de folga da semana (se ainda não foi usado) e a sequência continua.
+ */
+export function bumpStreak(s: State): Pick<State, "streak" | "lastDay" | "freezeWeek"> {
+  const today = day();
+  if (s.lastDay === today) return { streak: s.streak, lastDay: today, freezeWeek: s.freezeWeek };
+  if (s.lastDay === ago(1)) return { streak: s.streak + 1, lastDay: today, freezeWeek: s.freezeWeek };
+  const week = weekOf(new Date(Date.now() - 86_400_000)); // o dia falhado foi ontem
+  if (s.lastDay === ago(2) && s.streak > 0 && s.freezeWeek !== week) return { streak: s.streak + 1, lastDay: today, freezeWeek: week };
+  return { streak: 1, lastDay: today, freezeWeek: s.freezeWeek };
+}
+
+/** Sequência a mostrar hoje: 0 se já se perdeu (mesmo que ainda não tenha estudado para a reiniciar). */
+export function currentStreak(s: State) {
+  if (!s.lastDay || s.streak <= 0) return 0;
+  if (s.lastDay === day() || s.lastDay === ago(1)) return s.streak;
+  if (s.lastDay === ago(2) && s.freezeWeek !== weekOf(new Date(Date.now() - 86_400_000))) return s.streak; // ontem foi o dia de folga
+  return 0;
+}
+
+/** Ontem ficou sem estudo e foi coberto pelo dia de folga (para avisar a pessoa). */
+export const frozeYesterday = (s: State) => s.streak > 0 && s.lastDay === ago(2) && currentStreak(s) > 0;
+
+export const GOALS = [10, 30, 50] as const;
+export const goalOf = (s: State) => s.goal ?? 30;
+/** XP ganho hoje (0 se o registo é de outro dia). */
+export const todayXp = (s: State) => (s.today?.day === day() ? s.today.xp : 0);
+
+/** Soma XP ao total e ao de hoje. */
+export function gainXp(s: State, n: number): Pick<State, "xp" | "today"> {
+  return { xp: s.xp + n, today: { day: day(), xp: todayXp(s) + n } };
 }
 
 // ---------- revisão espaçada ----------
@@ -102,6 +130,13 @@ export function applyRating(s: State, id: string, r: 0 | 1 | 2): State {
   return { ...s, cards: { ...s.cards, [id]: rate(prev, r) }, stats };
 }
 
+/** Revisão feita no ecrã Rever: avalia, conta para a sequência e, se acertou, dá 1 XP e soma ao contador de revistos. */
+export function applyReview(s: State, id: string, r: 0 | 1 | 2): State {
+  const next = applyRating(s, id, r);
+  if (r === 0) return next;
+  return { ...next, ...bumpStreak(next), ...gainXp(next, 1), reviewed: (next.reviewed ?? 0) + 1 };
+}
+
 /** Baralha e evita dois itens do mesmo conceito seguidos quando há alternativa (intercalar ajuda a fixar). */
 export function interleave<T extends { topic: string; concept: string }>(list: T[]): T[] {
   const a = [...list];
@@ -121,14 +156,15 @@ export type DueCard = { id: string; topic: string; concept: string; card: Card; 
 /** Cartões e perguntas falhadas de conceitos já concluídos que estão vencidos (ou nunca foram avaliados). */
 export function dueCards(s: State, now = Date.now()): DueCard[] {
   const out: DueCard[] = [];
-  for (const t of s.trails)
+  const trails = s.trails.filter((t) => !t.archived);
+  for (const t of trails)
     t.concepts.slice(0, t.done).forEach((c, ci) =>
       c.lesson?.cards.forEach((card, k) => {
         const id = `${t.id}:${ci}:${k}`;
         if (!s.cards[id] || s.cards[id].due <= now) out.push({ id, topic: t.topic, concept: c.title, card });
       }),
     );
-  for (const t of s.trails)
+  for (const t of trails)
     t.concepts.slice(0, t.done).forEach((c, ci) =>
       c.lesson?.quiz.forEach((q, k) => {
         const id = `${t.id}:${ci}:q${k}`;

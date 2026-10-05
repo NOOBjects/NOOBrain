@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Listen } from "./Listen";
 import { RATINGS, whenText } from "@/lib/store";
 
 /** Com `options` e `answer`, o item é uma pergunta de teste falhada: responde-se em vez de virar (certa = "Bom", errada = "De novo"). */
-export type DeckItem = { id: string; term: string; definition: string; hint?: string; options?: string[]; answer?: number };
+export type DeckItem = { id: string; term: string; definition: string; hint?: string; options?: string[]; answer?: number; lang?: string };
 
 /**
  * Cartões de memória: toque para virar, depois diga o quanto lembrou.
@@ -56,7 +57,7 @@ export function Deck({ items, onRate, onEnd, endLabel = "Concluir", endTitle = "
         <div role="button" tabIndex={0} className="card3d" data-flipped={shown ? "1" : "0"} onClick={flip}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } }}
           aria-label={isQ ? "Pergunta" : flipped ? "Mostrar o termo" : "Mostrar a definição"}>
-          <span className="face3 front"><span className="pane"><span className="in"><span className="hint">{item.hint ?? (isQ ? "Pergunta" : "Termo")}</span><span className="term">{item.term}</span></span></span></span>
+          <span className="face3 front"><span className="pane"><span className="in"><span className="hint">{item.hint ?? (isQ ? "Pergunta" : "Termo")}</span><span className="term">{item.term}</span>{item.lang && !isQ && <Listen text={item.term} lang={item.lang} label="Ouvir a pronúncia" small />}</span></span></span>
           <span className="face3 back"><span className="pane tint"><span className="in"><span className="hint">{isQ ? (right ? "Certo" : "A resposta é") : "Definição"}</span><span className="def">{item.definition}</span></span></span></span>
         </div>
       </div>

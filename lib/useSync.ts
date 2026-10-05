@@ -10,6 +10,7 @@ import { useAppState } from "./useAppState";
 
 const OWNER = "noobrain:owner"; // id da conta dona do progresso guardado neste navegador (vazio = progresso sem conta)
 export const OAUTH_KEY = "noobrain:oauth"; // marca "saiu para o Google", lida na volta para dar as boas-vindas
+const PROFILE_COPY = "noobrain:profile:"; // cópia do perfil, para abrir sem ligação
 
 function getOwner() {
   try { return localStorage.getItem(OWNER); } catch { return null; }
@@ -77,18 +78,28 @@ export function useSync() {
   }, []);
 
   // Perfil público da conta (undefined = ainda a carregar, null = ainda não criou).
-  const loadProfile = useCallback(async (uid: string) => {
-    const { data } = await supabase!.from("profiles").select(PROFILE_COLUMNS).eq("id", uid).maybeSingle();
-    setProfileOf({ uid, data: (data as Profile | null) ?? null });
+  // Fica uma cópia no aparelho: sem ligação, o app usa-a em vez de achar que a conta não tem perfil.
+  const fetchProfile = useCallback(async (uid: string) => {
+    const { data, error } = await supabase!.from("profiles").select(PROFILE_COLUMNS).eq("id", uid).maybeSingle();
+    if (error) {
+      try { const c = localStorage.getItem(`${PROFILE_COPY}${uid}`); if (c) return JSON.parse(c) as Profile; } catch { /* sem cópia */ }
+      return undefined; // sem ligação e sem cópia: continua "a carregar" e tenta de novo ao voltar a rede
+    }
+    try { if (data) localStorage.setItem(`${PROFILE_COPY}${uid}`, JSON.stringify(data)); } catch { /* sem armazenamento */ }
+    return (data as Profile | null) ?? null;
   }, []);
+  const loadProfile = useCallback(async (uid: string) => {
+    const data = await fetchProfile(uid);
+    if (data !== undefined) setProfileOf({ uid, data });
+  }, [fetchProfile]);
   useEffect(() => {
     if (!supabase || !user) return;
     let live = true;
-    supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (live) setProfileOf({ uid: user.id, data: (data as Profile | null) ?? null });
-    });
-    return () => { live = false; };
-  }, [user]);
+    const load = () => fetchProfile(user.id).then((data) => { if (live && data !== undefined) setProfileOf({ uid: user.id, data }); });
+    void load();
+    window.addEventListener("online", load);
+    return () => { live = false; window.removeEventListener("online", load); };
+  }, [user, fetchProfile]);
 
   // Ao entrar: baixa o estado da nuvem e concilia com o do navegador.
   useEffect(() => {
@@ -121,9 +132,21 @@ export function useSync() {
     return () => clearTimeout(t);
   }, [state, user]);
 
+  // Ao voltar a ter ligação, sobe logo o que se fez sem rede (sem esperar pela próxima mudança).
+  const latest = useRef(state);
+  useEffect(() => { latest.current = state; }, [state]);
+  useEffect(() => {
+    if (!user) return;
+    const back = () => { if (synced.current === user.id && latest.current.updatedAt) void push(user.id, latest.current, setStatus); };
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
+  }, [user]);
+
   /** Terminar sessão: o progresso continua na conta; este navegador fica limpo. */
   async function signOut() {
+    const uid = user?.id;
     await supabase!.auth.signOut(); // primeiro sair, para a limpeza abaixo não subir para a nuvem
+    try { if (uid) localStorage.removeItem(`${PROFILE_COPY}${uid}`); } catch { /* sem armazenamento */ }
     replace(initial);
     setOwner(null);
     setStatus("off");

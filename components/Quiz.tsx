@@ -5,17 +5,31 @@ import { Check, Close, Grip, Idea } from "./Icons";
 import { reportError } from "@/lib/api";
 
 export type QuizItem =
-  | { kind: "mc"; q: string; options: string[]; answer: number; why: string }
+  | { kind: "mc"; q: string; options: string[]; answer: number; why: string; tag?: string }
+  | { kind: "match"; pairs: { term: string; definition: string }[] }
   | { kind: "cloze"; text: string; answer: string; accept: string[] }
   | { kind: "order"; prompt: string; steps: string[] }
   | { kind: "short"; q: string; ref: string };
 
 type Judge = (item: Extract<QuizItem, { kind: "short" }>, answer: string) => Promise<{ correct: boolean; feedback: string }>;
 /** Resultado de uma pergunta: `answer` e `steps` só aparecem quando errou; `label` muda o nome do bloco de explicação. */
-type Checked = { ok: boolean; why: string; report: string; title?: string; answer?: string; steps?: string[]; label?: string };
+type Checked = { ok: boolean; why: string; report: string; title?: string; answer?: string; steps?: string[]; label?: string; neutral?: boolean };
+
+/** Traz a correção para dentro do ecrã (acima da ilha do menu) quando aparece. */
+export const revealFeedback = (el: HTMLElement | null) => { el?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
 
 /** Sem acentos, maiúsculas nem pontuação: "Água." e "agua" contam como iguais. */
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+
+/** "«___»" e "___" contam como espaço; devolve as partes do texto entre os espaços. */
+const blanks = (t: string) => t.replace(/«\s*_{3,}\s*»/g, "___").split(/_{3,}/);
+/** Preenche os espaços com a resposta ("ATP e NADPH" em dois espaços → "ATP" e "NADPH"). */
+function fill(t: string, answer: string) {
+  const parts = blanks(t);
+  if (parts.length <= 2) return parts.join(answer);
+  const bits = answer.split(/\s*(?:,|\be\b)\s*/).filter(Boolean);
+  return parts.reduce((out, p, i) => out + p + (i < parts.length - 1 ? (bits.length === parts.length - 1 ? bits[i] : i === 0 ? answer : "…") : ""), "");
+}
 
 /** Baralha os passos até não ficarem já na ordem certa. */
 function shuffled(n: number) {
@@ -38,7 +52,9 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
       onCheck({ ok, answer: item.options[item.answer], why: item.why, report: `${item.q} | marcada: ${item.options[sel ?? 0]} | certa: ${item.options[item.answer]}` });
     } else if (item.kind === "cloze") {
       const ok = [item.answer, ...item.accept].some((a) => norm(a) === norm(text));
-      onCheck({ ok, answer: item.answer, why: item.text.replace("___", item.answer), report: `${item.text} | escrita: ${text} | certa: ${item.answer}` });
+      onCheck({ ok, answer: item.answer, why: fill(item.text, item.answer), report: `${item.text} | escrita: ${text} | certa: ${item.answer}` });
+    } else if (item.kind === "match") {
+      return; // os pares corrigem-se ao tocar (ver Match)
     } else if (item.kind === "order") {
       const ok = perm.every((v, i) => v === i);
       onCheck({ ok, steps: item.steps, why: "", report: `${item.prompt} | ordem dada: ${perm.map((v) => v + 1).join("")}` });
@@ -48,7 +64,7 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
         const r = await judge!(item, text);
         onCheck({ ok: r.correct, label: "Correção", why: r.feedback, report: `${item.q} | resposta: ${text} | avaliação: ${r.feedback}` });
       } catch {
-        onCheck({ ok: true, title: "Sem correção", why: "Não consegui avaliar a resposta agora. Conta como certa.", report: item.q }); // sem ligação ou cota: não penaliza
+        onCheck({ ok: true, neutral: true, title: "Sem correção", why: "Não consegui avaliar a resposta agora. Conta como certa.", report: item.q }); // sem ligação ou cota: não penaliza
       }
       setBusy(false);
     }
@@ -65,11 +81,13 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
     if (to >= 0 && perm[to] !== drag) put(drag, to);
   }
   const ready = item.kind === "mc" ? sel !== null : item.kind === "order" ? true : text.trim().length >= 2;
+  if (item.kind === "match") return <Match pairs={item.pairs} done={done} onCheck={onCheck} />;
 
   return (
     <form onSubmit={check}>
       {item.kind === "mc" && (
         <>
+          {item.tag && <div className="eyebrow">{item.tag}</div>}
           <h2 className="q">{item.q}</h2>
           <div className="opts" role="radiogroup" aria-label="Alternativas">
             {item.options.map((o, k) => {
@@ -86,7 +104,7 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
       {item.kind === "cloze" && (
         <>
           <div className="eyebrow">Completa a frase</div>
-          <h2 className="q">{item.text.replace("___", "＿＿＿")}</h2>
+          <h2 className="q">{blanks(item.text).map((p, k, a) => <span key={k}>{p}{k < a.length - 1 && <span className="blank" aria-label="espaço em branco" />}</span>)}</h2>
           <input className="field ch" value={text} onChange={(e) => setText(e.target.value)} disabled={done} maxLength={60} autoComplete="off" aria-label="A tua resposta" />
         </>
       )}
@@ -123,6 +141,52 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
         </button>
       )}
     </form>
+  );
+}
+
+/** Ligar pares: toca num termo e depois na definição dele. Cada par certo fica fixo; um par errado treme e conta como erro. */
+function Match({ pairs, done, onCheck }: { pairs: { term: string; definition: string }[]; done: boolean; onCheck: (c: Checked) => void }) {
+  const [defs] = useState(() => shuffled(pairs.length));
+  const [pick, setPick] = useState<number | null>(null); // termo escolhido
+  const [got, setGot] = useState<number[]>([]); // pares já ligados (índice do termo)
+  const [wrong, setWrong] = useState<{ t: number; d: number } | null>(null);
+  const [misses, setMisses] = useState(0);
+
+  function tryDef(d: number) {
+    if (pick === null || done) return;
+    if (d === pick) {
+      const next = [...got, d];
+      setGot(next);
+      setPick(null);
+      if (next.length === pairs.length)
+        onCheck({ ok: misses === 0, why: misses ? `Trocaste ${misses === 1 ? "um par" : `${misses} pares`} antes de acertar.` : "", title: misses ? "Quase" : undefined, report: `ligar pares: ${pairs.map((p) => p.term).join(", ")} | erros: ${misses}` });
+    } else {
+      setMisses((m) => m + 1);
+      setWrong({ t: pick, d });
+      setTimeout(() => setWrong(null), 450);
+      setPick(null);
+    }
+  }
+
+  return (
+    <div className="match">
+      <div className="eyebrow">Liga os pares</div>
+      <h2 className="q">Toca num termo e depois na definição certa.</h2>
+      <div className="match-terms" role="group" aria-label="Termos">
+        {pairs.map((p, t) => (
+          <button key={t} type="button" className={`chip ch mt${got.includes(t) ? " is-got" : ""}${pick === t ? " is-picked" : ""}${wrong?.t === t ? " is-wrong" : ""}`}
+            disabled={done || got.includes(t)} aria-pressed={pick === t} onClick={() => setPick(t)}>{p.term}</button>
+        ))}
+      </div>
+      <div className="opts one" role="group" aria-label="Definições">
+        {defs.map((d) => (
+          <button key={d} type="button" className={`opt pane${got.includes(d) ? " is-right" : ""}${wrong?.d === d ? " is-wrong" : ""}`}
+            disabled={done || got.includes(d) || pick === null} onClick={() => tryDef(d)}>
+            <span className="in">{got.includes(d) && <b className="mt-tag">{pairs[d].term}</b>}{pairs[d].definition}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -163,16 +227,16 @@ export function Quiz({ items, onFinish, judge, retry = true }: { items: QuizItem
       <Ask key={i} item={items[qi]} done={!!res} onCheck={checked} judge={judge} />
 
       {res && (
-        <div className={`feedback ${res.ok ? "ok" : "bad"}`} role="status">
+        <div className={`feedback ${res.neutral ? "info" : res.ok ? "ok" : "bad"}`} ref={revealFeedback} role="status">
           <div className="fb-head">
-            <span className="fb-ico ch">{res.ok ? <Check /> : <Close />}</span>
+            <span className="fb-ico ch">{res.neutral ? <Idea /> : res.ok ? <Check /> : <Close />}</span>
             <h3>{res.title ?? (res.ok ? "Correto!" : "Não foi desta")}</h3>
           </div>
           {!res.ok && res.answer && <div className="fb-block"><span className="eyebrow">Resposta certa</span><b className="fb-answer">{res.answer}</b></div>}
           {!res.ok && res.steps && <div className="fb-block"><span className="eyebrow">Ordem certa</span><ol className="fb-steps">{res.steps.map((s) => <li key={s}>{s}</li>)}</ol></div>}
           {res.why && <div className="fb-block"><span className="eyebrow"><Idea />{res.label ?? "Porquê"}</span><p>{res.why}</p></div>}
           {!res.ok && retry && <p className="fb-note">Esta pergunta volta no fim, até acertares.</p>}
-          <button type="button" className={`btn block ${res.ok ? "ok" : "bad"}`} autoFocus onClick={next}>
+          <button type="button" className={`btn block ${res.neutral ? "" : res.ok ? "ok" : "bad"}`} autoFocus onClick={next}>
             <span className="face">{last ? "Finalizar" : "Continuar"}</span>
           </button>
           <button type="button" className="linkbtn" disabled={reported} onClick={() => { setReported(true); reportError("quiz", res.report); }}>

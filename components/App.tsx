@@ -1,31 +1,45 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { Account } from "./Account";
 import { Announce } from "./Announce";
-import { Explore } from "./Explore";
-import { Bolt, Book, Compass, Flame, HeroIco, Idea, Plus, Route, Sync, User } from "./Icons";
-import { Ideas } from "./Ideas";
+import { Confetti } from "./Confetti";
+import { Feedback, feedbackAsk } from "./Feedback";
+import { Book, Compass, Flame, HeroIco, Idea, Offline, Plus, Route, Sync, User } from "./Icons";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
-import { LessonView } from "./LessonView";
-import { News } from "./News";
 import { Mascot, type Mood } from "./Mascot";
-import { NewTopic } from "./NewTopic";
-import { Onboarding } from "./Onboarding";
-import { ProfileView } from "./ProfileView";
-import { Ranking } from "./Ranking";
-import { ReviewView } from "./ReviewView";
-import { Settings } from "./Settings";
-import { TrailNode, ZIGZAG } from "./TrailNode";
+import { Toast, type ToastMsg } from "./Toast";
+import { TrailView } from "./TrailView";
+import { newBadges, type Badge } from "@/lib/badges";
 import { BETA, VERSION } from "@/lib/config";
 import { disable as disableReminders, notifyDue } from "@/lib/reminders";
-import { activeTrail, dueCards, update } from "@/lib/store";
+import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
+import { useOnline } from "@/lib/useOnline";
 import { useSync } from "@/lib/useSync";
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias" | "novidades";
-const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias", "novidades"]; // "trilha" é o endereço sem ?v=
+// Ecrãs que quem chega à página inicial não usa: só descarregam quando são abertos (página inicial mais leve).
+const Loading = () => <div className="loading" role="status"><span className="spinner ch" aria-hidden="true" /><span className="sr">A carregar…</span></div>;
+const Explore = dynamic(() => import("./Explore").then((m) => m.Explore), { loading: Loading });
+const Ideas = dynamic(() => import("./Ideas").then((m) => m.Ideas), { loading: Loading });
+const LessonView = dynamic(() => import("./LessonView").then((m) => m.LessonView), { loading: Loading });
+const News = dynamic(() => import("./News").then((m) => m.News), { loading: Loading });
+const NewTopic = dynamic(() => import("./NewTopic").then((m) => m.NewTopic), { loading: Loading });
+const Onboarding = dynamic(() => import("./Onboarding").then((m) => m.Onboarding), { loading: Loading });
+const ProfileView = dynamic(() => import("./ProfileView").then((m) => m.ProfileView), { loading: Loading });
+const Ranking = dynamic(() => import("./Ranking").then((m) => m.Ranking), { loading: Loading });
+const ReviewView = dynamic(() => import("./ReviewView").then((m) => m.ReviewView), { loading: Loading });
+const Settings = dynamic(() => import("./Settings").then((m) => m.Settings), { loading: Loading });
+const Challenge = dynamic(() => import("./Challenge").then((m) => m.Challenge), { loading: Loading });
+const Admin = dynamic(() => import("./Admin").then((m) => m.Admin), { loading: Loading });
+const BadgeDialog = dynamic(() => import("./Badges").then((m) => m.BadgeDialog));
+const Tour = dynamic(() => import("./Tour").then((m) => m.Tour));
+
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias" | "novidades" | "desafio" | "admin";
+const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias", "novidades", "desafio", "admin"]; // "trilha" é o endereço sem ?v=
 
 // Cada ecrã tem endereço próprio (/?v=revisar, /?v=licao&c=2). Assim o "voltar" do telemóvel anda entre ecrãs, como num site,
 // e recarregar a página não perde o sítio. O Next deixa usar pushState sem recarregar (ver guia "single-page-applications").
@@ -40,8 +54,14 @@ function onNav(cb: () => void) {
 function navigate(v: View, c?: number, replace = false) {
   const search = v === "trilha" || v === "conta" ? "" : `?v=${v}${c === undefined ? "" : `&c=${c}`}`;
   if (search === window.location.search) return;
-  window.history[replace ? "replaceState" : "pushState"](IN_APP, "", search || window.location.pathname);
-  window.dispatchEvent(new Event(NAV));
+  const run = () => {
+    window.history[replace ? "replaceState" : "pushState"](IN_APP, "", search || window.location.pathname);
+    window.dispatchEvent(new Event(NAV));
+  };
+  // Transição suave entre ecrãs (View Transitions API), só onde existe e sem "reduzir movimento".
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+  if (doc.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) doc.startViewTransition(() => flushSync(run));
+  else run();
 }
 
 /** "+N XP" que sobe quando o XP aumenta (ganhos grandes são ignorados: são a nuvem a carregar, não uma lição). */
@@ -57,35 +77,69 @@ function XpGain({ xp }: { xp: number }) {
   return gain ? <span key={xp} className="xp-gain" aria-hidden="true">+{gain} XP</span> : null;
 }
 
+/** Anel octogonal da meta diária à volta do raio do XP: enche com o XP de hoje e fica amarelo quando a meta se cumpre. */
+function GoalRing({ value, goal }: { value: number; goal: number }) {
+  const pct = Math.min(100, Math.round((value / goal) * 100));
+  return (
+    <svg className={`goal-ring${pct >= 100 ? " met" : ""}`} viewBox="0 0 32 32" aria-hidden="true">
+      <path className="gr-track" d="M11 2 H21 L30 11 V21 L21 30 H11 L2 21 V11 Z" pathLength={100} />
+      <path className="gr-fill" d="M16 2 H21 L30 11 V21 L21 30 H11 L2 21 V11 L11 2 Z" pathLength={100} strokeDasharray={`${pct} 100`} />
+      <path className="gr-bolt" d="M17.5 8 L11 17 H15.5 L14 24 L21 14.5 H16.5 Z" />
+    </svg>
+  );
+}
+
 const TEMA = "noobrain:tema"; // tema escolhido numa página pública, à espera do login
 
 export function App({ landing }: { landing?: ReactNode }) {
   const s = useAppState();
   const hydrated = useHydrated(); // antes disto, o que há são valores de exemplo, não os da pessoa
+  const online = useOnline();
   const { user, ready, loading, status, recovery, endRecovery, linkError, clearLinkError, signOut, welcome, profile, reloadProfile } = useSync();
   const search = useSyncExternalStore(onNav, () => window.location.search, () => "");
   const params = new URLSearchParams(search);
   const asked = params.get("v") ?? "";
   const pick = (VIEWS.includes(asked) ? asked : "trilha") as View;
-  // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta
-  // sem conta, só existe o ecrã de entrada
-  const [delId, setDelId] = useState<string | null>(null); // trilha à espera de confirmação para apagar
+  // links de e-mail (nova palavra-passe ou link com erro) levam direto à conta; sem conta, só existe o ecrã de entrada
   const [changing, setChanging] = useState(false); // a alterar a palavra-passe, vindo das definições
   const view: View = !user || recovery || linkError || changing ? "conta" : pick;
   const booting = !!user && view !== "conta" && (loading || profile === undefined);
   const needsProfile = !!user && view !== "conta" && profile === null;
+  const inApp = !!user && !!profile && !loading; // sessão, perfil e progresso prontos
   const showStats = hydrated && !loading && !(view === "conta" && !user);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMsg | null>(null);
   const [mood, setMood] = useState<Mood>("idle");
+  const [burst, setBurst] = useState(0); // muda para lançar confettis
+  const [badges, setBadges] = useState<Badge[] | null>(null);
 
   const trail = activeTrail(s);
   const total = trail?.concepts.length ?? 0;
-  const pct = total ? Math.round((trail!.done / total) * 100) : 0;
   const dueCount = useMemo(() => dueCards(s).length, [s]);
   const current = trail ? Math.min(trail.done, total - 1) : 0;
   // Lição pedida no endereço (?c=), sem passar do conceito atual (os seguintes ainda estão fechados).
   const lesson = trail ? Math.min(Math.max(0, Math.floor(Number(params.get("c"))) || 0), current) : 0;
-  const streakAtRisk = s.streak > 0 && s.lastDay !== new Date().toLocaleDateString("sv");
+  const streak = currentStreak(s);
+  const goal = goalOf(s);
+  const xpToday = todayXp(s);
+
+  const notify = useCallback((text: string, icon?: ToastMsg["icon"]) => setToast((t) => ({ text, icon, n: (t?.n ?? 0) + 1 })), []);
+  const hideToast = useCallback(() => setToast(null), []);
+  useEffect(() => {
+    if (!welcome) return;
+    const t = setTimeout(() => notify("Sessão iniciada com o Google."), 0);
+    return () => clearTimeout(t);
+  }, [welcome, notify]);
+
+  const celebrate = useCallback((big = false) => {
+    setMood("happy");
+    setTimeout(() => setMood("idle"), 1400);
+    if (big) setBurst((b) => b + 1);
+  }, []);
+  useEffect(() => {
+    if (!burst) return;
+    const t = setTimeout(() => setBurst(0), 2600);
+    return () => clearTimeout(t);
+  }, [burst]);
 
   // Lembretes: selo no título da aba e aviso do sistema quando o app está em segundo plano.
   const due = useRef(dueCount);
@@ -100,11 +154,45 @@ export function App({ landing }: { landing?: ReactNode }) {
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", tick); };
   }, []);
 
+  // Service worker sempre registado (no site publicado): guarda o app para abrir sem ligação.
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2400);
+    if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
+
+  // Meta diária: celebra quando o XP de hoje passa a meta (só durante o uso, não ao carregar da nuvem).
+  const lastXp = useRef<number | null>(null);
+  useEffect(() => {
+    if (!inApp) { lastXp.current = null; return; }
+    const before = lastXp.current;
+    lastXp.current = xpToday;
+    if (before !== null && before < goal && xpToday >= goal) {
+      notify(`Meta de hoje cumprida: ${goal} XP`);
+      celebrate(true);
+    }
+  }, [inApp, xpToday, goal, notify, celebrate]);
+
+  // Conquistas: na primeira verificação regista as que já existiam sem alarido; depois, cada nova abre uma janela.
+  useEffect(() => {
+    if (!inApp) return;
+    const fresh = newBadges(s);
+    if (!fresh.length && s.badges) return;
+    const now = Date.now();
+    update((x) => ({ ...x, badges: { ...x.badges, ...Object.fromEntries(fresh.map((b) => [b.id, now])) } }));
+    if (!s.badges || !fresh.length) return;
+    setTimeout(() => setBadges((b) => [...(b ?? []), ...fresh]), 600); // sem limpar: o próprio update acima volta a correr este efeito
+  }, [inApp, s]);
+
+  // Dia de folga gasto ontem: avisa uma vez.
+  useEffect(() => {
+    if (!inApp || !frozeYesterday(s)) return;
+    const k = `noobrain:froze:${day()}`;
+    try { if (sessionStorage.getItem(k)) return; } catch { return; }
+    const t = setTimeout(() => {
+      try { sessionStorage.setItem(k, "1"); } catch { /* sem armazenamento */ }
+      notify("Ontem usaste o dia de folga da semana: a tua sequência continua.");
+    }, 800);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [inApp, s, notify]);
 
   // "Começar esta trilha" numa página pública: guarda o tema, e depois do login abre o Explorar já à procura dele.
   const [tema, setTema] = useState("");
@@ -140,11 +228,6 @@ export function App({ landing }: { landing?: ReactNode }) {
     return () => { window.removeEventListener("popstate", back); window.removeEventListener("pageshow", show); };
   }, [user, profile]);
 
-  const notify = (m: string) => setToast(m);
-  function celebrate() {
-    setMood("happy");
-    setTimeout(() => setMood("idle"), 1400);
-  }
   function go(v: View, c?: number, replace = false) {
     clearLinkError();
     navigate(v, c, replace);
@@ -165,6 +248,8 @@ export function App({ landing }: { landing?: ReactNode }) {
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
   ];
+  const ask = inApp && trail ? feedbackAsk(s, trail) : null;
+  const showTour = inApp && view === "trilha" && s.seenVersion !== undefined && !s.tour && s.trails.length === 0;
 
   return (
     <div className="app">
@@ -177,21 +262,26 @@ export function App({ landing }: { landing?: ReactNode }) {
             : <span className="chip ch beta" title={`Versão beta ${VERSION}`}>Beta</span>)}
         </div>
         {showStats && <div className="stats">
-          <span className="stat s" title="Dias seguidos"><Flame />{s.streak}</span>
-          <span className="stat x" title="Pontos de experiência"><Bolt />{s.xp}<XpGain xp={s.xp} /></span>
+          <span className={`stat s${streak ? "" : " zero"}`} title={streak ? `${streak} ${streak === 1 ? "dia seguido" : "dias seguidos"}` : "Sem sequência: estuda hoje para começar"}><Flame />{streak}</span>
+          <button type="button" className="stat x" title={`Meta de hoje: ${Math.min(xpToday, goal)} de ${goal} XP`} aria-label={`${s.xp} XP. Meta de hoje: ${Math.min(xpToday, goal)} de ${goal} XP`} onClick={() => user && profile && go("perfil")}>
+            <GoalRing value={xpToday} goal={goal} />{s.xp}<XpGain xp={s.xp} />
+          </button>
         </div>}
-        {!(view === "conta" && !user) && <button type="button" className="iconbtn ch" aria-label="Novo tema" onClick={() => go("novo")}><Plus /></button>}
+        {!(view === "conta" && !user) && <button type="button" className="iconbtn ch" aria-label="Novo tema" title="Novo tema" onClick={() => go("novo")}><Plus /></button>}
       </header>
 
+      {!online && hydrated && (
+        <div className="offline ch" role="status"><Offline /><span><b>Sem ligação.</b> O progresso fica guardado e sobe quando voltares.</span></div>
+      )}
+
       <main key={view} className="content view-in">
-        {/* nada de dados antes de ler o navegador; e o conflito de progresso passa à frente de tudo */}
+        {/* nada de dados antes de ler o navegador */}
         {!hydrated ? landing : booting ? (
           <div className="loading" role="status"><HeroIco><Sync /></HeroIco><p className="sub center">A carregar o teu progresso…</p></div>
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
-        {user && profile && view === "trilha" && <Announce state={s} uid={user.id} onNews={() => go("novidades")} toast={notify} />}
         {view === "novidades" && <News state={s} onIdeas={() => go("ideias")} />}
         {view === "novo" && (
-          <NewTopic trails={s.trails}
+          <NewTopic trails={s.trails} online={online}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha", undefined, true); notify(`Abri a trilha “${t.topic}”`); }}
             onDone={(t) => { go("trilha", undefined, true); notify(`Trilha pronta: ${t}`); celebrate(); }} />
         )}
@@ -202,120 +292,71 @@ export function App({ landing }: { landing?: ReactNode }) {
         )}
 
         {view === "revisar" && <ReviewView state={s} />}
+        {view === "desafio" && inApp && <Challenge state={s} onDone={() => go("trilha", undefined, true)} />}
 
         {view === "conta" && (
           <Account ready={ready} recovery={recovery} onRecovered={endRecovery}
             changing={changing} onChangingEnd={(changed) => { setChanging(false); if (changed) notify("Palavra-passe alterada."); }}
             linkError={linkError} onClearLink={clearLinkError}
-            onSignedIn={setToast} />
+            onSignedIn={notify} />
         )}
         {view === "conta" && !user && landing}
 
         {view === "perfil" && user && profile && (
-          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }} onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={leave} notify={notify} />
+          <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }}
+            onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={leave} notify={notify}
+            onOpenTrail={(id) => { update((x) => ({ ...x, active: id })); go("trilha"); }} />
         )}
 
         {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} />}
 
         {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
 
+        {view === "admin" && user && profile && <Admin onBack={() => go("perfil")} />}
+
         {view === "definicoes" && user && profile && (
           <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
-            onSignOut={leave} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} />
+            onSignOut={leave} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} onAdmin={() => go("admin")} />
         )}
 
         {(view === "trilha" || view === "licao") && !trail && (
-          <div className="hero-new">
-            <HeroIco><Route /></HeroIco>
-            <h1 className="h-screen">Escolhe o teu primeiro tema</h1>
-            <p className="sub">Escreve qualquer tema e eu monto-te uma trilha com lições, cartões e testes.</p>
-            <button type="button" className="btn block" onClick={() => go("explorar")}><span className="face">Explorar temas</span></button>
-            <button type="button" className="btn soft block" onClick={() => go("novo")}><span className="face">Criar um tema</span></button>
-          </div>
+          <>
+            {user && profile && view === "trilha" && <Announce state={s} uid={user.id} onNews={() => go("novidades")} toast={notify} />}
+            <div className="hero-new">
+              <HeroIco><Route /></HeroIco>
+              <h1 className="h-screen">Escolhe o teu primeiro tema</h1>
+              <p className="sub">Escreve qualquer tema e eu monto-te uma trilha com lições, cartões e testes.</p>
+              <div className="stack">
+                <button type="button" className="btn block" onClick={() => go("explorar")}><span className="face">Explorar temas</span></button>
+                <button type="button" className="btn soft block" onClick={() => go("novo")}><span className="face">Criar um tema</span></button>
+              </div>
+            </div>
+          </>
         )}
 
         {view === "licao" && trail && (
-          <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify}
-            onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }} />
+          <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify} online={online}
+            onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }}
+            onMastered={(last) => celebrate(last)} />
         )}
 
         {view === "trilha" && trail && (
-          <>
-            <div className="unit">
-              <div>
-                <div className="eyebrow">{trail.level}</div>
-                <h1 className="h-screen">{trail.topic}</h1>
-              </div>
-            </div>
-
-            {dueCount > 0 && (
-              <div className="nudge pane tint"><div className="in">
-                <div><b>{dueCount === 1 ? "1 cartão" : `${dueCount} cartões`} para rever</b><div className="sub small">Rever agora fixa o que aprendeste.</div></div>
-                <button type="button" className="btn sm" onClick={() => go("revisar")}><span className="face">Rever</span></button>
-              </div></div>
-            )}
-            {streakAtRisk && (
-              <div className="nudge pane"><div className="in">
-                <div><b>A tua sequência de {s.streak} {s.streak === 1 ? "dia" : "dias"} termina hoje</b><div className="sub small">Conclui uma lição para a manteres.</div></div>
-                <button type="button" className="btn sm" onClick={() => openLesson(current)}><span className="face">Estudar</span></button>
-              </div></div>
-            )}
-
-            {s.trails.length > 1 && (
-              <div className="topic-chips" role="group" aria-label="Os teus temas">
-                {s.trails.map((t) => (
-                  <button key={t.id} type="button" className="chip ch" aria-pressed={t.id === trail.id} onClick={() => update((x) => ({ ...x, active: t.id }))}>{t.topic}</button>
-                ))}
-              </div>
-            )}
-
-            {trail.sources.length > 0 ? (
-              <div className="sources">{trail.sources.map((src) => <a key={src.url} className="chip ch srcchip" href={src.url} target="_blank" rel="noreferrer">{src.site ?? "Fonte"} · {src.title}</a>)}</div>
-            ) : (
-              <span className="chip ch warnchip">Sem fonte encontrada. Confirma o conteúdo com cuidado.</span>
-            )}
-
-            <div className="pane gap"><div className="in prog">
-              <div className="prog-top"><span>Progresso</span><span>{trail.done} de {total}</span></div>
-              <div className="bar ch" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
-            </div></div>
-
-            <div className="trail">
-              {trail.concepts.map((c, i) => (
-                <TrailNode key={c.title + i} index={i} title={c.title} offset={ZIGZAG[i % ZIGZAG.length]}
-                  state={i < trail.done ? "done" : i === trail.done ? "cur" : "lock"}
-                  onClick={() => (i <= trail.done ? openLesson(i) : notify("Conclui o conceito atual para desbloquear este."))} />
-              ))}
-            </div>
-            {trail.done >= total && <p className="sub center">Trilha concluída. Que tal rever os cartões ou criar um novo tema?</p>}
-
-            <div className="trail-del">
-              {delId === trail.id ? (
-                <>
-                  <span className="sub small">Apagar “{trail.topic}” e o progresso dela?</span>
-                  <button type="button" className="btn bad sm" onClick={() => {
-                    const id = trail.id;
-                    update((x) => {
-                      const left = x.trails.filter((t) => t.id !== id);
-                      const cards = Object.fromEntries(Object.entries(x.cards).filter(([k]) => !k.startsWith(`${id}:`)));
-                      return { ...x, trails: left, active: left[0]?.id ?? "", cards };
-                    });
-                    setDelId(null);
-                    notify("Trilha apagada");
-                  }}><span className="face">Apagar</span></button>
-                  <button type="button" className="linkbtn" onClick={() => setDelId(null)}>Cancelar</button>
-                </>
-              ) : <button type="button" className="linkbtn" onClick={() => setDelId(trail.id)}>Apagar esta trilha</button>}
-            </div>
-          </>
+          <TrailView state={s} trail={trail} dueCount={dueCount} notify={notify}
+            onLesson={openLesson} onReview={() => go("revisar")} onChallenge={() => go("desafio")}>
+            {user && <Announce state={s} uid={user.id} onNews={() => go("novidades")} toast={notify} />}
+            {ask && <Feedback ask={ask} uid={user!.id} onDone={(sent) => sent && notify("Obrigado! Lemos todas as respostas.")} />}
+          </TrailView>
         )}
         </>}
       </main>
       <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} onNews={user && profile ? () => go("novidades") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" || view === "novidades" ? "" : view === "definicoes" || view === "ranking" ? "perfil" : view} />}
+      {user && !needsProfile && <Island items={items} current={view === "novo" || view === "novidades" ? "" : view === "definicoes" || view === "ranking" || view === "admin" ? "perfil" : view === "desafio" ? "trilha" : view} />}
 
-      <div className={`toast ch${toast || welcome ? " show" : ""}`} role="status" aria-live="polite">{toast ?? (welcome ? "Sessão iniciada com o Google." : null)}</div>
+      {burst > 0 && <Confetti key={burst} />}
+      {badges && <BadgeDialog badges={badges} onClose={() => setBadges(null)} />}
+      {showTour && !badges && <Tour onDone={() => update((x) => ({ ...x, tour: true }))} />}
+      <Toast msg={toast} onDone={hideToast} />
     </div>
   );
 }
