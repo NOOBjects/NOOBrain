@@ -420,6 +420,7 @@ export const nextLevel = (l: Level): Level | null => l === "Iniciante" ? "Interm
 - **Aceitação**: (B) "Mecânica de bicicletas" → `oficios`; "Xadrez" → `desporto`; "Estoicismo" → `sociedade`; "Python" → `tecnologia`.
 
 ### 3.4 Línguas em pausa
+> Nota do Rodrigo (05/10/2026): o problema das línguas **não** era `\n` no texto; era a pronúncia em símbolos fonéticos (ex.: `/ˈoʊ.pən/`), que não ajuda ninguém. Quando as línguas voltarem, a pronúncia tem de ser em português intuitivo (ex.: «ôu-pen»), nunca em alfabeto fonético. A limpeza de `\n` da 1.3 ficou por segurança, mas não resolvia isto.
 Decisão do Rodrigo (05/10/2026): aprender línguas sai até haver um formato próprio. Nada é apagado.
 - `lib/categories.ts`: `export const LANGUAGES_ON = false;` e `isLanguageTopic(topic)`: texto normalizado (sem acentos, minúsculas)
   com uma destas palavras inteiras: ingles, english, espanhol, castelhano, frances, alemao, italiano, mandarim, chines, japones,
