@@ -6,6 +6,7 @@ import { pushReady, sendPush } from "@/lib/push";
 import { ptpt, ptptDeep } from "@/lib/ptpt";
 import { LIMITS } from "@/lib/quota";
 
+const plain = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 export const maxDuration = 60; // a procura de palavras com IA pode demorar
 
 // Painel de administração. Só para as contas em ADMIN_IDS (ids separados por vírgula, variável só do servidor, na Vercel).
@@ -146,12 +147,12 @@ export async function POST(request: Request) {
     for (let i = 0; i < words.length; i += 350) chunks.push(words.slice(i, i + 350));
     const SCHEMA = { type: "object", properties: { items: { type: "array", items: { type: "object", properties: { word: { type: "string" }, replacement: { type: "string" } }, required: ["word", "replacement"], additionalProperties: false } } }, required: ["items"], additionalProperties: false };
     const found = new Map<string, string>();
-    for (let i = 0; i < Math.min(chunks.length, 12); i += 4) {
+    for (let i = 0; i < Math.min(chunks.length, 16); i += 4) {
       const out = await Promise.all(chunks.slice(i, i + 4).map((c) => generateJson<{ items: { word: string; replacement: string }[] }>(
-        `Esta é uma lista de palavras de lições escritas em português. Devolve só as que NÃO se usam em português de Portugal: palavras ou grafias do Brasil, grafias anteriores ao Acordo Ortográfico de 1990 e gírias. Para cada uma, dá a palavra equivalente de Portugal (uma só palavra ou expressão curta, no mesmo género e número). Não incluas palavras que também existem e se usam em Portugal. Se não houver nenhuma, devolve items vazio.\n${c.join(", ")}`, SCHEMA).catch(() => ({ items: [] }))));
+        `Esta é uma lista de palavras de lições escritas em português. Devolve só as que NÃO se usam em português de Portugal: palavras ou grafias do Brasil, grafias anteriores ao Acordo Ortográfico de 1990 e gírias. Para cada uma, dá a palavra equivalente de Portugal (uma só palavra ou expressão curta, no mesmo género e número). Não incluas palavras que também existem e se usam em Portugal, nem estrangeirismos comuns (site, smartphone, stress…), nem erros de acentuação. A palavra de Portugal tem de seguir o Acordo Ortográfico de 1990 (atualizar, ativo, otimização: nunca actualizar, activo, optimização). Se não houver nenhuma, devolve items vazio.\n${c.join(", ")}`, SCHEMA).catch(() => ({ items: [] }))));
       for (const o of out) for (const it of o.items ?? []) {
         const word = String(it.word ?? "").trim().toLowerCase(), replacement = String(it.replacement ?? "").trim();
-        if (word && replacement && word !== replacement.toLowerCase() && seen.has(word) && replacement.length <= 60) found.set(word, replacement);
+        if (word && replacement && plain(word) !== plain(replacement) && !/(?:cç|ct|pç)/i.test(replacement) && seen.has(word) && replacement.length <= 60) found.set(word, replacement);
       }
     }
     return Response.json({ ok: true, scanned: words.length, suggestions: [...found].map(([word, replacement]) => ({ word, replacement })) });
