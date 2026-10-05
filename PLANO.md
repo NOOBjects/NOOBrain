@@ -16,6 +16,9 @@ As regras gerais estão no `CLAUDE.md`.
 ## Estado atual e o que falta (atualizado a 05/10/2026, versão 0.10)
 Quem continuar: ler esta secção primeiro.
 
+**Próximo trabalho: `PLANO-0.11.md`** (diagnóstico de 05/10/2026 e 11 fases decididas, da 0.10.1 à 0.11, com testes e critérios de aceitação).
+Testes no navegador sem contas reais: `tests/e2e/` (Supabase falso + Playwright; ver o README dessa pasta).
+
 **Publicado** (versão 0.10 em `lib/changelog.ts`): Fases 14, 15 e quase todas as 16 a 18 (ver "Já feito"), mais a revisão visual pedida pelo Rodrigo (aviso rápido acima do menu e na cor da marca, boas-vindas com margens e cores certas também no escuro, botões pequenos que não existiam no CSS, hierarquia do Perfil).
 - Migrações aplicadas no Supabase: `catalog_trails.category` (com `check`), tabela `feedback` (RLS: só inserir a própria), `reports.resolved`. As escritas de dados no catálogo foram bloqueadas a partir da sessão na nuvem; por isso a categoria dos 9 temas iniciais está no código (`lib/categories.ts`, `KNOWN`). Pode ficar assim.
 - Testado num Supabase falso local (`/tmp`, não está no Git): entrar, boas-vindas, visita guiada, Explorar com categorias, lição inteira (aquecimento, cartões, 5 tipos de pergunta), resultado com confettis e conquistas, meta diária, desafio do dia, revisão, "Já existe", sem ligação, 404, Perfil, Definições, Admin, em claro/escuro, telemóvel e computador. **Não testado com a IA** (sem chave na sessão): "Querias dizer…", categoria escolhida pela IA, correção da resposta curta e tutor.
@@ -48,7 +51,9 @@ Vive em `lib/changelog.ts` e aparece no app em Novidades.
 - Idade mínima: **13 anos**. Em Portugal, abaixo disso o RGPD exige consentimento dos pais (Lei 58/2019, art. 16.º).
 - Sem domínio próprio por agora: fica `noobrain.vercel.app`.
 - Doações com **Ko-fi**: o Rodrigo cria a conta e dá o link.
-- Entre os temas iniciais tem de haver uma língua (**Inglês**): o NOOBrain inspira-se no Duolingo, mas quer ser melhor.
+- ~~Entre os temas iniciais tem de haver uma língua (Inglês)~~ → **Línguas em pausa desde 05/10/2026**: o formato atual não serve para línguas; voltam com um formato próprio.
+- Ideias recusadas aparecem a vermelho (`--bad`), com pedido de revisão: exceção aceite à regra "`--bad` só para errado" (05/10/2026).
+- Sem CAPTCHA no login (05/10/2026): também desligado no Supabase.
 
 ## Por decidir ou fazer (Rodrigo)
 1. ~~Redirect URLs do Supabase~~ confirmadas a 05/10/2026.

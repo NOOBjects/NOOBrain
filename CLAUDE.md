@@ -57,6 +57,7 @@ Componente novo: `components/NomePascal.tsx`, com `"use client";` se usar estado
 | ícones do site, metadados, manifesto | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png`, `app/opengraph-image.png`, `app/layout.tsx`, `app/manifest.ts` |
 | novidades, versão, avisos de atualização | `lib/changelog.ts`, `News.tsx`, `Announce.tsx`, `ReminderToggle.tsx` |
 | e-mails do Supabase | `emails/` (ver `emails/README.md`) |
+| testes no navegador (Supabase falso + Playwright) | `tests/e2e/` (ver `tests/e2e/README.md`) |
 
 ## Antes de dizer que terminou
 - `npm run build`: sem `Error`, mostra a lista de rotas.
