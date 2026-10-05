@@ -122,3 +122,4 @@ export const Ball = () => (
     <path {...stroke} strokeLinejoin="miter" d="M9 3 H15 L21 9 V15 L15 21 H9 L3 15 V9 Z M3 12 H21 M12 3 V21" />
   </Svg>
 );
+export const Bell = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M6 17 V11 L9 5 H15 L18 11 V17 L20 19 H4 Z M10 21.5 H14" /></Svg>;
