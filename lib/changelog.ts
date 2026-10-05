@@ -13,6 +13,9 @@ export const CHANGELOG: Release[] = [
       "Limites diários com barras: até 6 lições novas e 3 temas novos por dia. Aprender com pausas fixa melhor, e assim a IA gratuita chega para toda a gente.",
       "Repetir lições, rever cartões e o desafio do dia não contam para o limite.",
     ],
+    melhorias: [
+      "Mais palavras de Portugal nas lições (feto, guiador, travão, partilhar…) e menos do Brasil.",
+    ],
   },
   {
     version: "0.10.3",

@@ -786,7 +786,8 @@ corram com as tuas chaves, agora que as variáveis estão também nas pré-visua
 
 ## Pendências do Rodrigo (atualizar ao longo das fases)
 1. ~~CAPTCHA e conta de teste~~ feitos (05/10/2026).
-1c. **Testes**: a conta de teste esgotou as cotas do dia; apagar `delete from ai_usage where user_id = '46babcd0-ff00-45d2-8ef4-df4622852cd4';` no SQL Editor para repetir testes com IA (o agente foi bloqueado 2 vezes).
+1d. ~~`drop function bump_catalog_use`~~ feito pelo Rodrigo.
+1c. **Testes** (agora o painel → Ferramentas faz isto: repor uso de IA, ligar limites para testar como pessoa normal, rever o português do catálogo): a conta de teste esgotou as cotas do dia; apagar `delete from ai_usage where user_id = '46babcd0-ff00-45d2-8ef4-df4622852cd4';` no SQL Editor para repetir testes com IA (o agente foi bloqueado 2 vezes).
 1b. **Fase 1, falta**: `drop function public.bump_catalog_use(text, text);` (a migração `drop_bump_catalog_use` deu timeout 2 vezes pelo agente; a função já não é usada pelo app). Correr no SQL Editor do Supabase, e confirmar com `get_advisors` que o aviso desaparece.
 2. Fase 1: confirmar no telemóvel que entra com e-mail e que o "Enviar aviso de teste" chega.
 3. Fase 2: instalar o app no PC e no telemóvel.

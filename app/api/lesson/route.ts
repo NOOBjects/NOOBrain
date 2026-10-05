@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   const known = concepts[pos];
   const summary = known?.summary ?? clean(body?.summary, 400);
 
-  const over = await spend(who.uid, "lesson");
+  const over = await spend(who.uid, "lesson", request);
   if (over) return over;
 
   const found = await findSources(`${topic} ${title}`);
