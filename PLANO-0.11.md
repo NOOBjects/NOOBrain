@@ -106,7 +106,7 @@ mesma conta quando o e-mail é o mesmo (a tua conta `rron…` tem `google,email`
 
 ## Fase 1 · 0.10.1 · Correções críticas
 
-> Estado: código feito (1.1–1.4) e migração `catalog_starts` aplicada. Falta: Rodrigo desligar o CAPTCHA (0.2), testes B/C após o PR, e depois a migração `drop_bump_catalog_use`.
+> ✅ feita (0.10.1, 05/10/2026): publicada e testada (login por e-mail, push, contador). Só falta apagar `bump_catalog_use` (Pendências 1b).
 
 ### 1.1 Login com e-mail
 Depende do Rodrigo desligar o CAPTCHA (0.2). No código:
@@ -420,6 +420,7 @@ export const nextLevel = (l: Level): Level | null => l === "Iniciante" ? "Interm
 - **Aceitação**: (B) "Mecânica de bicicletas" → `oficios`; "Xadrez" → `desporto`; "Estoicismo" → `sociedade`; "Python" → `tecnologia`.
 
 ### 3.4 Línguas em pausa
+> Nota do Rodrigo (05/10/2026): o problema das línguas **não** era `\n` no texto; era a pronúncia em símbolos fonéticos (ex.: `/ˈoʊ.pən/`), que não ajuda ninguém. Quando as línguas voltarem, a pronúncia tem de ser em português intuitivo (ex.: «ôu-pen»), nunca em alfabeto fonético. A limpeza de `\n` da 1.3 ficou por segurança, mas não resolvia isto.
 Decisão do Rodrigo (05/10/2026): aprender línguas sai até haver um formato próprio. Nada é apagado.
 - `lib/categories.ts`: `export const LANGUAGES_ON = false;` e `isLanguageTopic(topic)`: texto normalizado (sem acentos, minúsculas)
   com uma destas palavras inteiras: ingles, english, espanhol, castelhano, frances, alemao, italiano, mandarim, chines, japones,
@@ -778,7 +779,8 @@ corram com as tuas chaves, agora que as variáveis estão também nas pré-visua
 ---
 
 ## Pendências do Rodrigo (atualizar ao longo das fases)
-1. **Agora**: desligar o CAPTCHA no Supabase (0.2.1) e criar a conta de teste (0.2.2).
+1. ~~CAPTCHA e conta de teste~~ feitos (05/10/2026).
+1b. **Fase 1, falta**: `drop function public.bump_catalog_use(text, text);` (a migração `drop_bump_catalog_use` deu timeout 2 vezes pelo agente; a função já não é usada pelo app). Correr no SQL Editor do Supabase, e confirmar com `get_advisors` que o aviso desaparece.
 2. Fase 1: confirmar no telemóvel que entra com e-mail e que o "Enviar aviso de teste" chega.
 3. Fase 2: instalar o app no PC e no telemóvel.
 4. Fase 6: adicionar a conta de teste como moderador no painel (Equipa), para os testes de acesso.
