@@ -44,6 +44,7 @@ export type State = {
   seenVersion?: string; // última versão cujas novidades já viu (sem valor = ainda não viu o aviso da beta)
   notify?: { reviews?: boolean; news?: boolean }; // avisos que quer: reviews sem valor = sim; news sem valor = ainda não respondeu
   goal?: number; // meta diária de XP (10, 30 ou 50; sem valor = 30)
+  daily?: { day: string; lessons: string[] }; // lições novas abertas hoje (`${trailId}:${índice}`), para o limite diário
   today?: { day: string; xp: number }; // XP ganho hoje (AAAA-MM-DD no fuso da pessoa)
   freezeWeek?: string; // segunda-feira da semana em que o dia de folga da sequência já foi usado
   reviewed?: number; // cartões e perguntas revistos com acerto, desde sempre

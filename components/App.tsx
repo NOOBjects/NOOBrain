@@ -9,6 +9,7 @@ import { Confetti } from "./Confetti";
 import { Feedback, FeedbackDialog, feedbackAsk } from "./Feedback";
 import { Compass, Download, Flame, Gear, HeroIco, Idea, Offline, Plus, Route, Shield, Spark, Speech, Sync, Trophy, User } from "./Icons";
 import { InstallSheet } from "./InstallSheet";
+import { RestView } from "./RestView";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { Mascot, type Mood } from "./Mascot";
@@ -18,9 +19,10 @@ import { newBadges, type Badge } from "@/lib/badges";
 import { call } from "@/lib/api";
 import { BETA, VERSION } from "@/lib/config";
 import { install, useInstall } from "@/lib/install";
+import { NEW_LESSONS_PER_DAY } from "@/lib/limits";
 import { LATEST } from "@/lib/changelog";
 import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
-import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, todayXp, update } from "@/lib/store";
+import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, lessonsToday, markLesson, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useOnline } from "@/lib/useOnline";
 import { useSync } from "@/lib/useSync";
@@ -126,6 +128,11 @@ export function App({ landing }: { landing?: ReactNode }) {
   const current = trail ? Math.min(trail.done, total - 1) : 0;
   // Lição pedida no endereço (?c=), sem passar do conceito atual (os seguintes ainda estão fechados).
   const lesson = trail ? Math.min(Math.max(0, Math.floor(Number(params.get("c"))) || 0), current) : 0;
+  // Limite diário de lições novas: a do conceito atual conta uma vez por dia; repetir lições já feitas nunca conta.
+  const lessonId = trail ? `${trail.id}:${lesson}` : "";
+  const newToday = lessonsToday(s);
+  const isNewLesson = !!trail && lesson === trail.done;
+  const resting = view === "licao" && isNewLesson && !newToday.includes(lessonId) && newToday.length >= NEW_LESSONS_PER_DAY;
   const streak = currentStreak(s);
   const goal = goalOf(s);
   const xpToday = todayXp(s);
@@ -180,6 +187,9 @@ export function App({ landing }: { landing?: ReactNode }) {
   }, [inApp, xpToday, goal, notify, celebrate]);
 
   useEffect(() => { if (inApp) void syncPush(); }, [inApp]);
+  useEffect(() => {
+    if (inApp && view === "licao" && isNewLesson && !newToday.includes(lessonId) && newToday.length < NEW_LESSONS_PER_DAY) update((x) => ({ ...x, ...markLesson(x, lessonId) }));
+  }, [inApp, view, isNewLesson, lessonId, newToday]);
   useEffect(() => {
     if (!inApp) return;
     let live = true;
@@ -310,7 +320,7 @@ export function App({ landing }: { landing?: ReactNode }) {
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
         {view === "novidades" && <News state={s} onIdeas={() => go("ideias")} />}
         {view === "novo" && (
-          <NewTopic trails={s.trails} online={online}
+          <NewTopic trails={s.trails} online={online} onExplore={() => go("explorar")}
             onOpen={(t) => { update((x) => ({ ...x, active: t.id })); go("trilha", undefined, true); notify(`Abri a trilha “${t.topic}”`); }}
             onDone={(t) => { go("trilha", undefined, true); notify(`Trilha pronta: ${t}`); celebrate(); }} />
         )}
@@ -363,7 +373,8 @@ export function App({ landing }: { landing?: ReactNode }) {
           </>
         )}
 
-        {view === "licao" && trail && (
+        {view === "licao" && trail && resting && <RestView due={dueCount} onReview={() => go("revisar")} onTrail={() => go("trilha")} onBack={() => go("trilha")} />}
+        {view === "licao" && trail && !resting && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify} online={online}
             onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }}
             onMastered={(last) => celebrate(last)} />

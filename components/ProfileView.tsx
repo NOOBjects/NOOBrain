@@ -5,12 +5,14 @@ import { useState } from "react";
 import { Avatar } from "./Avatar";
 import { BadgeGrid } from "./Badges";
 import { CategoryIcon } from "./CategoryIcon";
+import { DayBars } from "./DayBars";
 import { Gear } from "./Icons";
 import { ProfileForm } from "./ProfileForm";
 import { categoryOf } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import type { Profile } from "@/lib/profile";
-import { currentStreak, dueCards, goalOf, todayXp } from "@/lib/store";
+import { currentStreak, dueCards, goalOf, lessonsToday, todayXp } from "@/lib/store";
+import { useQuota } from "@/lib/useQuota";
 import type { State } from "@/lib/types";
 
 const since = (iso: string) => new Date(iso).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
@@ -21,6 +23,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, notify,
   notify: (m: string) => void; onOpenTrail: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
+  const quota = useQuota();
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
   const mastered = Object.values(state.cards).filter((c) => c.box >= 4).length;
   const kept = Object.values(state.stats ?? {}).filter((c) => c.r7 !== undefined);
@@ -76,6 +79,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, notify,
           <i className={today >= goal ? "met" : undefined} style={{ transform: `scaleX(${Math.min(1, today / goal)})` }} />
         </div>
         <p className="sub small">{today >= goal ? "Meta cumprida. Boa!" : `Faltam ${goal - today} XP. Uma lição ou uns cartões chegam.`}</p>
+        <DayBars lessons={lessonsToday(state).length} topics={quota?.trail?.used ?? null} />
       </div></div>
 
       <div className="stats-grid">

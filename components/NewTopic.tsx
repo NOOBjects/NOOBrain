@@ -1,25 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Bar } from "./DayBars";
 import { HeroIco, Idea } from "./Icons";
 import { Quiz } from "./Quiz";
 import { ApiError, createTrail } from "@/lib/api";
 import { LANGUAGES_ON, LANGUAGES_PAUSED, isLanguageTopic } from "@/lib/categories";
 import { loadCatalog, startFromCatalog, type CatalogRow } from "@/lib/catalog-client";
+import { NEW_TOPICS_PER_DAY } from "@/lib/limits";
 import { LEVELS, nextLevel, normLevel, type Level } from "@/lib/levels";
 import { startLevel } from "@/lib/nextlevel";
+import { useQuota } from "@/lib/useQuota";
 import { parse, getRaw, update } from "@/lib/store";
 import { sameTopic } from "@/lib/topic";
 import type { Trail } from "@/lib/types";
 
 const SUGGESTIONS = ["Fotossíntese", "Juros compostos", "Git básico", "Revolução Francesa"];
 
-export function NewTopic({ trails, onOpen, onDone, online = true }: {
+export function NewTopic({ trails, onOpen, onDone, onExplore, online = true }: {
   trails: Trail[];
   onOpen: (trail: Trail) => void;
   onDone: (topic: string) => void;
+  onExplore: () => void;
   online?: boolean;
 }) {
+  const quota = useQuota();
+  const used = quota?.trail?.used ?? null;
+  const full = !!quota?.trail && quota.trail.used >= quota.trail.max;
   const [topic, setTopic] = useState("");
   const [level, setLevel] = useState<Level>("Iniciante");
   const [force, setForce] = useState(false);
@@ -114,7 +121,20 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
         <p className="sub">Escreve qualquer tema. A trilha é montada para ti.</p>
       </div>
 
-      <form onSubmit={submit}>
+      {used !== null && (
+        <div className="pane tint gap"><div className="in">
+          <Bar label="Temas novos com IA hoje" used={used} max={quota?.trail?.max ?? NEW_TOPICS_PER_DAY} />
+          <p className="sub small">Começar um tema do Explorar não conta.</p>
+        </div></div>
+      )}
+      {full && (
+        <div className="stack">
+          <p className="sub center" role="status">Chegaste ao limite de temas novos de hoje. Amanhã há mais; até lá, explora os temas prontos.</p>
+          <button type="button" className="btn block" onClick={onExplore}><span className="face">Explorar temas prontos</span></button>
+        </div>
+      )}
+
+      <form onSubmit={submit} hidden={full}>
         <label className="sr" htmlFor="topic">Tema</label>
         <input id="topic" className="field ch" value={topic} onChange={(e) => { setTopic(e.target.value); setForce(false); setOptions([]); }}
           placeholder="Ex.: Juros compostos" maxLength={60} disabled={loading} autoComplete="off" />

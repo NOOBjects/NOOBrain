@@ -1066,3 +1066,9 @@ body:has(dialog[open]) .island-wrap, body:has(dialog[open]) .toast { opacity: 0;
 .menu-row.static { cursor: default; }
 .set-note { margin: 0; padding: 0 4px; }
 .set-foot { text-align: center; margin: 8px 0 0; }
+
+/* limites diários */
+.daybars { display: grid; gap: 10px; }
+.daybar { display: grid; gap: 6px; }
+.daybar .bar { height: 10px; }
+.rest { text-align: center; }

@@ -6,6 +6,15 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.4",
+    date: "2026-10-05",
+    title: "Aprender aos poucos",
+    novo: [
+      "Limites diários com barras: até 6 lições novas e 3 temas novos por dia. Aprender com pausas fixa melhor, e assim a IA gratuita chega para toda a gente.",
+      "Repetir lições, rever cartões e o desafio do dia não contam para o limite.",
+    ],
+  },
+  {
     version: "0.10.3",
     date: "2026-10-05",
     title: "Níveis a sério e português mais cuidado",

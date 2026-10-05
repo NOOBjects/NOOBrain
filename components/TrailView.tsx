@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DayBars } from "./DayBars";
 import { LANGUAGES_ON, isLanguageTopic } from "@/lib/categories";
 import { nextLevel, normLevel } from "@/lib/levels";
 import { startLevel } from "@/lib/nextlevel";
@@ -8,7 +9,7 @@ import { Archive, Bolt, Flame, Sync } from "./Icons";
 import { TrailNode, ZIGZAG } from "./TrailNode";
 import { canChallenge } from "@/lib/challenge";
 import { ptpt } from "@/lib/ptpt";
-import { currentStreak, day, update } from "@/lib/store";
+import { currentStreak, day, lessonsToday, update } from "@/lib/store";
 import type { State, Trail } from "@/lib/types";
 
 type Props = {
@@ -139,6 +140,7 @@ export function TrailView({ state: s, trail, dueCount, onLesson, onReview, onCha
       <div className="pane gap"><div className="in prog">
         <div className="prog-top"><span>Progresso</span><span>{trail.done} de {total}</span></div>
         <div className="bar ch" role="progressbar" aria-label="Progresso da trilha" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
+        <DayBars lessons={lessonsToday(s).length} />
       </div></div>
 
       <div className="trail">
