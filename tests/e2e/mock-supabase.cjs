@@ -59,6 +59,7 @@ const db = {
 };
 if (process.env.NO_PROFILE) db.profiles.shift();
 import(path.join(__dirname, "../../lib/topic.ts")).then(({ topicKey }) => { for (const t of trails) t.concepts.forEach((c, i) => db.catalog_lessons.push({ trail_key: t.key, level: t.level, concept_key: topicKey(c.title), lesson: lessonFor(c.title, i) })); });
+let inboxId = 0;
 const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"] };
 
 const session = () => ({ access_token: "mock-token", token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "mock-refresh", user });
@@ -102,6 +103,7 @@ http.createServer((req, res) => {
       // ?f=p-rich → progresso de tests/e2e/fixtures/p-rich.json; sem f → sem progresso
       const f = url.searchParams.get("f");
       db.progress = f && f !== "none" ? [{ user_id: UID, data: JSON.parse(fs.readFileSync(path.join(FIX, `${f.replace(/\.json$/, "")}.json`), "utf8")), updated_at: now() }] : [];
+      db.inbox = [];
       return send(res, 200, {});
     }
     if (p === "/auth/v1/token") {
@@ -125,6 +127,7 @@ http.createServer((req, res) => {
       filters.push([k, v.slice(0, i), v.slice(i + 1)]);
     }
     if (table === "progress" || table === "suggestion_votes") filters.push(["user_id", "eq", UID]); // RLS
+    if (table === "inbox" && req.headers.authorization !== "Bearer mock") filters.push(["user_id", "eq", UID]); // RLS: cada pessoa só vê a sua caixa; a chave secreta ("mock") vê tudo
     const prefer = req.headers.prefer ?? "";
     if (req.method === "GET" || req.method === "HEAD") {
       let rows = db[table].filter((r) => match(r, filters));
@@ -140,7 +143,8 @@ http.createServer((req, res) => {
     if (req.method === "POST") {
       const list = (Array.isArray(body) ? body : [body]).map((r) => ({ ...r }));
       for (const r of list) {
-        if (table === "suggestions") Object.assign(r, { id: Date.now(), user_id: UID, status: "recebida", reply: null, votes: 0, created_at: now() });
+        if (table === "suggestions") Object.assign(r, { id: r.id ?? Date.now(), user_id: r.user_id ?? UID, status: "recebida", reply: null, votes: 0, created_at: now() });
+        if (table === "inbox") Object.assign(r, { id: r.id ?? (inboxId += 1), created_at: r.created_at ?? now(), read_at: r.read_at ?? null });
         if (table === "suggestion_votes") { r.user_id = UID; const s = db.suggestions.find((x) => x.id === r.suggestion_id); if (s) s.votes++; }
         if (table === "profiles") Object.assign(r, { xp: 0, streak: 0, topics_done: 0, week_xp: 0, week_start: weekStart(), created_at: now(), in_ranking: true });
         if (table === "catalog_starts") {

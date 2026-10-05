@@ -8,18 +8,18 @@ de `PLANO-0.11.md` absorve parte disto.
 ## Pedidos (estado)
 | # | Pedido | Estado |
 |---|---|---|
-| 1 | Avatar do ranking não corresponde ao escolhido (base tem 0 nas duas contas) | por fazer: investigar |
+| 1 | Avatar do ranking não corresponde ao escolhido | não reproduzido (no app guarda bem; na base as duas contas têm 0). Guardar agora confirma o valor gravado e avisa se falhar. Pedir ao Rodrigo para voltar a escolher e guardar |
 | 2 | Aviso do dono a todos ou a grupos/equipas (painel) | feito no código (Admin → Ferramentas → Enviar um aviso; act `notice`); falta testar |
 | 3 | Notificar o autor quando a ideia muda de estado / recebe resposta (e erro resolvido) | feito no código (admin act idea/report → tabela `inbox`); falta testar |
 | 4 | Área de notificações no app | feito no código (sino no cabeçalho, `?v=notificacoes`, `lib/inbox.ts`, `Notifications.tsx`; tabela `inbox` criada na base); falta testar |
-| 5 | Avaliação das respostas curtas mais justa + "meio certa" | por fazer |
-| 6 | Perguntas subjetivas (ex.: lavar o arroz) evitadas na geração | por fazer |
-| 7 | Níveis intermédio/avançado demasiado fáceis | por fazer |
-| 8 | Pedir opinião na primeira lição terminada | por fazer |
-| 9 | Bug: sair a meio da lição (ex. ir às Ideias) volta ao início; guardar a etapa | por fazer |
-| 10 | Completar frases: resposta escondida atrás do espaço + artigo/género que denuncia ou engana ("o ___" vs "a corrente") | por fazer |
-| 11 | Novidades: cartão "Em breve" com luz/gradiente nas cores da marca, lista das próximas atualizações | por fazer |
-| 12 | Próxima atualização (mesmo pequena) com `aviso: true`; cartão "Em breve" aparece uma vez a todas as contas | por fazer |
+| 5 | Avaliação das respostas curtas mais justa + «meio certa» | feito (veredito certa/parcial/errada em `/api/tutor`; cloze com tolerância a gralhas; parcial = meio ponto). Falta testar com IA real |
+| 6 | Perguntas subjetivas evitadas na geração | feito no prompt de `/api/lesson` (só vale para lições novas) |
+| 7 | Níveis intermédio/avançado demasiado fáceis | feito em `lib/levels.ts` (LEVEL_GUIDE.lesson); só vale para lições novas |
+| 8 | Opinião na primeira lição terminada | feito (`feedbackAsk` id `l1`; aparece no ecrã de resultado e na trilha) |
+| 9 | Continuar a lição ao voltar | feito (`lib/kept.ts`, sessionStorage; testado em `pacote-0107.cjs`) |
+| 10 | Completar frases | feito (`lib/cloze.ts`: tira o artigo antes do espaço, aceita com/sem artigo, gralhas = quase certo; resposta aparece dentro da frase; botão «Não sei, mostra a resposta») |
+| 11 | Cartão «Em breve» (Novidades) | feito (`Soon.tsx`, lista em `SOON` de `lib/changelog.ts`) |
+| 12 | Aviso para todos na próxima atualização; «Em breve» uma vez por conta | feito (entrada 0.10.7 com `aviso: true`; `State.soon`) |
 
 ## Achados no caminho
 - Base: `profiles.avatar` = 0 em renatarondon e rodrigorondonsilva; permissões e RLS de `profiles` estão certas (insert/update com `avatar`).

@@ -4,7 +4,7 @@ export type Question = { q: string; options: string[]; answer: number; why: stri
 /** Pergunta de aquecimento: sem "porquê"; a resposta certa aparece no fim da explicação. */
 export type Warmup = { q: string; options: string[]; answer: number };
 /** Completar a frase: `text` traz "___" no lugar da resposta; `accept` são variantes aceites. */
-export type Cloze = { text: string; answer: string; accept: string[] };
+export type Cloze = { text: string; answer: string; accept: string[]; bare?: boolean }; // `bare`: o artigo antes do espaço foi tirado (ver lib/cloze.ts)
 /** Ordenar passos: `steps` está na ordem certa; o app baralha. */
 export type Order = { prompt: string; steps: string[] };
 /** Resposta curta, avaliada pela IA; `ref` é o que uma boa resposta tem de dizer. */
@@ -53,4 +53,5 @@ export type State = {
   challenge?: string; // último dia (AAAA-MM-DD) em que fez o desafio do dia
   tour?: boolean; // já viu (ou saltou) a visita guiada
   asked?: string[]; // pedidos de opinião já respondidos ou fechados
+  soon?: string; // id do cartão «Em breve» que já viu no ecrã inicial (ver SOON em lib/changelog.ts)
 };

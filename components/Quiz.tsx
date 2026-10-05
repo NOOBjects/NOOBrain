@@ -3,23 +3,23 @@
 import { useRef, useState } from "react";
 import { Check, Close, Grip, Idea } from "./Icons";
 import { reportError } from "@/lib/api";
+import { judgeCloze } from "@/lib/cloze";
+import { useKept } from "@/lib/kept";
 
 export type QuizItem =
   | { kind: "mc"; q: string; options: string[]; answer: number; why: string; tag?: string }
   | { kind: "match"; pairs: { term: string; definition: string }[] }
-  | { kind: "cloze"; text: string; answer: string; accept: string[] }
+  | { kind: "cloze"; text: string; answer: string; accept: string[]; bare?: boolean }
   | { kind: "order"; prompt: string; steps: string[] }
   | { kind: "short"; q: string; ref: string };
 
-type Judge = (item: Extract<QuizItem, { kind: "short" }>, answer: string) => Promise<{ correct: boolean; feedback: string }>;
+type Judge = (item: Extract<QuizItem, { kind: "short" }>, answer: string) => Promise<{ correct: boolean; partial?: boolean; feedback: string }>;
 /** Resultado de uma pergunta: `answer` e `steps` só aparecem quando errou; `label` muda o nome do bloco de explicação. */
-type Checked = { ok: boolean; why: string; report: string; title?: string; answer?: string; steps?: string[]; label?: string; neutral?: boolean };
+type Checked = { ok: boolean; partial?: boolean; why: string; report: string; title?: string; answer?: string; steps?: string[]; label?: string; neutral?: boolean };
 
 /** Traz a correção para dentro do ecrã (acima da ilha do menu) quando aparece. */
 export const revealFeedback = (el: HTMLElement | null) => { el?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
 
-/** Sem acentos, maiúsculas nem pontuação: "Água." e "agua" contam como iguais. */
-const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
 /** "«___»" e "___" contam como espaço; devolve as partes do texto entre os espaços. */
 const blanks = (t: string) => t.replace(/«\s*_{3,}\s*»/g, "___").split(/_{3,}/);
@@ -39,7 +39,7 @@ function shuffled(n: number) {
 }
 
 /** Uma pergunta (de qualquer tipo): mostra os campos, corrige e devolve o resultado por `onCheck`. */
-function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; onCheck: (c: Checked) => void; judge?: Judge }) {
+function Ask({ item, done, res, onCheck, judge }: { item: QuizItem; done: boolean; res?: Checked | null; onCheck: (c: Checked) => void; judge?: Judge }) {
   const [sel, setSel] = useState<number | null>(null);
   const [text, setText] = useState("");
   const [perm, setPerm] = useState(() => (item.kind === "order" ? shuffled(item.steps.length) : []));
@@ -51,8 +51,11 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
       const ok = sel === item.answer;
       onCheck({ ok, answer: item.options[item.answer], why: item.why, report: `${item.q} | marcada: ${item.options[sel ?? 0]} | certa: ${item.options[item.answer]}` });
     } else if (item.kind === "cloze") {
-      const ok = [item.answer, ...item.accept].some((a) => norm(a) === norm(text));
-      onCheck({ ok, answer: item.answer, why: fill(item.text, item.answer), report: `${item.text} | escrita: ${text} | certa: ${item.answer}` });
+      const v = judgeCloze(item, text);
+      const why = item.bare ? "" : fill(item.text, item.answer);
+      const report = `${item.text} | escrita: ${text} | certa: ${item.answer}`;
+      if (v === "near") onCheck({ ok: true, partial: true, title: "Quase certo", answer: item.answer, why: why || "Atenção à escrita da palavra.", label: "Escreve assim", report });
+      else onCheck({ ok: v === "ok", answer: item.answer, why, report });
     } else if (item.kind === "match") {
       return; // os pares corrigem-se ao tocar (ver Match)
     } else if (item.kind === "order") {
@@ -62,12 +65,17 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
       setBusy(true);
       try {
         const r = await judge!(item, text);
-        onCheck({ ok: r.correct, label: "Correção", why: r.feedback, report: `${item.q} | resposta: ${text} | avaliação: ${r.feedback}` });
+        onCheck({ ok: r.correct || !!r.partial, partial: !r.correct && !!r.partial, title: !r.correct && r.partial ? "Quase certo" : undefined, label: "Correção", why: r.feedback, report: `${item.q} | resposta: ${text} | avaliação: ${r.feedback}` });
       } catch {
         onCheck({ ok: true, neutral: true, title: "Sem correção", why: "Não consegui avaliar a resposta agora. Conta como certa.", report: item.q }); // sem ligação ou cota: não penaliza
       }
       setBusy(false);
     }
+  }
+
+  function giveUp() {
+    if (item.kind !== "cloze") return;
+    onCheck({ ok: false, answer: item.answer, why: item.bare ? "" : fill(item.text, item.answer), report: `${item.text} | não sei | certa: ${item.answer}` });
   }
 
   // Ordenar: arrastar pela pega (rato ou dedo) ou, com o teclado, setas para cima e para baixo na pega.
@@ -104,8 +112,11 @@ function Ask({ item, done, onCheck, judge }: { item: QuizItem; done: boolean; on
       {item.kind === "cloze" && (
         <>
           <div className="eyebrow">Completa a frase</div>
-          <h2 className="q">{blanks(item.text).map((p, k, a) => <span key={k}>{p}{k < a.length - 1 && <span className="blank" aria-label="espaço em branco" />}</span>)}</h2>
-          <input className="field ch" value={text} onChange={(e) => setText(e.target.value)} disabled={done} maxLength={60} autoComplete="off" aria-label="A tua resposta" />
+          <h2 className="q">{blanks(item.text).map((p, k, a) => (
+            <span key={k}>{p}{k < a.length - 1 && <span className={`blank${a.length === 2 ? " live" : ""}${done ? (res?.ok ? " is-right" : " is-wrong") : ""}`} aria-label="espaço em branco">{a.length === 2 ? (done && !res?.ok ? item.answer : text) : ""}</span>}</span>
+          ))}</h2>
+          <input className="field ch" value={text} onChange={(e) => setText(e.target.value)} disabled={done} maxLength={60} autoComplete="off" aria-label="A tua resposta" placeholder="Escreve a palavra que falta" />
+          {!done && <button type="button" className="linkbtn" onClick={giveUp}>Não sei, mostra a resposta</button>}
         </>
       )}
       {item.kind === "order" && (
@@ -194,12 +205,16 @@ function Match({ pairs, done, onCheck }: { pairs: { term: string; definition: st
  * Teste: a pergunta errada volta ao fim da ronda até ser acertada (com `retry`, por omissão).
  * `onFinish` diz quantas acertou à primeira e quais (índices em `items`) falhou.
  */
-export function Quiz({ items, onFinish, judge, retry = true }: { items: QuizItem[]; onFinish: (first: number, missed: number[]) => void; judge?: Judge; retry?: boolean }) {
-  const [order, setOrder] = useState(() => items.map((_, k) => k)); // índices por responder; as erradas voltam ao fim
-  const [i, setI] = useState(0);
+export function Quiz({ items, onFinish, judge, retry = true, keep }: { items: QuizItem[]; onFinish: (first: number, missed: number[], partials: number) => void; judge?: Judge; retry?: boolean; keep?: string }) {
+  // Com `keep`, o ponto onde a pessoa ia (pergunta atual, certas, falhadas) sobrevive a sair do ecrã. Guarda-se ao passar para a pergunta seguinte.
+  const [saved, save] = useKept(keep ?? "noobrain:quiz:none", { order: items.map((_, k) => k), i: 0, resolved: 0, missed: [] as number[], partials: 0 });
+  const ok = saved.order.length >= items.length && saved.order.every((k) => k < items.length) && saved.i < saved.order.length;
+  const [order, setOrder] = useState(() => (keep && ok ? saved.order : items.map((_, k) => k))); // índices por responder; as erradas voltam ao fim
+  const [i, setI] = useState(() => (keep && ok ? saved.i : 0));
   const [res, setRes] = useState<Checked | null>(null);
-  const [resolved, setResolved] = useState(0);
-  const [missed, setMissed] = useState<number[]>([]);
+  const [resolved, setResolved] = useState(() => (keep && ok ? saved.resolved : 0));
+  const [missed, setMissed] = useState<number[]>(() => (keep && ok ? saved.missed : []));
+  const [partials, setPartials] = useState(() => (keep && ok ? saved.partials ?? 0 : 0)); // quase certas: valem meio ponto
   const [reported, setReported] = useState(false);
   const qi = order[i];
   const last = i + 1 >= order.length && (!!res?.ok || !retry);
@@ -207,15 +222,18 @@ export function Quiz({ items, onFinish, judge, retry = true }: { items: QuizItem
   function checked(c: Checked) {
     setRes(c);
     if (!c.ok && !missed.includes(qi)) setMissed((m) => [...m, qi]);
+    if (c.partial && !missed.includes(qi)) setPartials((p) => p + 1);
     if (c.ok || !retry) setResolved((r) => r + 1); // sem `retry`, a errada também fica resolvida
   }
 
   function next() {
-    if (last) return onFinish(items.length - missed.length, missed);
-    if (!res?.ok && retry) setOrder((o) => [...o, qi]);
+    if (last) return onFinish(items.length - missed.length, missed, partials);
+    const nextOrder = !res?.ok && retry ? [...order, qi] : order;
+    if (nextOrder !== order) setOrder(nextOrder);
     setI(i + 1);
     setRes(null);
     setReported(false);
+    if (keep) save({ order: nextOrder, i: i + 1, resolved, missed, partials });
   }
 
   return (
@@ -224,19 +242,20 @@ export function Quiz({ items, onFinish, judge, retry = true }: { items: QuizItem
         <div className="bar ch"><i style={{ transform: `scaleX(${resolved / items.length})` }} /></div>
         <span className="eyebrow">{resolved}/{items.length}</span>
       </div>
-      <Ask key={i} item={items[qi]} done={!!res} onCheck={checked} judge={judge} />
+      <Ask key={i} item={items[qi]} done={!!res} res={res} onCheck={checked} judge={judge} />
 
       {res && (
-        <div className={`feedback ${res.neutral ? "info" : res.ok ? "ok" : "bad"}`} ref={revealFeedback} role="status">
+        <div className={`feedback ${res.neutral ? "info" : res.partial ? "part" : res.ok ? "ok" : "bad"}`} ref={revealFeedback} role="status">
           <div className="fb-head">
-            <span className="fb-ico ch">{res.neutral ? <Idea /> : res.ok ? <Check /> : <Close />}</span>
+            <span className="fb-ico ch">{res.neutral || res.partial ? <Idea /> : res.ok ? <Check /> : <Close />}</span>
             <h3>{res.title ?? (res.ok ? "Correto!" : "Não foi desta")}</h3>
           </div>
-          {!res.ok && res.answer && <div className="fb-block"><span className="eyebrow">Resposta certa</span><b className="fb-answer">{res.answer}</b></div>}
+          {(!res.ok || res.partial) && res.answer && <div className="fb-block"><span className="eyebrow">{res.label === "Escreve assim" ? "Escreve assim" : "Resposta certa"}</span><b className="fb-answer">{res.answer}</b></div>}
           {!res.ok && res.steps && <div className="fb-block"><span className="eyebrow">Ordem certa</span><ol className="fb-steps">{res.steps.map((s) => <li key={s}>{s}</li>)}</ol></div>}
-          {res.why && <div className="fb-block"><span className="eyebrow"><Idea />{res.label ?? "Porquê"}</span><p>{res.why}</p></div>}
+          {res.why && <div className="fb-block"><span className="eyebrow"><Idea />{res.label && res.label !== "Escreve assim" ? res.label : "Porquê"}</span><p>{res.why}</p></div>}
+          {res.partial && <p className="fb-note">Conta como meio ponto: aproveita para fixar o que faltou.</p>}
           {!res.ok && retry && <p className="fb-note">Esta pergunta volta no fim, até acertares.</p>}
-          <button type="button" className={`btn block ${res.neutral ? "" : res.ok ? "ok" : "bad"}`} autoFocus onClick={next}>
+          <button type="button" className={`btn block ${res.neutral || res.partial ? "" : res.ok ? "ok" : "bad"}`} autoFocus onClick={next}>
             <span className="face">{last ? "Finalizar" : "Continuar"}</span>
           </button>
           <button type="button" className="linkbtn" disabled={reported} onClick={() => { setReported(true); reportError("quiz", res.report); }}>

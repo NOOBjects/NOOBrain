@@ -25,12 +25,13 @@ export function logActivity(n: Omit<Local, "at"> & { at?: number }) {
 }
 
 /** As notificações da conta: as do servidor (ideias, erros resolvidos, avisos da equipa) e as deste aparelho. Atualiza ao voltar ao separador e de 5 em 5 minutos. */
-export function useInbox(uid: string | undefined, version: { latest: string; title: string; date: string; aviso: boolean }) {
+export function useInbox(uid: string | undefined, version: { latest: string; title: string; date: string; aviso: boolean }, onNew?: (n: number) => void) {
   const [remote, setRemote] = useState<Notice[]>([]);
   const [local, setLocal] = useState<Local[]>([]);
   const [seen, setSeen] = useState(0);
   const known = useRef<number | null>(null); // quantas não lidas havia na última leitura (para avisar só das novas)
-  const [fresh, setFresh] = useState(0);
+  const cb = useRef(onNew);
+  useEffect(() => { cb.current = onNew; });
 
   const load = useCallback(async () => {
     if (!uid || !supabase) return;
@@ -39,7 +40,7 @@ export function useInbox(uid: string | undefined, version: { latest: string; tit
     const list: Notice[] = data.map((r) => ({ id: `r${r.id}`, kind: r.kind, title: r.title, body: r.body, link: r.link, at: Date.parse(r.created_at), unread: !r.read_at, remote: true }));
     setRemote(list);
     const n = list.filter((x) => x.unread).length;
-    if (known.current !== null && n > known.current) setFresh(n - known.current);
+    if (known.current !== null && n > known.current) cb.current?.(n - known.current);
     known.current = n;
   }, [uid]);
 
@@ -85,5 +86,5 @@ export function useInbox(uid: string | undefined, version: { latest: string; tit
     await supabase.from("inbox").delete().eq("user_id", uid);
   }, [uid]);
 
-  return { items, unread, fresh, clearFresh: () => setFresh(0), markAll, clear, reload: load };
+  return { items, unread, markAll, clear, reload: load };
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { Bug, Hammer, Heart, Idea } from "./Icons";
-import { highlights, LATEST } from "@/lib/changelog";
+import { Soon } from "./Soon";
+import { highlights, LATEST, SOON } from "@/lib/changelog";
 import { needsInstall, setNotify } from "@/lib/reminders";
 import { update } from "@/lib/store";
 import type { State } from "@/lib/types";
@@ -50,6 +51,8 @@ export function Announce({ state, uid, onNews, toast }: { state: State; uid: str
         </div>
       </div></div>
     );
+  // O «Em breve»: aparece uma vez a cada conta (e outra vez quando a lista muda).
+  if (state.soon !== SOON.id) return <Soon onClose={() => update((s) => ({ ...s, soon: SOON.id }))} />;
   return null;
 }
 

@@ -126,7 +126,6 @@ export function App({ landing }: { landing?: ReactNode }) {
   const [showInstall, setShowInstall] = useState(false);
   const installState = useInstall();
   const [isAdmin, setIsAdmin] = useState(false);
-  const inbox = useInbox(inApp ? user?.id : undefined, { latest: LATEST.version, title: LATEST.title, date: LATEST.date, aviso: !!LATEST.aviso });
 
   const trail = activeTrail(s);
   const total = trail?.concepts.length ?? 0;
@@ -150,6 +149,9 @@ export function App({ landing }: { landing?: ReactNode }) {
     const t = setTimeout(() => notify("Sessão iniciada com o Google."), 0);
     return () => clearTimeout(t);
   }, [welcome, notify]);
+
+  const inbox = useInbox(inApp ? user?.id : undefined, { latest: LATEST.version, title: LATEST.title, date: LATEST.date, aviso: !!LATEST.aviso },
+    (n) => notify(n === 1 ? "Tens uma notificação nova." : `Tens ${n} notificações novas.`));
 
   const celebrate = useCallback((big = false) => {
     setMood("happy");
@@ -205,11 +207,6 @@ export function App({ landing }: { landing?: ReactNode }) {
     call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
     return () => { live = false; };
   }, [inApp]);
-  useEffect(() => {
-    if (!inbox.fresh) return;
-    notify(inbox.fresh === 1 ? "Tens uma notificação nova." : `Tens ${inbox.fresh} notificações novas.`);
-    inbox.clearFresh();
-  }, [inbox, notify]);
   useEffect(() => {
     const done = () => notify("NOOBrain instalado. Encontra-o no ecrã principal.");
     window.addEventListener("noobrain:installed", done);
@@ -399,7 +396,8 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "licao" && trail && !resting && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify} online={online}
             onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }}
-            onMastered={(last) => celebrate(last)} />
+            onMastered={(last) => celebrate(last)}
+            extra={ask && user ? <Feedback ask={ask} uid={user.id} onDone={(sent) => sent && notify("Obrigado! Lemos todas as respostas.")} /> : undefined} />
         )}
 
         {view === "trilha" && trail && (

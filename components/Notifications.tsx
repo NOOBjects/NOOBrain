@@ -61,7 +61,7 @@ export function Notifications({ items, due, onOpen, onReview, markAll, clear }: 
           );
         })}
       </ul>
-      {items.length > 0 && <div className="pair"><button type="button" className="btn soft sm" onClick={() => void clear()}><span className="face">Limpar tudo</span></button></div>}
+      {items.length > 0 && <div className="inbox-end"><button type="button" className="btn soft sm" onClick={() => void clear()}><span className="face">Limpar tudo</span></button></div>}
     </div>
   );
 }

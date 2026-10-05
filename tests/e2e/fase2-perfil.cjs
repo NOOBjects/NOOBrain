@@ -23,7 +23,7 @@ const clear = async (p) => { for (let i = 0; i < 4 && (await p.locator("dialog[o
     await p.getByRole("button", { name: "Definições" }).click();
     await p.waitForTimeout(500);
     const st = await p.locator(".settings").innerText();
-    for (const t of ["Estudo", "Aparência", "Privacidade", "App", "Conta", "Dados", "Equipa", "Sobre", "Normal · 30 XP", "Aparecer no ranking", "Terminar sessão", "Versão 0.10.6", "NOOBrain beta 0.10.6"]) assert(st.includes(t) || st.toUpperCase().includes(t.toUpperCase()), `Definições sem "${t}"`);
+    for (const t of ["Estudo", "Aparência", "Privacidade", "App", "Conta", "Dados", "Equipa", "Sobre", "Normal · 30 XP", "Aparecer no ranking", "Terminar sessão", "Versão 0.10.7", "NOOBrain beta 0.10.7"]) assert(st.includes(t) || st.toUpperCase().includes(t.toUpperCase()), `Definições sem "${t}"`);
     await p.screenshot({ path: `${__dirname}/out/f2-defs-${name}.png`, fullPage: true });
 
     // subecrãs pelo endereço e "voltar"
