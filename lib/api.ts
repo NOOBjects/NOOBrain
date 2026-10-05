@@ -72,7 +72,7 @@ export async function askTutor(args: { topic: string; title: string; lesson: str
 
 /** Corrige uma resposta curta do teste. */
 export async function judgeAnswer(args: { topic: string; title: string; question: string; ref: string; answer: string }) {
-  return post<{ correct: boolean; feedback: string }>("/api/tutor", { ...args, mode: "avaliar", lesson: "" });
+  return post<{ correct: boolean; partial?: boolean; feedback: string }>("/api/tutor", { ...args, mode: "avaliar", lesson: "" });
 }
 
 export function reportError(what: string, detail: string) {

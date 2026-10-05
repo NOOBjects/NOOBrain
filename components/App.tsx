@@ -7,7 +7,7 @@ import { Account } from "./Account";
 import { Announce } from "./Announce";
 import { Confetti } from "./Confetti";
 import { Feedback, FeedbackDialog, feedbackAsk } from "./Feedback";
-import { Compass, Download, Flame, Gear, HeroIco, Idea, Offline, Plus, Route, Shield, Spark, Speech, Sync, Trophy, User } from "./Icons";
+import { Bell, Compass, Download, Flame, Gear, HeroIco, Idea, Offline, Plus, Route, Shield, Spark, Speech, Sync, Trophy, User } from "./Icons";
 import { InstallSheet } from "./InstallSheet";
 import { RestView } from "./RestView";
 import { UpdateBanner } from "./UpdateBanner";
@@ -24,6 +24,7 @@ import { BETA, VERSION } from "@/lib/config";
 import { install, useInstall } from "@/lib/install";
 import { NEW_LESSONS_PER_DAY } from "@/lib/limits";
 import { LATEST } from "@/lib/changelog";
+import { logActivity, useInbox } from "@/lib/inbox";
 import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
 import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, lessonsToday, markLesson, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
@@ -43,12 +44,13 @@ const Ranking = dynamic(() => import("./Ranking").then((m) => m.Ranking), { load
 const ReviewView = dynamic(() => import("./ReviewView").then((m) => m.ReviewView), { loading: Loading });
 const Settings = dynamic(() => import("./Settings").then((m) => m.Settings), { loading: Loading });
 const Challenge = dynamic(() => import("./Challenge").then((m) => m.Challenge), { loading: Loading });
+const Notifications = dynamic(() => import("./Notifications").then((m) => m.Notifications), { loading: Loading });
 const Admin = dynamic(() => import("./Admin").then((m) => m.Admin), { loading: Loading });
 const BadgeDialog = dynamic(() => import("./Badges").then((m) => m.BadgeDialog));
 const Tour = dynamic(() => import("./Tour").then((m) => m.Tour));
 
-type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias" | "novidades" | "desafio" | "admin";
-const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias", "novidades", "desafio", "admin"]; // "trilha" é o endereço sem ?v=
+type View = "trilha" | "licao" | "revisar" | "novo" | "explorar" | "conta" | "perfil" | "definicoes" | "ranking" | "ideias" | "novidades" | "desafio" | "admin" | "notificacoes";
+const VIEWS: string[] = ["licao", "revisar", "novo", "explorar", "perfil", "definicoes", "ranking", "ideias", "novidades", "desafio", "admin", "notificacoes"]; // "trilha" é o endereço sem ?v=
 
 // Cada ecrã tem endereço próprio (/?v=revisar, /?v=licao&c=2). Assim o "voltar" do telemóvel anda entre ecrãs, como num site,
 // e recarregar a página não perde o sítio. O Next deixa usar pushState sem recarregar (ver guia "single-page-applications").
@@ -148,6 +150,9 @@ export function App({ landing }: { landing?: ReactNode }) {
     return () => clearTimeout(t);
   }, [welcome, notify]);
 
+  const inbox = useInbox(inApp ? user?.id : undefined, { latest: LATEST.version, title: LATEST.title, date: LATEST.date, aviso: !!LATEST.aviso },
+    (n) => notify(n === 1 ? "Tens uma notificação nova." : `Tens ${n} notificações novas.`));
+
   const celebrate = useCallback((big = false) => {
     setMood("happy");
     setTimeout(() => setMood("idle"), 1400);
@@ -185,6 +190,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     lastXp.current = xpToday;
     if (before !== null && before < goal && xpToday >= goal) {
       notify(`Meta de hoje cumprida: ${goal} XP`);
+      logActivity({ id: `meta:${day()}`, kind: "sistema", title: `Meta de hoje cumprida: ${goal} XP`, body: "Bom trabalho. Amanhã há mais.", link: "" });
       celebrate(true);
     }
   }, [inApp, xpToday, goal, notify, celebrate]);
@@ -215,6 +221,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     const now = Date.now();
     update((x) => ({ ...x, badges: { ...x.badges, ...Object.fromEntries(fresh.map((b) => [b.id, now])) } }));
     if (!s.badges || !fresh.length) return;
+    for (const b of fresh) logActivity({ id: `badge:${b.id}`, kind: "conquista", title: `Conquista: ${b.name}`, body: b.how, link: "?v=perfil" });
     setTimeout(() => setBadges((b) => [...(b ?? []), ...fresh]), 600); // sem limpar: o próprio update acima volta a correr este efeito
   }, [inApp, s]);
 
@@ -226,6 +233,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     const t = setTimeout(() => {
       try { sessionStorage.setItem(k, "1"); } catch { /* sem armazenamento */ }
       notify("Ontem usaste o dia de folga da semana: a tua sequência continua.");
+      logActivity({ id: `folga:${day()}`, kind: "sistema", title: "Usaste o dia de folga", body: "A tua sequência continua.", link: "" });
     }, 800);
     return () => clearTimeout(t);
   }, [inApp, s, notify]);
@@ -270,6 +278,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     window.scrollTo({ top: 0 });
   }
   const openLesson = (i: number) => go("licao", i);
+  const openLink = (link: string) => { const v = new URLSearchParams(link.replace(/^\//, "")).get("v") ?? ""; go((VIEWS.includes(v) ? v : "trilha") as View); };
   async function leave() { // terminar sessão: o endereço volta ao início
     navigate("trilha", undefined, true);
     await disableReminders();
@@ -283,6 +292,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
   ];
   const drawer = [
+    { id: "notificacoes", label: "Notificações", icon: <Bell />, dot: inbox.unread > 0, onClick: () => go("notificacoes") },
     { id: "ideias", label: "Ideias", icon: <Idea />, onClick: () => go("ideias") },
     { id: "ranking", label: "Ranking", icon: <Trophy />, onClick: () => go("ranking") },
     { id: "novidades", label: "Novidades", icon: <Spark />, dot: s.seenVersion !== LATEST.version, onClick: () => go("novidades") },
@@ -311,6 +321,7 @@ export function App({ landing }: { landing?: ReactNode }) {
             <GoalRing value={xpToday} goal={goal} />{s.xp}<XpGain xp={s.xp} />
           </button>
         </div>}
+        {inApp && <button type="button" className="iconbtn ch bellbtn" aria-label={inbox.unread ? `Notificações: ${inbox.unread} por ler` : "Notificações"} title="Notificações" onClick={() => go("notificacoes")}><Bell />{inbox.unread > 0 && <span key={inbox.unread} className="badge" aria-hidden="true">{inbox.unread}</span>}</button>}
         {!(view === "conta" && !user) && <button type="button" className="iconbtn ch" aria-label="Novo tema" title="Novo tema" onClick={() => go("novo")}><Plus /></button>}
       </header>
 
@@ -353,6 +364,8 @@ export function App({ landing }: { landing?: ReactNode }) {
             onOpenTrail={(id) => { update((x) => ({ ...x, active: id })); go("trilha"); }} />
         )}
 
+        {view === "notificacoes" && user && profile && <Notifications items={inbox.items} due={dueCount} onOpen={openLink} onReview={() => go("revisar")} markAll={inbox.markAll} clear={inbox.clear} />}
+
         {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} notify={notify} />}
 
         {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
@@ -383,7 +396,8 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "licao" && trail && !resting && (
           <LessonView key={`${trail.id}:${lesson}`} trail={trail} index={lesson} notify={notify} online={online}
             onBack={() => go("trilha")} onNext={() => { go("licao", lesson + 1, true); celebrate(); }}
-            onMastered={(last) => celebrate(last)} />
+            onMastered={(last) => celebrate(last)}
+            extra={ask && user ? <Feedback ask={ask} uid={user.id} onDone={(sent) => sent && notify("Obrigado! Lemos todas as respostas.")} /> : undefined} />
         )}
 
         {view === "trilha" && trail && (
@@ -397,7 +411,7 @@ export function App({ landing }: { landing?: ReactNode }) {
       </main>
       <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} onNews={user && profile ? () => go("novidades") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} drawer={drawer} view={view} current={view === "licao" || view === "desafio" ? "trilha" : view} moreActive={["ideias", "ranking", "novidades", "definicoes", "admin"].includes(view)} />}
+      {user && !needsProfile && <Island items={items} drawer={drawer} view={view} current={view === "licao" || view === "desafio" ? "trilha" : view} moreActive={["notificacoes", "ideias", "ranking", "novidades", "definicoes", "admin"].includes(view)} />}
       {feedback && user && <FeedbackDialog uid={user.id} onClose={() => setFeedback(false)} onIdeas={() => go("ideias")} onSent={() => notify("Obrigado! Lemos todas as respostas.")} />}
       {showInstall && <InstallSheet onClose={() => setShowInstall(false)} />}
 

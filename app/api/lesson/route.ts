@@ -7,6 +7,7 @@ import { requireUser, spend } from "@/lib/quota";
 import { allow, clientKey } from "@/lib/limit";
 import type { Lesson } from "@/lib/types";
 import { cached, remember } from "@/lib/cache";
+import { foldArticle } from "@/lib/cloze";
 import { LEVEL_GUIDE, normLevel } from "@/lib/levels";
 import { PTPT_RULES } from "@/lib/prompt";
 import { brMarkersDeep, ptptDeep } from "@/lib/ptpt";
@@ -105,10 +106,12 @@ export async function POST(request: Request) {
     "- warmup: uma pergunta de aquecimento sobre o conceito, que se possa tentar por intuição ou por conhecimentos prévios, com q, 4 options curtas e answer (índice de 0 a 3, variando a posição).",
     "- cards: 4 cartões de memória com term (até 4 palavras) e definition (1 frase).",
     "- quiz: 3 perguntas de escolha múltipla. Cada uma com q, 4 options curtas, answer (índice de 0 a 3 da opção certa, variando a posição) e why (1 a 2 frases a explicar).",
-    "- cloze: 1 frase para completar: text com «___» no lugar de uma palavra ou expressão curta, answer com essa resposta e accept com variantes também aceites (vazio se não houver).",
+    "- cloze: 1 frase para completar: text com «___» no lugar de um termo-chave do conceito (nunca uma palavra de ligação), answer só com essa palavra ou expressão curta, e accept com variantes e sinónimos também aceites (vazio se não houver). NUNCA deixes artigo (o, a, os, as, um, uma) nem preposição contraída (do, da, no, na, ao, pelo, num…) imediatamente antes do espaço: reescreve a frase para que o espaço não dependa do género ou do número da palavra em falta.",
     "- order: só se ESTE conceito tiver passos ou etapas próprios (não os do tema em geral, que se repetiriam noutras lições), 1 item com prompt e steps (3 a 5 passos curtos e específicos deste conceito, já na ordem certa); caso contrário, lista vazia.",
     "- short: 1 pergunta de resposta curta (uma frase) sobre porquê ou como, com q e ref (o que uma boa resposta tem de dizer); se não fizer sentido, lista vazia.",
     "Usa apenas factos corretos. Se não tiveres a certeza de algo, deixa de fora em vez de inventar. Só uma opção pode estar certa.",
+    "Perguntas objetivas: só perguntas com uma resposta que se possa verificar numa fonte. Nunca perguntes o que depende do gosto, da tradição, do hábito ou da região (por exemplo, o «primeiro passo» certo numa receita, a rotina ideal, a melhor marca, a opinião de cada pessoa). Se o conceito tem várias formas corretas de fazer, pergunta o que acontece, porquê ou qual o efeito, não qual é «a» forma certa.",
+    "Opções: as 3 erradas são plausíveis (enganos comuns), do mesmo tipo e de tamanho parecido; a certa não é a mais longa nem a mais detalhada; nunca uses «todas as anteriores» nem «nenhuma das anteriores». A pergunta não pode revelar a resposta nem a contradizer (concordância de género e número com a opção certa não pode denunciá-la).",
     text ? `Textos de referência (fontes abertas), usa como apoio:
 ${text}` : "Não há texto de referência: sê conservador.",
   ].filter(Boolean).join("\n");
@@ -126,7 +129,7 @@ ${text}` : "Não há texto de referência: sê conservador.",
       example: clean(out.example, 500),
       solution: clean(out.solution, 500) || undefined,
       warmup: warmup(out.warmup),
-      cloze: (out.cloze ?? []).map((c) => ({ text: clean(c?.text, 240), answer: clean(c?.answer, 60), accept: (c?.accept ?? []).map((a) => clean(a, 60)).filter(Boolean).slice(0, 5) })).filter((c) => c.text.includes("___") && c.answer).slice(0, 1),
+      cloze: (out.cloze ?? []).map((c) => foldArticle({ text: clean(c?.text, 240), answer: clean(c?.answer, 60), accept: (c?.accept ?? []).map((a) => clean(a, 60)).filter(Boolean).slice(0, 5) })).filter((c) => c.text.includes("___") && c.answer).slice(0, 1),
       order: (out.order ?? []).map((o) => ({ prompt: clean(o?.prompt, 200), steps: (o?.steps ?? []).map((s) => clean(s, 120)).filter(Boolean).slice(0, 5) })).filter((o) => o.prompt && o.steps.length >= 3).slice(0, 1),
       short: (out.short ?? []).map((s) => ({ q: clean(s?.q, 200), ref: clean(s?.ref, 300) })).filter((s) => s.q && s.ref).slice(0, 1),
       cards: (out.cards ?? [])

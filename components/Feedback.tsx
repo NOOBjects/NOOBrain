@@ -7,12 +7,12 @@ import type { State, Trail } from "@/lib/types";
 
 type Ask = { id: string; title: string };
 
-/** Quando pedir opinião: depois do 3.º conceito dominado e ao concluir cada trilha (uma vez cada). */
+/** Quando pedir opinião: ao dominar o 1.º conceito e ao concluir cada trilha (uma vez cada). */
 export function feedbackAsk(s: State, trail: Trail): Ask | null {
   const done = s.trails.reduce((n, t) => n + t.done, 0);
   const asked = s.asked ?? [];
   if (trail.concepts.length && trail.done >= trail.concepts.length && !asked.includes(`t:${trail.id}`)) return { id: `t:${trail.id}`, title: `Concluíste “${trail.topic}”. Como correu?` };
-  if (done >= 3 && !asked.includes("l3")) return { id: "l3", title: "Como está a correr o NOOBrain?" };
+  if (done >= 1 && !asked.includes("l1") && !asked.includes("l3")) return { id: "l1", title: done === 1 ? "Acabaste a tua primeira lição. Como correu?" : "Como está a correr o NOOBrain?" };
   return null;
 }
 

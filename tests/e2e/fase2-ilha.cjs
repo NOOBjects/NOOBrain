@@ -30,7 +30,7 @@ const near = (a, b) => ["x", "y", "width", "height"].every((k) => Math.abs(a[k] 
     await p.waitForTimeout(300);
     const rows = await p.locator("#isl-drawer .menu-row").allInnerTexts();
     console.log(name, "gaveta:", rows.join(" | "));
-    assert.deepEqual(rows.map((r) => r.trim()).slice(0, 4), ["Ideias", "Ranking", "Novidades", "Dar opinião"]);
+    assert.deepEqual(rows.map((r) => r.trim()).slice(0, 4), ["Notificações", "Ideias", "Ranking", "Novidades"]);
     assert(rows.some((r) => /Definições/.test(r)), "Definições");
     await p.screenshot({ path: `${__dirname}/out/f2-ilha-${name}.png` });
     await p.keyboard.press("Escape");

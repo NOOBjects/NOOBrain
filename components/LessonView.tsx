@@ -8,7 +8,9 @@ import { Mascot } from "./Mascot";
 import { Quiz, revealFeedback, type QuizItem } from "./Quiz";
 import { Tutor } from "./Tutor";
 import { ensureLesson, judgeAnswer } from "@/lib/api";
+import { fixLesson } from "@/lib/cloze";
 import { ptpt, ptptDeep } from "@/lib/ptpt";
+import { dropKept, useKept } from "@/lib/kept";
 import { trailLang } from "@/lib/speech";
 import { applyRating, bumpStreak, day, gainXp, rate, update } from "@/lib/store";
 import type { Lesson, Trail } from "@/lib/types";
@@ -25,7 +27,8 @@ const quizItems = (l: Lesson): QuizItem[] => [
 ];
 
 /** Lição guiada: 1) entender o conceito, 2) fixar na memória com cartões, 3) testar com o quiz. O tutor fica à mão em qualquer passo. */
-export function LessonView({ trail, index, onBack, onNext, onMastered, notify, online = true }: {
+export function LessonView({ trail, index, onBack, onNext, onMastered, notify, online = true, extra }: {
+  extra?: React.ReactNode; // por baixo do resultado quando o conceito fica dominado (ex.: pedido de opinião)
   trail: Trail;
   index: number;
   onBack: () => void;
@@ -35,16 +38,17 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
   online?: boolean;
 }) {
   const concept = trail.concepts[index];
-  const lesson = useMemo(() => (concept.lesson ? ptptDeep(concept.lesson) : undefined), [concept.lesson]); // ortografia PT-PT, também nas lições antigas
-  const [step, setStep] = useState(0);
-  const [reached, setReached] = useState(0); // passo mais avançado já liberado
-  const [reveal, setReveal] = useState(1); // quantos blocos da explicação já apareceram
+  const lesson = useMemo(() => (concept.lesson ? fixLesson(ptptDeep(concept.lesson)) : undefined), [concept.lesson]); // ortografia PT-PT, também nas lições antigas
+  const kept = `noobrain:lesson:${trail.id}:${index}`; // onde a pessoa ia: sobrevive a sair da lição e voltar
+  const [step, setStep] = useKept(`${kept}:step`, 0);
+  const [reached, setReached] = useKept(`${kept}:reached`, 0); // passo mais avançado já liberado
+  const [reveal, setReveal] = useKept(`${kept}:reveal`, 1); // quantos blocos da explicação já apareceram
   const [tutor, setTutor] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ first: number; total: number; gain: number; fresh: boolean; pass: boolean } | null>(null);
-  const [warm, setWarm] = useState<number | null>(null); // resposta ao aquecimento (-1 = passou)
-  const [warmGo, setWarmGo] = useState(false); // já viu se acertou e seguiu para a explicação
-  const [showSol, setShowSol] = useState(false);
+  const [result, setResult] = useState<{ first: number; total: number; gain: number; fresh: boolean; pass: boolean; partials: number } | null>(null);
+  const [warm, setWarm] = useKept<number | null>(`${kept}:warm`, null); // resposta ao aquecimento (-1 = passou)
+  const [warmGo, setWarmGo] = useKept(`${kept}:warmGo`, false); // já viu se acertou e seguiu para a explicação
+  const [showSol, setShowSol] = useKept(`${kept}:sol`, false);
   const [attempt, setAttempt] = useState(0); // muda a cada "Repetir o teste", para o teste recomeçar
 
   useEffect(() => {
@@ -55,7 +59,7 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
   const go = (s: number) => { setStep(s); setReached((r) => Math.max(r, s)); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   // Domínio: o conceito só fica concluído com pelo menos 2/3 das perguntas certas à primeira.
-  function finishQuiz(first: number, missed: number[]) {
+  function finishQuiz(first: number, missed: number[], partials = 0) {
     const total = quizItems(lesson!).length;
     const pass = first >= Math.ceil((total * 2) / 3);
     const fresh = index === trail.done; // só o conceito atual libera o próximo
@@ -65,7 +69,7 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
       // XP: dominar o conceito atual dá o prémio inteiro; tentativas falhadas e repetições dão 5 por certa, uma vez por dia e conceito.
       const today = day();
       const paid = s.stats?.[key]?.x === today;
-      gain = pass && fresh ? 10 * first + 10 : paid ? 0 : 5 * first;
+      gain = Math.max(0, pass && fresh ? 10 * first + 10 - 5 * partials : paid ? 0 : 5 * first - 3 * partials); // cada "quase certa" vale meio ponto
       const st = s.stats?.[key] ?? { t: first, n: total }; // t e n: só o 1.º teste do conceito
       const cards = { ...s.cards };
       for (const k of missed) { // as perguntas de escolha múltipla falhadas entram na revisão espaçada
@@ -82,7 +86,8 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
         trails: s.trails.map((t) => (t.id === trail.id && fresh && pass ? { ...t, done: t.done + 1 } : t)),
       };
     });
-    setResult({ first, total, gain, fresh, pass });
+    dropKept(`${kept}:quiz`); // o teste acabou: da próxima vez começa de novo
+    setResult({ first, total, gain, fresh, pass, partials });
     if (pass && fresh) onMastered?.(index + 1 >= trail.concepts.length);
   }
 
@@ -110,18 +115,18 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
         <div className="result">
           <div className="result-mascot"><Mascot mood="think" /></div>
           <h2 className="h-screen">Quase lá</h2>
-          <p className="sub">Acertaste {result.first} de {result.total} à primeira. Revê a explicação e tenta outra vez.</p>
+          <p className="sub">Acertaste {result.first} de {result.total} à primeira{result.partials ? ` (${result.partials} ${result.partials === 1 ? "quase certa" : "quase certas"})` : ""}. Revê a explicação e tenta outra vez.</p>
           {result.gain > 0 && <div className="xp">+{result.gain} XP</div>}
           <div className="result-actions">
             <button type="button" className="btn" onClick={() => { setResult(null); setReveal(blocks.length); go(0); }}><span className="face">Rever a explicação</span></button>
-            <button type="button" className="btn soft" onClick={() => { setResult(null); setAttempt((a) => a + 1); go(2); }}><span className="face">Repetir o teste</span></button>
+            <button type="button" className="btn soft" onClick={() => { setResult(null); dropKept(`${kept}:quiz`); setAttempt((a) => a + 1); go(2); }}><span className="face">Repetir o teste</span></button>
           </div>
         </div>
       ) : result ? (
         <div className="result">
           <div className="result-mascot"><Mascot mood="happy" /></div>
           <h2 className="h-screen">Conceito dominado</h2>
-          <p className="sub">Acertaste {result.first} de {result.total} à primeira.</p>
+          <p className="sub">Acertaste {result.first} de {result.total} à primeira{result.partials ? ` (${result.partials} ${result.partials === 1 ? "quase certa, que vale" : "quase certas, que valem"} meio ponto)` : ""}.</p>
           {result.gain > 0 && <div className="xp">+{result.gain} XP</div>}
           {result.fresh
             ? <p className="sub small">Os cartões deste conceito entram na tua revisão espaçada. Eu aviso quando for hora de rever.</p>
@@ -130,6 +135,7 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
             {hasNext && <button type="button" className="btn" onClick={onNext}><span className="face">Próximo conceito</span></button>}
             <button type="button" className="btn soft" onClick={() => { notify("Progresso guardado"); onBack(); }}><span className="face">Voltar à trilha</span></button>
           </div>
+          {extra}
         </div>
       ) : !lesson ? (
         <div className="loading" role="status">
@@ -228,7 +234,7 @@ export function LessonView({ trail, index, onBack, onNext, onMastered, notify, o
           {step === 2 && (
             <section className="step" aria-label="Testar">
               <p className="step-intro">Por fim, testa os teus conhecimentos.</p>
-              <Quiz key={attempt} items={quizItems(lesson)} onFinish={finishQuiz}
+              <Quiz key={attempt} keep={`${kept}:quiz`} items={quizItems(lesson)} onFinish={finishQuiz}
                 judge={(s, answer) => judgeAnswer({ topic: trail.topic, title: concept.title, question: s.q, ref: s.ref, answer })} />
             </section>
           )}

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { ReminderToggle } from "./ReminderToggle";
+import { Soon } from "./Soon";
 import { Bug, Spark, Up } from "./Icons";
 import { CHANGELOG, LATEST, type Release } from "@/lib/changelog";
 import { update } from "@/lib/store";
@@ -25,6 +26,7 @@ export function News({ state, onIdeas }: { state: State; onIdeas: () => void }) 
     <div className="news">
       <div className="eyebrow">Versão beta {LATEST.version}</div>
       <h1 className="h-screen">Novidades</h1>
+      <div className="gap"><Soon /></div>
       <div className="pane tint gap"><div className="in">
         <b>O NOOBrain está em beta</b>
         <p className="sub small">Estamos a construí-lo contigo: algumas coisas podem falhar ou mudar. As tuas ideias decidem o que vem a seguir.</p>

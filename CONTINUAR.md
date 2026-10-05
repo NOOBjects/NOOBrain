@@ -1,0 +1,27 @@
+# Continuar (notas de passagem)
+
+Ficheiro de trabalho: **atualizar a cada bloco concluído**. Se o limite semanal estiver perto dos 100 %, parar tudo,
+atualizar isto (feito / por fazer / achados), fazer commit e push.
+Contexto: o Rodrigo pediu em 2026-10-05 o pacote abaixo, a seguir à Fase 5 (0.10.6, em produção). A Fase 6 (painel e equipa)
+de `PLANO-0.11.md` absorve parte disto.
+
+## Pedidos (estado)
+| # | Pedido | Estado |
+|---|---|---|
+| 1 | Avatar do ranking não corresponde ao escolhido | não reproduzido (no app guarda bem; na base as duas contas têm 0). Guardar agora confirma o valor gravado e avisa se falhar. Pedir ao Rodrigo para voltar a escolher e guardar |
+| 2 | Aviso do dono a todos ou a grupos/equipas (painel) | feito no código (Admin → Ferramentas → Enviar um aviso; act `notice`); falta testar |
+| 3 | Notificar o autor quando a ideia muda de estado / recebe resposta (e erro resolvido) | feito no código (admin act idea/report → tabela `inbox`); falta testar |
+| 4 | Área de notificações no app | feito no código (sino no cabeçalho, `?v=notificacoes`, `lib/inbox.ts`, `Notifications.tsx`; tabela `inbox` criada na base); falta testar |
+| 5 | Avaliação das respostas curtas mais justa + «meio certa» | feito (veredito certa/parcial/errada em `/api/tutor`; cloze com tolerância a gralhas; parcial = meio ponto). Falta testar com IA real |
+| 6 | Perguntas subjetivas evitadas na geração | feito no prompt de `/api/lesson` (só vale para lições novas) |
+| 7 | Níveis intermédio/avançado demasiado fáceis | feito em `lib/levels.ts` (LEVEL_GUIDE.lesson); só vale para lições novas |
+| 8 | Opinião na primeira lição terminada | feito (`feedbackAsk` id `l1`; aparece no ecrã de resultado e na trilha) |
+| 9 | Continuar a lição ao voltar | feito (`lib/kept.ts`, sessionStorage; testado em `pacote-0107.cjs`) |
+| 10 | Completar frases | feito (`lib/cloze.ts`: tira o artigo antes do espaço, aceita com/sem artigo, gralhas = quase certo; resposta aparece dentro da frase; botão «Não sei, mostra a resposta») |
+| 11 | Cartão «Em breve» (Novidades) | feito (`Soon.tsx`, lista em `SOON` de `lib/changelog.ts`) |
+| 12 | Aviso para todos na próxima atualização; «Em breve» uma vez por conta | feito (entrada 0.10.7 com `aviso: true`; `State.soon`) |
+
+## Achados no caminho
+- Base: `profiles.avatar` = 0 em renatarondon e rodrigorondonsilva; permissões e RLS de `profiles` estão certas (insert/update com `avatar`).
+- Migração `inbox_notificacoes` já aplicada no Supabase (tabela `inbox` com RLS: ler/apagar/marcar lido só o próprio; inserir só pelo servidor).
+- O catálogo existente mantém lições antigas (fáceis, cloze com artigo): só mudam com a regeneração (apagar a trilha no painel → nasce de novo) ou Fase 6.6 «Refazer».

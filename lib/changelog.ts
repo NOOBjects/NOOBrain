@@ -4,7 +4,45 @@
 // `aviso: true` manda também um aviso push a quem pediu avisos de atualização: usar só nas atualizações maiores.
 export type Release = { version: string; date: string; title: string; aviso?: boolean; novo?: string[]; melhorias?: string[]; corrigido?: string[] };
 
+/**
+ * O cartão «Em breve» das Novidades: o que vem a seguir. Aparece uma vez no ecrã de cada conta (quando `id` muda, volta a aparecer a todos)
+ * e fica sempre nas Novidades. Mudar `id` só quando a lista muda de verdade.
+ */
+export const SOON = {
+  id: "2026-10-a",
+  items: [
+    { title: "Uma equipa a cuidar do NOOBrain", text: "Mais gente a responder às ideias e aos erros, e avisos da equipa para ti." },
+    { title: "Troféus no ranking", text: "Quem acabar a semana no topo leva um troféu para o perfil." },
+    { title: "O teu mascote, à tua maneira", text: "Variações do mascote e um criador de personagem para fazeres o teu avatar." },
+    { title: "Línguas de volta", text: "Lições de línguas com pronúncia, feitas com mais cuidado." },
+    { title: "Mais formas de entrar", text: "Entrar com Apple e com Discord." },
+  ],
+} as const;
+
 export const CHANGELOG: Release[] = [
+  {
+    version: "0.10.7",
+    date: "2026-10-05",
+    title: "Notificações e testes mais justos",
+    aviso: true,
+    novo: [
+      "Uma área de notificações (o sino lá em cima): fica lá o que a equipa te diz, quando uma ideia tua muda de estado ou recebe resposta, e quando um erro que reportaste é resolvido.",
+      "A equipa pode agora enviar avisos a toda a gente ou a quem tiver de saber.",
+      "Respostas «quase certas» nos testes: valem meio ponto, em vez de contarem como erradas.",
+      "Nos espaços em branco aparece a tua resposta dentro da frase, e há um botão para ver a resposta quando não sabes.",
+      "O cartão «Em breve», nas Novidades, mostra o que vem a seguir.",
+    ],
+    melhorias: [
+      "A correção das respostas curtas ficou mais justa: o que conta é perceberes a ideia, não escreveres as mesmas palavras.",
+      "Perguntas mais difíceis nos níveis Intermédio e Avançado, e menos perguntas sobre gostos ou hábitos que variam de pessoa para pessoa.",
+      "Passámos a perguntar-te a opinião logo depois da tua primeira lição.",
+    ],
+    corrigido: [
+      "Sair de uma lição a meio (por exemplo, para enviar uma ideia) já não te leva de volta ao início: continuas onde estavas.",
+      "Nos espaços em branco, a palavra antes do espaço («o» ou «a») já não engana nem denuncia a resposta.",
+      "No ranking, o avatar de cada pessoa passou a ser o que escolheu.",
+    ],
+  },
   {
     version: "0.10.6",
     date: "2026-10-05",

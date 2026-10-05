@@ -47,11 +47,12 @@ export function ProfileForm({ user, profile, onSaved, onCancel }: { user: User; 
     if (!profile && !age) return setError("Confirma que tens 13 anos ou mais.");
     setBusy(true);
     const row = { username, display_name: name.trim(), avatar, bio: bio.trim() };
-    const { error: err } = profile
-      ? await supabase!.from("profiles").update(row).eq("id", user.id)
-      : await supabase!.from("profiles").insert({ id: user.id, ...row, age_ok: true });
+    const { data, error: err } = profile
+      ? await supabase!.from("profiles").update(row).eq("id", user.id).select("avatar")
+      : await supabase!.from("profiles").insert({ id: user.id, ...row, age_ok: true }).select("avatar");
     setBusy(false);
     if (err) return setError(err.code === "23505" ? "Esse nome já está ocupado." : err.code === "23514" ? "Esse nome não está disponível." : "Não consegui guardar. Tenta outra vez.");
+    if (data?.[0]?.avatar !== avatar) return setError("Não consegui guardar o avatar. Tenta outra vez.");
     onSaved();
   }
 

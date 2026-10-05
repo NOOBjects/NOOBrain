@@ -12,7 +12,7 @@ type Topic = { key: string; level: string; topic: string; uses: number; category
 type Data = {
   numbers: { accounts: number; active: number; devices: number; lessons: number; topics: number; aiToday: number; aiKinds: Record<string, number>; rating: number | null };
   ideas: Idea[]; reports: Report[]; feedback: Opinion[]; catalog: Topic[];
-  tools: { usage: Record<string, number>; max: Record<string, number>; glossary: { word: string; replacement: string }[] };
+  tools: { usage: Record<string, number>; max: Record<string, number>; glossary: { word: string; replacement: string }[]; notices: { title: string; at: string; n: number }[]; pushReady: boolean };
 };
 
 const STATUS: [string, string][] = [["recebida", "Recebida"], ["planeada", "Planeada"], ["em_curso", "Em curso"], ["feita", "Feita"], ["recusada", "Recusada"]];
@@ -33,6 +33,13 @@ export function Admin({ onBack }: { onBack: () => void }) {
   const [gr, setGr] = useState("");
   const [found, setFound] = useState<{ word: string; replacement: string }[] | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [nAud, setNAud] = useState<"all" | "team" | "users">("all");
+  const [nUsers, setNUsers] = useState("");
+  const [nTitle, setNTitle] = useState("");
+  const [nBody, setNBody] = useState("");
+  const [nLink, setNLink] = useState("");
+  const [nPush, setNPush] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const load = useCallback(() => call<Data>("/api/admin").then(setData, (e: Error) => setError(e.message)), []);
   useEffect(() => { void Promise.resolve().then(load); }, [load]);
@@ -99,6 +106,38 @@ export function Admin({ onBack }: { onBack: () => void }) {
 
       {data && tab === "ferramentas" && (
         <div className="stack">
+          <section className="pane"><div className="in set">
+            <div className="eyebrow">Enviar um aviso</div>
+            <p className="sub small">Aparece nas notificações de quem escolheres e, se quiseres, também chega ao telemóvel de quem tem os avisos ligados.</p>
+            <label className="lbl" htmlFor="n-aud">Para quem</label>
+            <select id="n-aud" className="field ch" value={nAud} onChange={(e) => setNAud(e.target.value as "all" | "team" | "users")}>
+              <option value="all">Toda a gente ({data.numbers.accounts} contas)</option>
+              <option value="team">Só a equipa</option>
+              <option value="users">Pessoas escolhidas (@nomes)</option>
+            </select>
+            {nAud === "users" && <input className="field ch" aria-label="@nomes, separados por vírgula" placeholder="@ana, @joao_99" value={nUsers} onChange={(e) => setNUsers(e.target.value)} autoCapitalize="none" autoComplete="off" />}
+            <label className="lbl" htmlFor="n-title">Título</label>
+            <input id="n-title" className="field ch" value={nTitle} maxLength={120} onChange={(e) => setNTitle(e.target.value)} autoComplete="off" />
+            <label className="lbl" htmlFor="n-body">Texto (opcional)</label>
+            <textarea id="n-body" className="field ch" rows={3} value={nBody} maxLength={600} onChange={(e) => setNBody(e.target.value)} />
+            <label className="lbl" htmlFor="n-link">Ao tocar, abre</label>
+            <select id="n-link" className="field ch" value={nLink} onChange={(e) => setNLink(e.target.value)}>
+              <option value="">Só a lista de notificações</option>
+              <option value="novidades">Novidades</option><option value="ideias">Ideias</option><option value="explorar">Explorar</option><option value="revisar">Rever</option><option value="perfil">Perfil</option><option value="ranking">Ranking</option>
+            </select>
+            <div className="menu-row static"><span>Enviar também para o telemóvel{data.tools.pushReady ? "" : " (avisos desligados no servidor)"}</span><Switch on={nPush && data.tools.pushReady} onChange={setNPush} label="Enviar também para o telemóvel" /></div>
+            <button type="button" className="btn" disabled={sending || nTitle.trim().length < 3 || (nAud === "users" && !nUsers.trim())} onClick={() => {
+              if (nAud === "all" && !window.confirm(`Enviar este aviso a ${data.numbers.accounts} contas?`)) return;
+              setSending(true);
+              void call<{ sent: number; pushed: number }>("/api/admin", { act: "notice", audience: nAud, usernames: nUsers, title: nTitle, body: nBody, link: nLink, push: nPush })
+                .then((r) => { setDone(`Aviso enviado a ${r.sent} ${r.sent === 1 ? "conta" : "contas"}${nPush ? ` (${r.pushed} no telemóvel)` : ""}.`); setNTitle(""); setNBody(""); setError(null); void load(); }, (e: Error) => setError(e.message))
+                .finally(() => setSending(false));
+            }}><span className="face">{sending ? "A enviar…" : "Enviar aviso"}</span></button>
+            {data.tools.notices.length > 0 && <>
+              <div className="eyebrow">Últimos avisos</div>
+              <ul className="gloss">{data.tools.notices.map((n) => <li key={n.at}><span>{n.title}</span><span className="sub small">{when(n.at)} · {n.n}</span></li>)}</ul>
+            </>}
+          </div></section>
           <section className="pane"><div className="in set">
             <div className="eyebrow">Limites diários</div>
             <p className="sub small">As contas de dono não têm limites. Liga isto para testares como uma pessoa normal (só neste navegador).</p>
