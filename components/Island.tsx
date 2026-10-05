@@ -1,17 +1,36 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronUp } from "./Icons";
+import { ChevronUp } from "./Icons";
 
-export type IslandItem = { id: string; label: string; icon: ReactNode; badge?: number; onClick: () => void };
+export type IslandItem = { id: string; label: string; icon: ReactNode; badge?: number; dot?: boolean; onClick: () => void };
 
 /**
  * Menu flutuante, solto da borda da tela. Some ao rolar para baixo e volta ao rolar para cima.
- * Também dá para escondê-lo no botão da seta e trazê-lo de volta pela pílula que fica no lugar.
+ * Quatro botões principais e, na seta, uma gaveta "Mais opções" que abre para cima.
+ * `view` fecha a gaveta ao mudar de ecrã; `moreActive` pinta a seta quando o ecrã atual vive na gaveta.
  */
-export function Island({ items, current }: { items: IslandItem[]; current: string }) {
-  const [hidden, setHidden] = useState<null | "scroll" | "manual">(null);
+export function Island({ items, drawer, current, view, moreActive }: { items: IslandItem[]; drawer: IslandItem[]; current: string; view: string; moreActive: boolean }) {
+  const [hidden, setHidden] = useState<null | "scroll">(null);
+  const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const more = useRef<HTMLButtonElement>(null);
+  const first = useRef<HTMLButtonElement>(null);
+  const [seen, setSeen] = useState(view);
+  if (seen !== view) { setSeen(view); setOpen(false); } // fecha ao mudar de ecrã
+
+  const close = (refocus = false) => { setOpen(false); if (refocus) more.current?.focus(); };
+  useEffect(() => {
+    if (!open) return;
+    first.current?.focus();
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") close(true); };
+    const away = (e: PointerEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    const scroll = () => setOpen(false);
+    document.addEventListener("keydown", key);
+    document.addEventListener("pointerdown", away);
+    window.addEventListener("scroll", scroll, { passive: true });
+    return () => { document.removeEventListener("keydown", key); document.removeEventListener("pointerdown", away); window.removeEventListener("scroll", scroll); };
+  }, [open]);
 
   // Diz ao resto do app quanto espaço a ilha ocupa em baixo (--dock), para os avisos rápidos ficarem sempre por cima dela.
   useEffect(() => {
@@ -45,6 +64,7 @@ export function Island({ items, current }: { items: IslandItem[]; current: strin
     };
   }, []);
 
+  const dot = drawer.some((d) => d.dot);
   return (
     <>
       <div ref={wrap} className={`island-wrap${hidden ? " is-hidden" : ""}`} inert={hidden ? true : undefined} onFocus={() => setHidden((h) => (h === "scroll" ? null : h))}>
@@ -55,8 +75,20 @@ export function Island({ items, current }: { items: IslandItem[]; current: strin
               {!!it.badge && <span key={it.badge} className="badge" aria-label={`${it.badge} para rever`}>{it.badge}</span>}
             </button>
           ))}
-          <button type="button" className="isl-hide ch" aria-label="Esconder o menu" onClick={() => setHidden("manual")}><ChevronDown /></button>
+          <button ref={more} type="button" className={`isl-more ch${moreActive ? " on" : ""}`} aria-label="Mais opções" aria-expanded={open} aria-controls="isl-drawer" onClick={() => setOpen((o) => !o)}>
+            <span className={`isl-chev${open ? " open" : ""}`}><ChevronUp /></span>
+            {dot && <span className="dot" aria-hidden="true" />}
+          </button>
         </nav></div>
+        {open && (
+          <div id="isl-drawer" className="drawer"><div className="menu-list">
+            {drawer.map((it, i) => (
+              <button key={it.id} ref={i === 0 ? first : undefined} type="button" className="menu-row" onClick={() => { setOpen(false); it.onClick(); }}>
+                {it.icon}<span>{it.label}</span>{it.dot && <b className="dot" aria-label="novo" />}
+              </button>
+            ))}
+          </div></div>
+        )}
       </div>
       <button type="button" className={`island-peek ch${hidden ? " show" : ""}`} aria-label="Mostrar o menu" tabIndex={hidden ? 0 : -1} onClick={() => setHidden(null)}><ChevronUp /></button>
     </>

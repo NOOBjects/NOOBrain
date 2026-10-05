@@ -421,34 +421,47 @@ dialog.sheet[open]::backdrop { animation: fade-in 0.3s both; }
   inset: auto 0 calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 20;
   display: flex;
-  justify-content: center;
-  padding-inline: 12px;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 16px;
   pointer-events: none;
   transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.15), opacity 0.25s;
 }
 .island-wrap.is-hidden { opacity: 0; transform: translateY(calc(100% + 40px)); }
-.island { --c: 16px; width: auto; max-width: 100%; pointer-events: auto; filter: drop-shadow(0 4px 0 var(--line-depth)) drop-shadow(0 12px 18px rgb(5 14 36 / 0.25)); }
-.island > .in { display: flex; align-items: center; gap: 4px; height: auto; padding: 6px; }
+.island, .drawer { --isl-w: min(100%, 440px); width: var(--isl-w); pointer-events: auto; }
+.island { --c: 16px; filter: drop-shadow(0 4px 0 var(--line-depth)) drop-shadow(0 12px 18px rgb(5 14 36 / 0.25)); }
+.island > .in { display: flex; align-items: stretch; gap: 4px; height: auto; padding: 6px; }
 .isl {
   --c: 10px;
   position: relative;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 11px 13px;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 2px;
   border: 0;
   background: none;
   color: var(--ink-3);
-  font: 700 12px/1 var(--font-display);
-  letter-spacing: 0.1em;
+  font: 700 10px/1 var(--font-display);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: background 0.2s, color 0.2s;
 }
 .isl .ico { width: 22px; height: 22px; }
-.isl-l { display: none; }
 .isl[aria-current="page"] { background: var(--brand); color: var(--on-brand); }
-.isl[aria-current="page"] .isl-l { display: inline; }
-.isl-hide { --c: 8px; display: grid; place-items: center; width: 34px; height: 40px; margin-left: 2px; border: 0; background: var(--surface-2); color: var(--ink-3); }
+.isl-more { --c: 8px; position: relative; flex: none; display: grid; place-items: center; width: 40px; border: 0; background: var(--surface-2); color: var(--ink-3); transition: background 0.2s, color 0.2s; }
+.isl-more.on { background: var(--brand-soft); color: var(--brand); }
+.isl-chev { display: grid; transition: transform 0.2s; }
+.isl-chev.open { transform: rotate(180deg); }
+.isl-more .dot { position: absolute; top: 5px; right: 5px; }
+.dot { width: 9px; height: 9px; background: var(--sun); flex: none; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+.drawer { filter: drop-shadow(0 4px 0 var(--line-depth)) drop-shadow(0 12px 18px rgb(5 14 36 / 0.25)); animation: drawer-in 0.18s both; }
+@keyframes drawer-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .drawer { animation: none; } }
 .island-peek {
   --c: 8px;
   position: fixed;
@@ -664,7 +677,6 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
   .node .oct { width: var(--node); height: var(--node); }
   .hero-mascot { width: 168px; }
   .brand-text { display: block; }
-  .isl-l { display: inline; }
   .stp-l { display: inline; }
 }
 
@@ -673,8 +685,9 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
   :root { --gutter: 40px; --content-max: 820px; --zz: 1.8; }
   .top { padding-top: 26px; }
   .brand-mascot { width: 52px; }
+  .island, .drawer { --isl-w: 560px; }
   .island > .in { padding: 8px; gap: 6px; }
-  .isl { padding: 13px 18px; font-size: 13px; }
+  .isl { flex-direction: row; gap: 8px; padding: 13px 8px; font-size: 13px; letter-spacing: 0.1em; }
 }
 @media (min-width: 1280px) {
   :root { --node: 92px; --zz: 2.2; --content-max: 900px; }
@@ -693,7 +706,6 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
   .result-mascot { width: 100px; }
   .card3d { height: 170px; }
   .island-wrap { bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
-  .isl { padding-block: 8px; }
 }
 
 /* telas muito estreitas */
@@ -702,7 +714,6 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
   .rate { grid-template-columns: 1fr; }
   .ask { flex-wrap: wrap; }
   .node { width: 120px; }
-  .isl { padding-inline: 10px; }
 }
 
 /* toque: alvos maiores */
@@ -817,7 +828,8 @@ a.btn { text-decoration: none; }
 .agebox { display: flex; gap: 8px; align-items: flex-start; }
 .agebox input { margin-top: 3px; }
 .profile, .settings { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; max-width: 460px; margin-inline: auto; width: 100%; }
-.profile-top { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.profile-top { display: flex; align-items: center; gap: 14px; }
+.profile-top .iconbtn { align-self: flex-start; flex: none; }
 .profile-id { display: grid; gap: 2px; margin-right: auto; min-width: 0; }
 .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .stat-box .eyebrow { overflow-wrap: anywhere; }
@@ -851,7 +863,6 @@ textarea.field { resize: vertical; font: inherit; }
 @keyframes gain { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-14px); } }
 .view-in { animation: rise 0.28s both; }
 .node { animation: fade-in 0.3s both; animation-delay: calc(var(--i, 0) * 40ms); }
-.isl { transition: background 0.2s, color 0.2s; }
 .badge { animation: pop 0.3s; }
 .opt.is-right { animation: pop 0.3s; }
 .opt.is-wrong { animation: shake 0.3s; }
@@ -863,15 +874,6 @@ textarea.field { resize: vertical; font: inherit; }
 .landing-blocks h2 { font-size: 20px; }
 .chip.ai { background: var(--ink); color: var(--bg); padding: 5px 10px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
 .trail-del { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; }
-
-/* Ecrãs estreitos: os itens da ilha repartem a largura por igual (só ícones), para nenhum botão ficar cortado. */
-@media (max-width: 520px) {
-  .island { width: 100%; }
-  .island > .in { width: 100%; gap: 2px; padding: 6px; }
-  .isl { flex: 1 1 0; min-width: 0; justify-content: center; padding: 11px 4px; }
-  .isl .isl-l, .isl[aria-current="page"] .isl-l { display: none; }
-  .isl-hide { flex: none; width: 30px; margin-left: 0; }
-}
 
 /* ---------- 0.10: hábito, conquistas, explorar, voz e acabamentos ---------- */
 .h-sec { font: 700 20px/1.2 var(--font-display); margin: 6px 0 10px; }
@@ -1042,3 +1044,25 @@ body:has(dialog[open]) .island-wrap, body:has(dialog[open]) .toast { opacity: 0;
   .profile, .settings, .explore { max-width: 600px; }
   .badge-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }
+
+/* passos da janela de instalar */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; width: 100%; }
+.steps li { display: flex; align-items: center; gap: 14px; }
+.steps .w-ico { background: var(--brand-soft); color: var(--brand); }
+
+/* interruptor */
+.switch { --c: 8px; flex: none; position: relative; width: 52px; height: 30px; padding: 0; border: 0; background: var(--lock); transition: background 0.2s; }
+.switch[aria-checked="true"] { background: var(--brand); }
+.switch i { --c: 5px; position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; background: var(--surface); transition: transform 0.2s; }
+.switch[aria-checked="true"] i { transform: translateX(22px); }
+@media (prefers-reduced-motion: reduce) { .switch, .switch i { transition: none; } }
+
+/* definições em lista agrupada */
+.set-group { display: grid; gap: 8px; }
+.menu-row .val { flex: none; color: var(--ink-3); font: 500 14px/1.2 var(--font-body); font-style: normal; }
+.menu-row.col { flex-wrap: wrap; }
+.menu-row.col .seg { flex-basis: 100%; }
+.menu-row.brand { color: var(--brand); }
+.menu-row.static { cursor: default; }
+.set-note { margin: 0; padding: 0 4px; }
+.set-foot { text-align: center; margin: 8px 0 0; }

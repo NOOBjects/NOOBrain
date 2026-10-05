@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Avatar } from "./Avatar";
 import { BadgeGrid } from "./Badges";
 import { CategoryIcon } from "./CategoryIcon";
-import { Idea, Trophy, Up } from "./Icons";
+import { Gear } from "./Icons";
 import { ProfileForm } from "./ProfileForm";
 import { categoryOf } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
@@ -16,9 +16,9 @@ import type { State } from "@/lib/types";
 const since = (iso: string) => new Date(iso).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
 /** O perfil da pessoa: identidade, números, meta de hoje, mapa dos temas e conquistas. XP e sequência vêm do estado local (sempre em dia). */
-export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, onIdeas, onSignOut, notify, onOpenTrail }: {
-  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; onIdeas: () => void;
-  onSignOut: () => void; notify: (m: string) => void; onOpenTrail: (id: string) => void;
+export function ProfileView({ user, profile, state, onSaved, onSettings, notify, onOpenTrail }: {
+  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void;
+  notify: (m: string) => void; onOpenTrail: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
@@ -56,17 +56,18 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
   return (
     <div className="profile">
       <div className="profile-top">
-        <Avatar n={profile.avatar} size={84} />
+        <Avatar n={profile.avatar} size={72} />
         <div className="profile-id">
           <h1 className="h-screen">{profile.display_name || `@${profile.username}`}</h1>
           <div className="sub">@{profile.username}</div>
           <div className="sub small">Membro desde {since(profile.created_at)}</div>
         </div>
+        <button type="button" className="iconbtn ch" aria-label="Definições" onClick={onSettings}><Gear /></button>
       </div>
       {profile.bio && <p className="sub">{profile.bio}</p>}
       <div className="pair">
         <button type="button" className="btn sm" onClick={() => setEditing(true)}><span className="face">Editar perfil</span></button>
-        <button type="button" className="btn soft sm" onClick={onSettings}><span className="face">Definições</span></button>
+        <button type="button" className="btn soft sm" onClick={() => void share()}><span className="face">Partilhar perfil</span></button>
       </div>
 
       <div className="pane tint goal-box"><div className="in">
@@ -82,6 +83,8 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
           <div key={label} className="pane"><div className="in stat-box"><span className="stat-n">{n}</span><span className="eyebrow">{label}</span></div></div>
         ))}
       </div>
+
+      <BadgeGrid state={state} />
 
       {state.trails.length > 0 && (
         <section aria-labelledby="map-t">
@@ -108,14 +111,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
         </section>
       )}
 
-      <BadgeGrid state={state} />
 
-      <div className="menu-list">
-        <button type="button" className="menu-row" onClick={onRanking}><Trophy /><span>Ranking da semana</span><i aria-hidden="true">›</i></button>
-        <button type="button" className="menu-row" onClick={onIdeas}><Idea /><span>Ideias</span><i aria-hidden="true">›</i></button>
-        <button type="button" className="menu-row" onClick={() => void share()}><Up /><span>Partilhar perfil</span><i aria-hidden="true">›</i></button>
-      </div>
-      <button type="button" className="linkbtn center-self" onClick={onSignOut}>Terminar sessão</button>
     </div>
   );
 }

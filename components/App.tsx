@@ -6,15 +6,19 @@ import { flushSync } from "react-dom";
 import { Account } from "./Account";
 import { Announce } from "./Announce";
 import { Confetti } from "./Confetti";
-import { Feedback, feedbackAsk } from "./Feedback";
-import { Book, Compass, Flame, HeroIco, Idea, Offline, Plus, Route, Sync, User } from "./Icons";
+import { Feedback, FeedbackDialog, feedbackAsk } from "./Feedback";
+import { Compass, Download, Flame, Gear, HeroIco, Idea, Offline, Plus, Route, Shield, Spark, Speech, Sync, Trophy, User } from "./Icons";
+import { InstallSheet } from "./InstallSheet";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { Mascot, type Mood } from "./Mascot";
 import { Toast, type ToastMsg } from "./Toast";
 import { TrailView } from "./TrailView";
 import { newBadges, type Badge } from "@/lib/badges";
+import { call } from "@/lib/api";
 import { BETA, VERSION } from "@/lib/config";
+import { install, useInstall } from "@/lib/install";
+import { LATEST } from "@/lib/changelog";
 import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
 import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
@@ -51,8 +55,8 @@ function onNav(cb: () => void) {
   return () => { window.removeEventListener("popstate", cb); window.removeEventListener(NAV, cb); };
 }
 /** Muda de ecrã. `replace` troca a entrada atual do histórico em vez de criar outra (ex.: depois de concluir um passo). */
-function navigate(v: View, c?: number, replace = false) {
-  const search = v === "trilha" || v === "conta" ? "" : `?v=${v}${c === undefined ? "" : `&c=${c}`}`;
+function navigate(v: View, c?: number, replace = false, sub?: string) {
+  const search = v === "trilha" || v === "conta" ? "" : `?v=${v}${c === undefined ? "" : `&c=${c}`}${sub ? `&s=${sub}` : ""}`;
   if (search === window.location.search) return;
   const run = () => {
     window.history[replace ? "replaceState" : "pushState"](IN_APP, "", search || window.location.pathname);
@@ -111,6 +115,10 @@ export function App({ landing }: { landing?: ReactNode }) {
   const [mood, setMood] = useState<Mood>("idle");
   const [burst, setBurst] = useState(0); // muda para lançar confettis
   const [badges, setBadges] = useState<Badge[] | null>(null);
+  const [feedback, setFeedback] = useState(false);
+  const [showInstall, setShowInstall] = useState(false);
+  const installState = useInstall();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const trail = activeTrail(s);
   const total = trail?.concepts.length ?? 0;
@@ -172,6 +180,17 @@ export function App({ landing }: { landing?: ReactNode }) {
   }, [inApp, xpToday, goal, notify, celebrate]);
 
   useEffect(() => { if (inApp) void syncPush(); }, [inApp]);
+  useEffect(() => {
+    if (!inApp) return;
+    let live = true;
+    call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
+    return () => { live = false; };
+  }, [inApp]);
+  useEffect(() => {
+    const done = () => notify("NOOBrain instalado. Encontra-o no ecrã principal.");
+    window.addEventListener("noobrain:installed", done);
+    return () => window.removeEventListener("noobrain:installed", done);
+  }, [notify]);
 
   // Conquistas: na primeira verificação regista as que já existiam sem alarido; depois, cada nova abre uma janela.
   useEffect(() => {
@@ -230,9 +249,9 @@ export function App({ landing }: { landing?: ReactNode }) {
     return () => { window.removeEventListener("popstate", back); window.removeEventListener("pageshow", show); };
   }, [user, profile]);
 
-  function go(v: View, c?: number, replace = false) {
+  function go(v: View, c?: number, replace = false, sub?: string) {
     clearLinkError();
-    navigate(v, c, replace);
+    navigate(v, c, replace, sub);
     window.scrollTo({ top: 0 });
   }
   const openLesson = (i: number) => go("licao", i);
@@ -244,11 +263,19 @@ export function App({ landing }: { landing?: ReactNode }) {
 
   const items = [
     { id: "trilha", label: "Trilha", icon: <Route />, onClick: () => go("trilha") },
-    { id: "licao", label: "Lição", icon: <Book />, onClick: () => (trail ? openLesson(current) : go("novo")) },
     { id: "explorar", label: "Explorar", icon: <Compass />, onClick: () => go("explorar") },
-    { id: "ideias", label: "Ideias", icon: <Idea />, onClick: () => go("ideias") },
     { id: "revisar", label: "Rever", icon: <Sync />, onClick: () => go("revisar"), badge: hydrated ? dueCount : 0 },
     { id: "perfil", label: "Perfil", icon: <User />, onClick: () => go("perfil") },
+  ];
+  const drawer = [
+    { id: "ideias", label: "Ideias", icon: <Idea />, onClick: () => go("ideias") },
+    { id: "ranking", label: "Ranking", icon: <Trophy />, onClick: () => go("ranking") },
+    { id: "novidades", label: "Novidades", icon: <Spark />, dot: s.seenVersion !== LATEST.version, onClick: () => go("novidades") },
+    { id: "opiniao", label: "Dar opinião", icon: <Speech />, onClick: () => setFeedback(true) },
+    ...(installState === "prompt" || installState === "ios"
+      ? [{ id: "instalar", label: "Instalar o app", icon: <Download />, onClick: () => (installState === "prompt" ? void install() : setShowInstall(true)) }] : []),
+    { id: "definicoes", label: "Definições", icon: <Gear />, onClick: () => go("definicoes") },
+    ...(isAdmin ? [{ id: "admin", label: "Administração", icon: <Shield />, onClick: () => go("admin") }] : []),
   ];
   const ask = inApp && trail ? feedbackAsk(s, trail) : null;
   const showTour = inApp && view === "trilha" && s.seenVersion !== undefined && !s.tour && s.trails.length === 0;
@@ -306,7 +333,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {view === "perfil" && user && profile && (
           <ProfileView user={user} profile={profile} state={s} onSaved={() => { void reloadProfile(); notify("Perfil guardado"); }}
-            onSettings={() => go("definicoes")} onRanking={() => go("ranking")} onIdeas={() => go("ideias")} onSignOut={leave} notify={notify}
+            onSettings={() => go("definicoes")} notify={notify}
             onOpenTrail={(id) => { update((x) => ({ ...x, active: id })); go("trilha"); }} />
         )}
 
@@ -317,7 +344,7 @@ export function App({ landing }: { landing?: ReactNode }) {
         {view === "admin" && user && profile && <Admin onBack={() => go("perfil")} />}
 
         {view === "definicoes" && user && profile && (
-          <Settings user={user} profile={profile} state={s} status={status} onChangePassword={() => setChanging(true)}
+          <Settings user={user} profile={profile} state={s} status={status} sub={params.get("s")} onSub={(x) => go("definicoes", undefined, false, x ?? undefined)} onNews={() => go("novidades")} onChangePassword={() => setChanging(true)}
             onSignOut={leave} onBack={() => go("perfil")} onProfile={() => void reloadProfile()} onAdmin={() => go("admin")} />
         )}
 
@@ -353,7 +380,9 @@ export function App({ landing }: { landing?: ReactNode }) {
       </main>
       <footer className="foot"><LegalLinks onIdea={user && profile ? () => go("ideias") : undefined} onNews={user && profile ? () => go("novidades") : undefined} /></footer>
 
-      {user && !needsProfile && <Island items={items} current={view === "novo" || view === "novidades" ? "" : view === "definicoes" || view === "ranking" || view === "admin" ? "perfil" : view === "desafio" ? "trilha" : view} />}
+      {user && !needsProfile && <Island items={items} drawer={drawer} view={view} current={view === "licao" || view === "desafio" ? "trilha" : view} moreActive={["ideias", "ranking", "novidades", "definicoes", "admin"].includes(view)} />}
+      {feedback && user && <FeedbackDialog uid={user.id} onClose={() => setFeedback(false)} onIdeas={() => go("ideias")} onSent={() => notify("Obrigado! Lemos todas as respostas.")} />}
+      {showInstall && <InstallSheet onClose={() => setShowInstall(false)} />}
 
       {burst > 0 && <Confetti key={burst} />}
       {badges && <BadgeDialog badges={badges} onClose={() => setBadges(null)} />}

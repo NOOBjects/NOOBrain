@@ -190,6 +190,8 @@ aparelho; texto estranho com "\n" deixa de aparecer nas lições.
 
 ## Fase 2 · 0.10.2 · Navegação, instalar e opinião
 
+> Estado: código e testes locais (A) feitos; falta confirmação na pré-visualização/produção e o Rodrigo instalar o app no PC e no telemóvel.
+
 ### 2.1 Ilha com 4 botões e gaveta
 `components/Island.tsx` + `App.tsx` + `app/globals.css`.
 - **Botões principais (sempre, por esta ordem)**: Trilha (`Route`), Explorar (`Compass`), Rever (`Sync`, com o número de cartões),
