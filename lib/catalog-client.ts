@@ -24,6 +24,6 @@ export function startFromCatalog(r: CatalogRow, state: State): Trail {
   if (mine) { update((s) => ({ ...s, active: mine.id, trails: s.trails.map((t) => (t.id === mine.id ? { ...t, archived: undefined } : t)) })); return mine; }
   const trail: Trail = { id: newId(), topic: r.topic, key: r.key, level: r.level, category: r.category, concepts: r.concepts.map(({ title, summary }) => ({ title, summary })), sources: r.sources, done: 0 };
   update((s) => ({ ...s, trails: [trail, ...s.trails], active: trail.id }));
-  void supabase!.rpc("bump_catalog_use", { p_key: r.key, p_level: r.level });
+  void supabase!.from("catalog_starts").insert({ key: r.key, level: r.level }).then(({ error }) => { if (error && error.code !== "23505") console.error("catalog_starts", error.message); }); // 23505: já tinhas começado
   return trail;
 }

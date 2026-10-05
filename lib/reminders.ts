@@ -1,6 +1,5 @@
 // Lembretes de revisão. Com o app aberto ou em segundo plano, o próprio navegador avisa (`notifyDue`).
 // Com o app fechado, o servidor envia um aviso push (`/api/cron/remind`) para as subscrições guardadas aqui.
-import { VERSION } from "./config";
 import { getRaw, parse, update } from "./store";
 import { supabase } from "./supabase";
 
@@ -27,25 +26,44 @@ const toBytes = (b64: string) => Uint8Array.from(atob(b64.replace(/-/g, "+").rep
 /** No iPhone os avisos só funcionam com o app instalado no ecrã principal. */
 export const needsInstall = () => typeof window !== "undefined" && /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.matchMedia("(display-mode: standalone)").matches;
 
-/** Subscreve o aparelho ao push e guarda a subscrição na conta. Se falhar, ficam só os avisos locais. */
+const tz = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+async function token() {
+  return (await supabase?.auth.getSession())?.data.session?.access_token;
+}
+
+async function call(method: "POST" | "DELETE" | "GET", token: string, body?: object, query = "") {
+  const r = await fetch(`/api/push/subscribe${query}`, { method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" }, body: body && JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error ?? "push");
+  return j as { ok?: boolean; mine?: boolean };
+}
+
+/** Subscreve o aparelho ao push e regista-o na conta atual (mesmo que estivesse noutra). Lança erro se falhar. */
 async function subscribePush(reg: ServiceWorkerRegistration) {
-  if (!VAPID || !supabase) return;
-  const { data } = await supabase.auth.getSession();
-  const uid = data.session?.user.id;
-  if (!uid) return;
+  const t = await token();
+  if (!VAPID || !t) return;
   const sub = (await reg.pushManager.getSubscription()) ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toBytes(VAPID) }));
   const j = sub.toJSON();
-  await supabase.from("push_subscriptions").upsert({
-    endpoint: sub.endpoint, user_id: uid, p256dh: j.keys?.p256dh ?? "", auth: j.keys?.auth ?? "", tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    news_sent: VERSION, // um aparelho novo não recebe o aviso da versão que já está a ver
-  });
+  await call("POST", t, { endpoint: sub.endpoint, p256dh: j.keys?.p256dh ?? "", auth: j.keys?.auth ?? "", tz: tz() });
+}
+
+/** Uma vez por sessão: se os avisos estão ligados mas este aparelho não está registado nesta conta, regista-o. */
+export async function syncPush() {
+  try {
+    const t = await token();
+    if (!VAPID || !t || snapshot() !== "on") return;
+    const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+    if (!sub) return;
+    if (!(await call("GET", t, undefined, `?endpoint=${encodeURIComponent(sub.endpoint)}`)).mine) await subscribePush(await navigator.serviceWorker.ready);
+  } catch { /* sem rede: fica para a próxima */ }
 }
 
 export async function enable(): Promise<boolean> {
   if (!supported()) return false;
   if ((await Notification.requestPermission()) !== "granted") { emit(); return false; }
   const reg = await navigator.serviceWorker.register("/sw.js");
-  try { await subscribePush(await navigator.serviceWorker.ready.then(() => reg)); } catch { /* sem push: ficam os avisos locais */ }
+  try { await subscribePush(await navigator.serviceWorker.ready.then(() => reg)); } catch { emit(); return false; }
   try { localStorage.setItem(ON, "1"); } catch { /* sem armazenamento */ }
   emit();
   return true;
@@ -58,7 +76,8 @@ export async function disable() {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = await reg?.pushManager.getSubscription();
     if (!sub) return;
-    await supabase?.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+    const t = await token();
+    if (t) await call("DELETE", t, { endpoint: sub.endpoint }).catch(() => {});
     await sub.unsubscribe();
   } catch { /* nada a limpar */ }
 }
