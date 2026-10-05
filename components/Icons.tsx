@@ -103,3 +103,11 @@ export const Play = () => <Svg><path fill="currentColor" d="M7 4 L19 12 L7 20 Z"
 export const Stop = () => <Svg><path fill="currentColor" d="M6 6 H18 V18 H6 Z" /></Svg>;
 export const Star = () => <Svg><path fill="currentColor" d="M12 2.5 L14.6 9 L21.5 9.3 L16.1 13.6 L18 20.5 L12 16.6 L6 20.5 L7.9 13.6 L2.5 9.3 L9.4 9 Z" /></Svg>;
 export const Link2 = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M10 6 H6 L3 9 V15 L6 18 H10 M14 6 H18 L21 9 V15 L18 18 H14 M8 12 H16" /></Svg>;
+export const Download = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M12 3 V15 M7 10 L12 15 L17 10 M4 20 H20" /></Svg>;
+export const Gear = () => (
+  <Svg>
+    <path {...stroke} strokeLinejoin="miter" d="M10 3 H14 L15 6 L18 5 L20 8 L18 10 V14 L20 16 L18 19 L15 18 L14 21 H10 L9 18 L6 19 L4 16 L6 14 V10 L4 8 L6 5 L9 6 Z" />
+    <path fill="currentColor" d="M10 10 H14 V14 H10 Z" />
+  </Svg>
+);
+export const Share = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M12 15 V3 M8 7 L12 3 L16 7 M7 10 H5 V21 H19 V10 H17" /></Svg>;

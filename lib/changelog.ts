@@ -6,6 +6,20 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.2",
+    date: "2026-10-05",
+    title: "Menu novo, instalar o app e opinião",
+    novo: [
+      "Instalar o NOOBrain no telemóvel e no computador, a partir do menu ou das Definições.",
+      "«Dar opinião» sempre à mão no menu.",
+    ],
+    melhorias: [
+      "O menu tem agora os 4 ecrãs principais e uma gaveta com o resto (Ideias, Ranking, Novidades, Definições…).",
+      "O menu deixa de se mexer quando mudas de ecrã.",
+      "O Perfil mostra quem és e o que conseguiste; as Definições juntam tudo o que é configuração, por grupos.",
+    ],
+  },
+  {
     version: "0.10.1",
     date: "2026-10-05",
     title: "Entrar e avisos a funcionar",
