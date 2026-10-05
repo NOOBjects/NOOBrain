@@ -1074,3 +1074,7 @@ body:has(dialog[open]) .island-wrap, body:has(dialog[open]) .toast { opacity: 0;
 .daybar { display: grid; gap: 6px; }
 .daybar .bar { height: 10px; }
 .rest { text-align: center; }
+
+/* glossário no painel */
+.gloss { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; }
+.gloss li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 2px solid var(--line); }

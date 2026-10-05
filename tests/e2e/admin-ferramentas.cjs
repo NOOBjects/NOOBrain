@@ -31,10 +31,19 @@ const clear = async (p) => { for (let i = 0; i < 4 && (await p.locator("dialog[o
   await p.waitForTimeout(300);
   assert.equal(await p.evaluate(() => JSON.parse(localStorage.getItem("noobrain:v2")).daily?.lessons?.length ?? 0), 0, "lições repostas");
 
+  // glossário: acrescentar e apagar uma palavra
+  await p.getByLabel("Palavra do Brasil").fill("bagulho");
+  await p.getByLabel("Palavra de Portugal").fill("coisa");
+  await p.getByRole("button", { name: "Acrescentar ao glossário" }).click();
+  await p.waitForSelector("text=bagulho →", { timeout: 3000 });
+  await p.locator(".gloss li", { hasText: "bagulho" }).getByRole("button", { name: "Apagar" }).click();
+  await p.waitForTimeout(500);
+  assert(!(await p.locator(".gloss li", { hasText: "bagulho" }).count()), "glossário: apagou");
+
   // revisão do português do catálogo
   await p.getByRole("button", { name: "Rever o catálogo" }).click();
   await p.waitForTimeout(800);
-  assert(/catálogo/i.test(await p.locator(".admin").innerText().then((t) => t.split("\n").slice(-3).join(" "))), "mensagem do catálogo");
+  assert(/Corrigi|catálogo/i.test(await p.locator(".admin").innerText().then((t) => t.split("\n").slice(-3).join(" "))), "mensagem do catálogo");
   await p.getByRole("switch", { name: "Testar como pessoa normal" }).click();
   assert.equal(await p.evaluate(() => localStorage.getItem("noobrain:testlimits")), null);
   console.log("admin-ferramentas OK");

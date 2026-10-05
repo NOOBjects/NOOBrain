@@ -24,10 +24,11 @@ Regras gerais: `CLAUDE.md` e `AGENTS.md` (PT-PT com "tu", chanfros, tokens de co
 | 2 | 0.10.2 | Ilha nova (4 botões + gaveta), sem botão "Lição", instalar o app, "Dar opinião", Perfil e Definições reorganizados | novo + melhorias |
 | 3 | 0.10.3 | Níveis diferentes a sério, PT-PT, categorias novas, línguas em pausa | melhorias |
 | 4 | 0.10.4 | Limites diários com barras (lições novas e temas novos) | novo |
-| 5 | 0.10.5 | Ideias: separadores certos, recusadas a vermelho, pedir revisão | novo + corrigido |
-| 6 | 0.10.6 | Painel de administração completo, equipa com níveis de acesso, etiqueta "Equipa" | novo |
-| 7 | 0.10.7 | Novidades por tipo com destaques, aviso de beta antes de entrar | melhorias |
-| 8 | 0.10.8 | Troféus do ranking semanal | novo |
+| 4b | 0.10.5 | **Atualizações** (pedido do Rodrigo): aviso de nova versão da app, aviso de trilhas desatualizadas, glossário de palavras de Portugal, ferramentas do dono | novo |
+| 5 | 0.10.6 | Ideias: separadores certos, recusadas a vermelho, pedir revisão | novo + corrigido |
+| 6 | 0.10.7 | Painel de administração completo, equipa com níveis de acesso, etiqueta "Equipa" | novo |
+| 7 | 0.10.8 | Novidades por tipo com destaques, aviso de beta antes de entrar | melhorias |
+| 8 | 0.10.9 | Troféus do ranking semanal | novo |
 | 9 | **0.11** (marco, `aviso: true`) | Mascote com variações + criador de personagem | novo |
 | 10 | (sem versão até o Rodrigo ligar) | Login com Apple e Discord, preparado e desligado | — |
 | 11 | (interno) | Segurança do GitHub | — |
@@ -494,7 +495,7 @@ Objetivo duplo: descanso (aprender aos poucos fixa melhor) e não esgotar a IA g
 
 ---
 
-## Fase 5 · 0.10.5 · Ideias bem arrumadas
+## Fase 5 · 0.10.6 · Ideias bem arrumadas
 
 ### 5.1 Base de dados (migração `ideias_recurso`)
 ```sql
@@ -542,13 +543,13 @@ Feitas e recusadas nunca aparecem em Populares nem em Novas.
 - **Aceitação** (A, com `suggestions` no falso nos 6 estados): cada separador mostra só os estados certos; recusada a vermelho;
   pedir revisão muda para "Em recurso" e o botão desaparece; no escuro também.
 
-### 5.4 Publicar 0.10.5
+### 5.4 Publicar 0.10.6
 `novo`: pedir revisão de uma ideia recusada; separadores A caminho e Recusadas. `corrigido`: as ideias feitas já não aparecem em
 Novas nem em Populares.
 
 ---
 
-## Fase 6 · 0.10.6 · Painel de administração completo e equipa
+## Fase 6 · 0.10.7 · Painel de administração completo e equipa
 
 ### 6.1 Papéis (decisão)
 | Pode | Dono | Admin | Moderador |
@@ -628,12 +629,12 @@ Sem políticas de escrita: só o servidor escreve. Depois: `get_advisors` (secur
   moderador não vê e-mails nem ações de conta; só o dono vê Equipa; cada ação grava no registo. (B) com a conta de teste como
   moderador (o Rodrigo adiciona-a no painel): `GET ?o=pessoas` não traz e-mails; `POST` de ação de conta dá 403.
 
-### 6.6 Publicar 0.10.6
+### 6.6 Publicar 0.10.7
 `novo`: etiqueta "Equipa" nos membros da equipa do NOOBrain. (O painel é interno: não entra no changelog.)
 
 ---
 
-## Fase 7 · 0.10.7 · Novidades com destaques e aviso de beta
+## Fase 7 · 0.10.8 · Novidades com destaques e aviso de beta
 
 ### 7.1 Tipos de versão
 - `lib/changelog.ts` → `Release.kind: "marco" | "novidades" | "correcoes"` (obrigatório) e `destaques?: string[]` (até 3, só nos
@@ -659,12 +660,12 @@ Sem políticas de escrita: só o servidor escreve. Depois: `get_advisors` (secur
   primeiro ecrã do telemóvel (390×844).
 - **Aceitação**: captura a 390 px com o botão "Entrar" visível sem rolar.
 
-### 7.3 Publicar 0.10.7
+### 7.3 Publicar 0.10.8
 `melhorias`: Novidades com destaques nas grandes atualizações e filtros por tipo; aviso de beta antes de entrar.
 
 ---
 
-## Fase 8 · 0.10.8 · Troféus do ranking semanal
+## Fase 8 · 0.10.9 · Troféus do ranking semanal
 
 ### 8.1 Contra a batota (migração `xp_diario`)
 - `profiles` + `day_xp int not null default 0`, `day_on date`.
@@ -703,7 +704,7 @@ e marca `notified`.
 - **Aceitação** (A): com `weekly_awards` no falso, o pódio e os troféus aparecem e a celebração abre uma vez; (Supabase) correr
   `close_week()` dentro de uma transação com `rollback` num cenário de teste e confirmar a ordem.
 
-### 8.4 Publicar 0.10.8
+### 8.4 Publicar 0.10.9
 `novo`: troféus para os 10 primeiros do ranking de cada semana, com pódio no Ranking. `melhorias`: o ranking passa a contar no
 máximo 1000 XP por dia.
 

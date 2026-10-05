@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { brMarkers, brMarkersDeep, ptpt, ptptDeep } from "./ptpt.ts";
+import { brMarkers, brMarkersDeep, ptpt, ptptDeep, setExtraRules } from "./ptpt.ts";
 
 test("troca grafias brasileiras e castelhanas", () => {
   assert.equal(ptpt("A excitação de electrones e a transferencia de energia."), "A excitação de eletrões e a transferência de energia.");
@@ -92,4 +92,12 @@ test("gíria e arquivo do Brasil são marcados para revisão", () => {
   assert.deepEqual(brMarkers("A galera vai baixar o arquivo no computador."), ["gíria", "arquivo"]);
   assert.deepEqual(brMarkers("Isto é legal, né?"), ["gíria"]);
   assert.deepEqual(brMarkers("O contrato é legal e o arquivo histórico fica na biblioteca."), ["gíria"]);
+});
+
+test("glossário do dono acrescenta palavras", () => {
+  setExtraRules([{ word: "bagulho", replacement: "coisa" }, { word: "de repente", replacement: "de súbito" }]);
+  assert.equal(ptpt("Um Bagulho caiu, de repente."), "Um Coisa caiu, de súbito.");
+  assert.equal(ptpt("Os bagulhos ficam."), "Os bagulhos ficam.");
+  setExtraRules([]);
+  assert.equal(ptpt("Um bagulho."), "Um bagulho.");
 });
