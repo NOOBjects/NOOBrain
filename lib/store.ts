@@ -92,6 +92,9 @@ export const frozeYesterday = (s: State) => s.streak > 0 && s.lastDay === ago(2)
 export const GOALS = [10, 30, 50] as const;
 export const goalOf = (s: State) => s.goal ?? 30;
 /** XP ganho hoje (0 se o registo é de outro dia). */
+/** Lições novas abertas hoje (noutro dia, a lista está vazia). */
+export const lessonsToday = (s: State) => (s.daily?.day === day() ? s.daily.lessons : []);
+export const markLesson = (s: State, id: string): Pick<State, "daily"> => ({ daily: { day: day(), lessons: lessonsToday(s).includes(id) ? lessonsToday(s) : [...lessonsToday(s), id] } });
 export const todayXp = (s: State) => (s.today?.day === day() ? s.today.xp : 0);
 
 /** Soma XP ao total e ao de hoje. */

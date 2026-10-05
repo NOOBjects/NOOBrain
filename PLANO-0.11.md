@@ -455,6 +455,8 @@ português de Portugal mais cuidado nas lições; categorias novas (Mãos à obr
 
 ## Fase 4 · 0.10.4 · Limites diários com barras
 
+> ✅ feita (0.10.4, 05/10/2026): testada em (A) e (B: `/api/quota` e 429 ao 4.º tema).
+
 Objetivo duplo: descanso (aprender aos poucos fixa melhor) e não esgotar a IA gratuita.
 
 ### 4.1 Números (constantes em `lib/limits.ts`, partilhado)
