@@ -1,3 +1,5 @@
+import { refreshGlossary } from "@/lib/glossary";
+import { admin } from "@/lib/admin";
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { isSeed } from "@/lib/auth";
 import { findLesson, findTrail, saveLesson } from "@/lib/catalog";
@@ -83,6 +85,7 @@ export async function POST(request: Request) {
   const over = await spend(who.uid, "lesson", request);
   if (over) return over;
 
+  await refreshGlossary(admin!);
   const found = await findSources(`${topic} ${title}`);
   const { text } = found.text ? found : await findSources(topic);
 

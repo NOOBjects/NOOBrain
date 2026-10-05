@@ -6,6 +6,18 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.5",
+    date: "2026-10-05",
+    title: "Avisos de atualização",
+    novo: [
+      "Quando há uma versão nova do NOOBrain, aparece um aviso para atualizares com um toque, sem perderes o teu progresso.",
+      "Se uma das tuas trilhas foi melhorada ou corrigida, também aparece um aviso para a atualizares. O teu progresso fica.",
+    ],
+    melhorias: [
+      "O português de Portugal das lições é revisto com um glossário que vai crescendo.",
+    ],
+  },
+  {
     version: "0.10.4",
     date: "2026-10-05",
     title: "Aprender aos poucos",

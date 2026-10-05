@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_BUILD: process.env.NEXT_PUBLIC_BUILD ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "dev" }, // identifica a versão carregada no navegador (ver /api/version)
   async headers() {
     return [
       {

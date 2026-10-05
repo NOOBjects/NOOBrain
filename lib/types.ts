@@ -24,6 +24,7 @@ export type Trail = {
   diagnostic?: Question[]; // 3 perguntas para escolher o nível (só vêm da IA ao criar o tema)
   archived?: boolean; // arquivada: sai dos temas e da revisão até ser reaberta
   category?: string; // categoria do catálogo (ver lib/categories.ts)
+  rev?: number; // versão do conteúdo no catálogo quando a trilha foi começada (ver lib/updates.ts)
 };
 
 /** Estado de um cartão na revisão espaçada: caixa (0 a 4) e quando vence (ms desde 1970). */

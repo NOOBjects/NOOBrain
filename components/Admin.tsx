@@ -12,7 +12,7 @@ type Topic = { key: string; level: string; topic: string; uses: number; category
 type Data = {
   numbers: { accounts: number; active: number; devices: number; lessons: number; topics: number; aiToday: number; aiKinds: Record<string, number>; rating: number | null };
   ideas: Idea[]; reports: Report[]; feedback: Opinion[]; catalog: Topic[];
-  tools: { usage: Record<string, number>; max: Record<string, number> };
+  tools: { usage: Record<string, number>; max: Record<string, number>; glossary: { word: string; replacement: string }[] };
 };
 
 const STATUS: [string, string][] = [["recebida", "Recebida"], ["planeada", "Planeada"], ["em_curso", "Em curso"], ["feita", "Feita"], ["recusada", "Recusada"]];
@@ -28,6 +28,10 @@ export function Admin({ onBack }: { onBack: () => void }) {
   const [limits, setLimits] = useState(testLimits);
   const [who, setWho] = useState("");
   const [done, setDone] = useState<string | null>(null);
+  const [gw, setGw] = useState("");
+  const [gr, setGr] = useState("");
+  const [found, setFound] = useState<{ word: string; replacement: string }[] | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   const load = useCallback(() => call<Data>("/api/admin").then(setData, (e: Error) => setError(e.message)), []);
   useEffect(() => { void Promise.resolve().then(load); }, [load]);
@@ -110,8 +114,32 @@ export function Admin({ onBack }: { onBack: () => void }) {
           </div></section>
           <section className="pane"><div className="in set">
             <div className="eyebrow">Português de Portugal</div>
-            <p className="sub small">Aplica a revisão automática (palavras do Brasil, grafias antigas, gerúndio) a todas as trilhas e lições que já estão no catálogo.</p>
-            <button type="button" className="btn soft" onClick={() => void call<{ changed: number }>("/api/admin", { act: "ptpt" }).then((r) => setDone(r.changed ? `Corrigi ${r.changed} entradas do catálogo.` : "O catálogo já está em português de Portugal."), (e: Error) => setError(e.message))}><span className="face">Rever o catálogo</span></button>
+            <p className="sub small">Aplica a revisão automática (palavras do Brasil, grafias antigas, gerúndio e o glossário abaixo) a todas as trilhas e lições do catálogo. Quem tiver uma trilha mudada recebe o aviso «atualizar».</p>
+            <button type="button" className="btn soft" onClick={() => void call<{ changed: number; trails: number }>("/api/admin", { act: "ptpt" }).then((r) => setDone(r.changed ? `Corrigi ${r.changed} entradas (${r.trails} trilhas). Quem as tem vai receber o aviso para atualizar.` : "O catálogo já está em português de Portugal."), (e: Error) => setError(e.message))}><span className="face">Rever o catálogo</span></button>
+          </div></section>
+          <section className="pane"><div className="in set">
+            <div className="eyebrow">Glossário: palavras de Portugal</div>
+            <p className="sub small">Palavra do Brasil → palavra de Portugal. Vale logo para tudo o que a IA escrever daqui para a frente; para o que já existe, usa «Rever o catálogo».</p>
+            {data.tools.glossary.length > 0 && (
+              <ul className="gloss">{data.tools.glossary.map((g) => <li key={g.word}><span>{g.word} → <b>{g.replacement}</b></span><button type="button" className="linkbtn" onClick={() => void act({ act: "gloss-del", word: g.word })}>Apagar</button></li>)}</ul>
+            )}
+            <div className="pair"><input className="field ch" aria-label="Palavra do Brasil" placeholder="do Brasil" value={gw} onChange={(e) => setGw(e.target.value)} autoCapitalize="none" /><input className="field ch" aria-label="Palavra de Portugal" placeholder="de Portugal" value={gr} onChange={(e) => setGr(e.target.value)} autoCapitalize="none" /></div>
+            <button type="button" className="btn soft" disabled={!gw.trim() || !gr.trim()} onClick={() => void act({ act: "gloss", word: gw, replacement: gr }).then((m) => { if (m) { setGw(""); setGr(""); setDone("Palavra guardada."); } })}><span className="face">Acrescentar ao glossário</span></button>
+            <button type="button" className="btn soft" disabled={scanning} onClick={() => { setScanning(true); setFound(null); void call<{ scanned: number; suggestions: { word: string; replacement: string }[] }>("/api/admin", { act: "gloss-scan" }).then((r) => { setFound(r.suggestions); setDone(r.suggestions.length ? `A IA leu ${r.scanned} palavras e sugere ${r.suggestions.length}.` : `A IA leu ${r.scanned} palavras e não encontrou nada do Brasil.`); }, (e: Error) => setError(e.message)).finally(() => setScanning(false)); }}><span className="face">{scanning ? "A IA está a ler o catálogo…" : "Procurar palavras do Brasil com a IA"}</span></button>
+            {found && found.length > 0 && (
+              <ul className="gloss">{found.map((g) => (
+                <li key={g.word}><span>{g.word} → <b>{g.replacement}</b></span>
+                  <span className="acts-inline">
+                    <button type="button" className="linkbtn" onClick={() => void act({ act: "gloss", word: g.word, replacement: g.replacement }).then((m) => m && setFound((f) => f && f.filter((x) => x.word !== g.word)))}>Aceitar</button>
+                    <button type="button" className="linkbtn" onClick={() => setFound((f) => f && f.filter((x) => x.word !== g.word))}>Ignorar</button>
+                  </span></li>
+              ))}</ul>
+            )}
+          </div></section>
+          <section className="pane"><div className="in set">
+            <div className="eyebrow">Atualizações</div>
+            <p className="sub small">Pede a toda a gente que atualize as trilhas guardadas (fica o progresso). Usa depois de refazeres conteúdo à mão. Quem tem a app aberta recebe sozinho o aviso de «nova versão» a cada publicação.</p>
+            <button type="button" className="btn soft" onClick={() => void call<{ trails: number }>("/api/admin", { act: "refresh-all" }).then((r) => setDone(`Pedi a atualização de ${r.trails} trilhas do catálogo.`), (e: Error) => setError(e.message))}><span className="face">Pedir a todos que atualizem as trilhas</span></button>
           </div></section>
           {done && <p className="sub center" role="status">{done}</p>}
         </div>

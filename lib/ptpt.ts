@@ -25,7 +25,7 @@ const WORDS: [string, string][] = [
 const STEMS: [string, string][] = [
   ["econômic", "económic"], ["astronômic", "astronómic"], ["atômic", "atómic"], ["anatômic", "anatómic"], ["harmônic", "harmónic"], ["carbônic", "carbónic"],
   ["acadêmic", "académic"], ["polêmic", "polémic"], ["sistêmic", "sistémic"], ["endêmic", "endémic"], ["epidêmi", "epidémi"], ["pandêmi", "pandémi"], ["genôm", "genom"], ["planej", "plane"],
-  ["optimiz", "otimiz"], ["inspeccion", "inspecion"], ["objectiv", "objetiv"], ["actualiz", "atualiz"], ["projecto", "projeto"], ["aspecto", "aspeto"], ["respectiv", "respetiv"], ["perspectiv", "perspetiv"], ["direcç", "direç"], ["protecç", "proteç"], ["selecç", "seleç"], ["correcç", "correç"], ["acç", "aç"],
+  ["optimiz", "otimiz"], ["activ", "ativ"], ["colecç", "coleç"], ["infecç", "infeç"], ["reacç", "reaç"], ["funcç", "funç"], ["instrucç", "instruç"], ["construcç", "construç"], ["recepç", "receç"], ["inspeccion", "inspecion"], ["objectiv", "objetiv"], ["actualiz", "atualiz"], ["projecto", "projeto"], ["aspecto", "aspeto"], ["respectiv", "respetiv"], ["perspectiv", "perspetiv"], ["direcç", "direç"], ["protecç", "proteç"], ["selecç", "seleç"], ["correcç", "correç"], ["acç", "aç"],
 ];
 
 const cap = (from: string, to: string) => (from[0] === from[0].toUpperCase() && from[0] !== from[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to);
@@ -53,12 +53,18 @@ const gerund = (m: string, aux: string, sp: string, stem: string, end: keyof typ
 };
 const LEVEL_BR = /(?<![A-Za-zÀ-ÿ])Intermediário(?![A-Za-zÀ-ÿ])/g;
 
+// Palavras acrescentadas pelo dono no painel (tabela ptpt_glossary): valem tanto no servidor como no navegador.
+let EXTRA: [RegExp, string][] = [];
+export function setExtraRules(list: { word: string; replacement: string }[]) {
+  EXTRA = [...list].sort((a, b) => b.word.length - a.word.length).map(({ word, replacement }) => [new RegExp(`(?<![${L}])${esc(word)}(?![${L}])`, "gi"), replacement] as [RegExp, string]);
+}
+
 /** Texto com a ortografia de Portugal. "Por que" no início de uma pergunta passa a "Porque é que". */
 export function ptpt(text: string): string {
   // \n ou \t literais que a IA deixa no texto; fora dos blocos de código (`...`), onde podem ser o assunto da lição
   let t = text.includes("\\") ? text.split(/(`[^`]*`)/).map((p, i) => (i % 2 ? p : p.replace(/\\[nt]/g, " ").replace(/ {2,}/g, " "))).join("") : text;
   t = t.replace(GERUND, gerund); // primeiro o gerúndio ("está acessando" → "está a acessar" → "está a aceder")
-  for (const [re, to] of RULES) t = t.replace(re, (m) => cap(m, to));
+  for (const [re, to] of [...RULES, ...EXTRA]) t = t.replace(re, (m) => cap(m, to));
   t = t.replace(ACCENT, accent).replace(LEVEL_BR, "Intermédio");
   return t.replace(/(^|[.!?]\s+|¿)Por que (?!raz[ãa]o|motivo)(?=[^?]*\?)/g, "$1Porque é que ");
 }

@@ -39,8 +39,8 @@ const post = <T,>(url: string, body: unknown) => call<T>(url, body);
 export const newId = () => `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 export async function createTrail(topic: string, level: string): Promise<Trail> {
-  const d = await post<{ topic: string; level: string; category?: string; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null }>("/api/trail", { topic, level });
-  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, category: d.category, concepts: d.concepts, sources: d.sources, done: 0, diagnostic: d.diagnostic ?? undefined };
+  const d = await post<{ topic: string; level: string; category?: string; rev?: number; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null }>("/api/trail", { topic, level });
+  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, category: d.category, rev: d.rev ?? 0, concepts: d.concepts, sources: d.sources, done: 0, diagnostic: d.diagnostic ?? undefined };
 }
 
 const pending = new Map<string, Promise<void>>();

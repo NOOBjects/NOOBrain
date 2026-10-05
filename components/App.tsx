@@ -10,6 +10,7 @@ import { Feedback, FeedbackDialog, feedbackAsk } from "./Feedback";
 import { Compass, Download, Flame, Gear, HeroIco, Idea, Offline, Plus, Route, Shield, Spark, Speech, Sync, Trophy, User } from "./Icons";
 import { InstallSheet } from "./InstallSheet";
 import { RestView } from "./RestView";
+import { UpdateBanner } from "./UpdateBanner";
 import { Island } from "./Island";
 import { LegalLinks } from "./LegalPage";
 import { Mascot, type Mood } from "./Mascot";
@@ -17,6 +18,8 @@ import { Toast, type ToastMsg } from "./Toast";
 import { TrailView } from "./TrailView";
 import { newBadges, type Badge } from "@/lib/badges";
 import { call } from "@/lib/api";
+import { refreshGlossary } from "@/lib/glossary";
+import { supabase } from "@/lib/supabase";
 import { BETA, VERSION } from "@/lib/config";
 import { install, useInstall } from "@/lib/install";
 import { NEW_LESSONS_PER_DAY } from "@/lib/limits";
@@ -187,6 +190,8 @@ export function App({ landing }: { landing?: ReactNode }) {
   }, [inApp, xpToday, goal, notify, celebrate]);
 
   useEffect(() => { if (inApp) void syncPush(); }, [inApp]);
+  const [, setGloss] = useState(0); // o glossário de palavras de Portugal chegou: volta a desenhar os textos
+  useEffect(() => { if (inApp && supabase) void refreshGlossary(supabase as never).then(() => setGloss((n) => n + 1)); }, [inApp]);
   useEffect(() => {
     if (inApp && view === "licao" && isNewLesson && !newToday.includes(lessonId) && newToday.length < NEW_LESSONS_PER_DAY) update((x) => ({ ...x, ...markLesson(x, lessonId) }));
   }, [inApp, view, isNewLesson, lessonId, newToday]);
@@ -318,6 +323,7 @@ export function App({ landing }: { landing?: ReactNode }) {
         {!hydrated ? landing : booting ? (
           <div className="loading" role="status"><HeroIco><Sync /></HeroIco><p className="sub center">A carregar o teu progresso…</p></div>
         ) : needsProfile ? <Onboarding user={user!} onSaved={() => { void reloadProfile(); go("trilha", undefined, true); }} /> : <>
+        {inApp && <UpdateBanner state={s} signedIn notify={notify} />}
         {view === "novidades" && <News state={s} onIdeas={() => go("ideias")} />}
         {view === "novo" && (
           <NewTopic trails={s.trails} online={online} onExplore={() => go("explorar")}

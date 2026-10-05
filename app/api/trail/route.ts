@@ -1,3 +1,5 @@
+import { refreshGlossary } from "@/lib/glossary";
+import { admin } from "@/lib/admin";
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { isSeed } from "@/lib/auth";
 import { findTrail, saveTrail } from "@/lib/catalog";
@@ -76,6 +78,7 @@ export async function POST(request: Request) {
   const over = await spend(who.uid, "trail", request);
   if (over) return over;
 
+  await refreshGlossary(admin!);
   const { sources, text } = await findSources(topic);
 
   // Nível acima do Iniciante: a trilha do nível abaixo (se existir no catálogo) diz o que o aluno já domina.
