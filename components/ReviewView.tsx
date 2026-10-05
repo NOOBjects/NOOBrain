@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Deck } from "./Deck";
 import { HeroIco, Sync } from "./Icons";
 import { ReminderToggle } from "./ReminderToggle";
-import { applyRating, dueCards, interleave, update } from "@/lib/store";
+import { ptpt } from "@/lib/ptpt";
+import { trailLang } from "@/lib/speech";
+import { applyReview, dueCards, interleave, update } from "@/lib/store";
 import type { State } from "@/lib/types";
 
 export function ReviewView({ state }: { state: State }) {
@@ -17,7 +19,7 @@ export function ReviewView({ state }: { state: State }) {
   function onRate(id: string, r: 0 | 1 | 2) {
     let when = 0;
     update((s) => {
-      const next = applyRating(s, id, r);
+      const next = applyReview(s, id, r);
       when = next.cards[id].due;
       return next;
     });
@@ -29,7 +31,7 @@ export function ReviewView({ state }: { state: State }) {
       <div>
         <button type="button" className="linkbtn back" onClick={() => setQueue(null)}>← Sair da revisão</button>
         <h1 className="h-screen">Revisão</h1>
-        <Deck items={queue.map((d) => ({ id: d.id, term: d.card.term, definition: d.card.definition, hint: d.topic, options: d.q?.options, answer: d.q?.answer }))} onRate={onRate} onEnd={() => setQueue(null)} endLabel="Concluir" />
+        <Deck items={queue.map((d) => ({ id: d.id, term: ptpt(d.card.term), definition: ptpt(d.card.definition), hint: d.topic, options: d.q?.options.map(ptpt), answer: d.q?.answer, lang: trailLang(d.topic) ?? undefined }))} onRate={onRate} onEnd={() => setQueue(null)} endLabel="Concluir" />
       </div>
     );
 

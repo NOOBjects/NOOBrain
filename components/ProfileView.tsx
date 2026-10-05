@@ -3,24 +3,34 @@
 import type { User } from "@supabase/supabase-js";
 import { useState } from "react";
 import { Avatar } from "./Avatar";
+import { BadgeGrid } from "./Badges";
+import { CategoryIcon } from "./CategoryIcon";
+import { Idea, Trophy, Up } from "./Icons";
 import { ProfileForm } from "./ProfileForm";
+import { categoryOf } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import type { Profile } from "@/lib/profile";
+import { currentStreak, dueCards, goalOf, todayXp } from "@/lib/store";
 import type { State } from "@/lib/types";
 
 const since = (iso: string) => new Date(iso).toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
-/** O perfil da pessoa: avatar, nome, estatísticas e editar. XP e sequência vêm do estado local (sempre em dia). */
-export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, onIdeas, onSignOut, notify }: {
-  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; onIdeas: () => void; onSignOut: () => void; notify: (m: string) => void;
+/** O perfil da pessoa: identidade, números, meta de hoje, mapa dos temas e conquistas. XP e sequência vêm do estado local (sempre em dia). */
+export function ProfileView({ user, profile, state, onSaved, onSettings, onRanking, onIdeas, onSignOut, notify, onOpenTrail }: {
+  user: User; profile: Profile; state: State; onSaved: () => void; onSettings: () => void; onRanking: () => void; onIdeas: () => void;
+  onSignOut: () => void; notify: (m: string) => void; onOpenTrail: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const done = state.trails.filter((t) => t.concepts.length > 0 && t.done >= t.concepts.length).length;
   const mastered = Object.values(state.cards).filter((c) => c.box >= 4).length;
   const kept = Object.values(state.stats ?? {}).filter((c) => c.r7 !== undefined);
   const retention = kept.length ? Math.round((kept.reduce((n, c) => n + (c.r7 ?? 0), 0) / kept.length) * 100) : null;
-  const stats: [string, number][] = [
-    ["XP", state.xp], ["Sequência", state.streak], ["Temas concluídos", done], ["Cartões dominados", mastered], ["XP da semana", profile.week_xp],
+  const goal = goalOf(state);
+  const today = todayXp(state);
+  const due = dueCards(state);
+  const stats: [string, number | string][] = [
+    ["XP", state.xp], ["Dias seguidos", currentStreak(state)], ["Temas concluídos", done], ["Cartões dominados", mastered],
+    ["XP da semana", profile.week_xp], ["Retenção aos 7 dias", retention === null ? "—" : `${retention}%`],
   ];
 
   if (editing) {
@@ -32,6 +42,17 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
     );
   }
 
+  async function share() {
+    const url = `${SITE_URL}/u/${profile.username}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: `@${profile.username} no NOOBrain`, url }); return; }
+      await navigator.clipboard.writeText(url);
+      notify("Link do perfil copiado");
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") notify(url);
+    }
+  }
+
   return (
     <div className="profile">
       <div className="profile-top">
@@ -41,24 +62,60 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, onRanki
           <div className="sub">@{profile.username}</div>
           <div className="sub small">Membro desde {since(profile.created_at)}</div>
         </div>
-        <button type="button" className="btn soft sm" onClick={onSettings}><span className="face">Definições</span></button>
       </div>
       {profile.bio && <p className="sub">{profile.bio}</p>}
+      <div className="pair">
+        <button type="button" className="btn sm" onClick={() => setEditing(true)}><span className="face">Editar perfil</span></button>
+        <button type="button" className="btn soft sm" onClick={onSettings}><span className="face">Definições</span></button>
+      </div>
+
+      <div className="pane tint goal-box"><div className="in">
+        <div className="row-between"><span className="eyebrow">Meta de hoje</span><span className="eyebrow">{Math.min(today, goal)} / {goal} XP</span></div>
+        <div className="bar ch" role="progressbar" aria-label="Meta de hoje" aria-valuenow={Math.min(today, goal)} aria-valuemin={0} aria-valuemax={goal}>
+          <i className={today >= goal ? "met" : undefined} style={{ transform: `scaleX(${Math.min(1, today / goal)})` }} />
+        </div>
+        <p className="sub small">{today >= goal ? "Meta cumprida. Boa!" : `Faltam ${goal - today} XP. Uma lição ou uns cartões chegam.`}</p>
+      </div></div>
+
       <div className="stats-grid">
         {stats.map(([label, n]) => (
           <div key={label} className="pane"><div className="in stat-box"><span className="stat-n">{n}</span><span className="eyebrow">{label}</span></div></div>
         ))}
       </div>
-      {retention !== null && <p className="sub small">Retenção aos 7 dias: {retention}% ({kept.length} {kept.length === 1 ? "conceito" : "conceitos"})</p>}
-      <div className="acts">
-        <button type="button" className="btn block" onClick={() => setEditing(true)}><span className="face">Editar perfil</span></button>
-        <button type="button" className="btn block" onClick={async () => {
-          try { await navigator.clipboard.writeText(`${SITE_URL}/u/${profile.username}`); notify("Link do perfil copiado"); } catch { notify(`${SITE_URL}/u/${profile.username}`); }
-        }}><span className="face">Partilhar perfil</span></button>
-        <button type="button" className="btn block" onClick={onRanking}><span className="face">Ranking</span></button>
-        <button type="button" className="btn block" onClick={onIdeas}><span className="face">Ideias</span></button>
-        <button type="button" className="btn soft block" onClick={onSignOut}><span className="face">Terminar sessão</span></button>
+
+      {state.trails.length > 0 && (
+        <section aria-labelledby="map-t">
+          <div className="row-between"><h2 id="map-t" className="h-sec">Os teus temas</h2><span className="eyebrow">{state.trails.length}</span></div>
+          <ul className="topic-map">
+            {state.trails.map((t) => {
+              const total = t.concepts.length || 1;
+              const pct = Math.round((t.done / total) * 100);
+              const n = due.filter((d) => d.id.startsWith(`${t.id}:`)).length;
+              return (
+                <li key={t.id}>
+                  <button type="button" className={`map-node pane${t.done >= total ? " is-done" : ""}${t.archived ? " is-archived" : ""}`} onClick={() => onOpenTrail(t.id)}>
+                    <span className="in">
+                      <span className="map-top"><span className="cat-ico ch" aria-hidden="true"><CategoryIcon c={categoryOf(t.key, t.category)} /></span>{n > 0 && <span className="map-due" title={`${n} para rever`}>{n}</span>}</span>
+                      <b>{t.topic}</b>
+                      <span className="bar ch" aria-hidden="true"><i style={{ transform: `scaleX(${pct / 100})` }} /></span>
+                      <span className="sub small">{t.archived ? "Arquivada · " : ""}{t.done} de {t.concepts.length}</span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      <BadgeGrid state={state} />
+
+      <div className="menu-list">
+        <button type="button" className="menu-row" onClick={onRanking}><Trophy /><span>Ranking da semana</span><i aria-hidden="true">›</i></button>
+        <button type="button" className="menu-row" onClick={onIdeas}><Idea /><span>Ideias</span><i aria-hidden="true">›</i></button>
+        <button type="button" className="menu-row" onClick={() => void share()}><Up /><span>Partilhar perfil</span><i aria-hidden="true">›</i></button>
       </div>
+      <button type="button" className="linkbtn center-self" onClick={onSignOut}>Terminar sessão</button>
     </div>
   );
 }

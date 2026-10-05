@@ -1,3 +1,4 @@
+import { ptpt } from "@/lib/ptpt";
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { allow, clientKey } from "@/lib/limit";
 import { requireUser, spend } from "@/lib/quota";
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
     ].join("\n");
     try {
       const out = await generateJson<{ correct: boolean; feedback: string }>(judge, JUDGE);
-      return Response.json({ correct: out.correct === true, feedback: clean(out.feedback, 400) });
+      return Response.json({ correct: out.correct === true, feedback: ptpt(clean(out.feedback, 400)) });
     } catch (e) {
       return aiErrorResponse(e);
     }
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     const out = await generateJson<{ answer: string }>(prompt, SCHEMA);
     const answer = clean(out.answer, 1200);
     if (!answer) return fail("Não consegui responder. Tenta reformular.", 502);
-    return Response.json({ answer });
+    return Response.json({ answer: ptpt(answer) });
   } catch (e) {
     return aiErrorResponse(e);
   }

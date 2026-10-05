@@ -11,24 +11,28 @@ As regras gerais estão no `CLAUDE.md`.
 **Como aplicar o código das Fases 9 a 11.** Cada uma traz um diff já testado numa cópia do projeto (TypeScript, ESLint e `next build` sem erros; `git apply` funciona neste repositório com os fins de linha do Windows). Copiar o bloco para um ficheiro fora do projeto (ex.: `%TEMP%\fase9.diff`), correr `git apply --check <ficheiro>` e depois `git apply <ficheiro>`. Se o `--check` falhar (o código mudou entretanto), aplicar à mão: o diff diz linha a linha o que sai (`-`) e o que entra (`+`). Os diffs dependem uns dos outros: 9 → 10 → 11.
 
 ## Já feito
-Identidade e mascote · tema → trilha com IA (Groq gratuito) e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e lembretes push com o app fechado · temas parecidos, cache e catálogo partilhado (9 temas, 72 lições) · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT, captcha, idade mínima de 13 anos · perfil com @nome e avatar, definições, apagar conta · Explorar, landing e páginas de tema para o Google (sitemap enviado) · IA só com conta, cotas diárias, cabeçalhos de segurança · ranking semanal e perfil público · mural de ideias com votos · animações leves · ilha de menu, responsivo, tema claro e escuro · privacidade e termos · ícones, manifesto, robots e sitemap · funções em Paris (`cdg1`) · aviso no login quando o app abre dentro de outra app · Novidades, boas-vindas à beta e avisos de atualização (Fase 11) · ensinar de facto II (Fase 13: aquecimento, completar frase, ordenar passos, resposta curta corrigida pela IA, exemplos que se apagam, teste de nível, prompts em PT-PT) · ensinar de facto I (Fase 12: corrigir o erro, domínio 2/3, perguntas falhadas na revisão, revisão intercalada, retenção aos 7 dias) · cada ecrã com endereço e "voltar" sem passar pelo login (Fase 10) · correções da auditoria (Fase 9: Rever no iOS 16, temas impróprios recusados, lição partilhada protegida).
+**0.10 (05/10/2026):** meta diária com anel no cabeçalho, conquistas (12) com janela e confettis, desafio do dia, ligar pares no teste, dia de folga na sequência, revisão dá XP e conta para a sequência, arquivar trilhas, 404, modo sem ligação (service worker + faixa + sincroniza ao voltar), ecrãs carregados só quando abertos, transições entre ecrãs, mascote que pestaneja, Explorar com categorias/ordem/nível, "Já existe" e "Querias dizer…" no Novo tema, Open Library nas fontes, mapa dos temas e conquistas no Perfil, ouvir a explicação e a pronúncia (voz do aparelho), visita guiada, pedido de opinião (tabela `feedback`), painel de administração (`ADMIN_IDS`), revisão ortográfica PT-PT (`lib/ptpt.ts`), XP de repetição limitado a 1×/dia por conceito, toast e boas-vindas redesenhados · Identidade e mascote · tema → trilha com IA (Groq gratuito) e fontes abertas · lição guiada com tutor · revisão espaçada com selo, contador e lembretes push com o app fechado · temas parecidos, cache e catálogo partilhado (9 temas, 72 lições) · conta Supabase (Paris) com e-mail e Google, e-mails PT-PT, captcha, idade mínima de 13 anos · perfil com @nome e avatar, definições, apagar conta · Explorar, landing e páginas de tema para o Google (sitemap enviado) · IA só com conta, cotas diárias, cabeçalhos de segurança · ranking semanal e perfil público · mural de ideias com votos · animações leves · ilha de menu, responsivo, tema claro e escuro · privacidade e termos · ícones, manifesto, robots e sitemap · funções em Paris (`cdg1`) · aviso no login quando o app abre dentro de outra app · Novidades, boas-vindas à beta e avisos de atualização (Fase 11) · ensinar de facto II (Fase 13: aquecimento, completar frase, ordenar passos, resposta curta corrigida pela IA, exemplos que se apagam, teste de nível, prompts em PT-PT) · ensinar de facto I (Fase 12: corrigir o erro, domínio 2/3, perguntas falhadas na revisão, revisão intercalada, retenção aos 7 dias) · cada ecrã com endereço e "voltar" sem passar pelo login (Fase 10) · correções da auditoria (Fase 9: Rever no iOS 16, temas impróprios recusados, lição partilhada protegida).
 
-## Estado atual e o que falta (atualizado a 05/10/2026)
-Quem continuar (outro modelo, na nuvem): ler esta secção primeiro. O trabalho local do Rodrigo parou aqui.
+## Estado atual e o que falta (atualizado a 05/10/2026, versão 0.10)
+Quem continuar: ler esta secção primeiro.
 
-**Publicado na `main`** (versão 0.9.5 em `lib/changelog.ts`):
-- Fases 9 a 13 (ver "Já feito"), mais os pedidos do Rodrigo depois de as testar: "voltar" que nunca regressa ao login nem ao perfil (`App.tsx`: marca `nb` no histórico e recarrega ao voltar da cache do navegador); mascote só onde reage, ícones grandes (`HeroIco`) nos outros ecrãs; boas-vindas da beta na cor da marca; Novidades por categorias (Novo / Melhorias / Corrigido) com as regras no `AGENTS.md`; teste com correção legível (ícone de certo ou errado, "Resposta certa" e "Porquê" separados); ordenar passos **arrastando** pela pega (rato, dedo ou setas do teclado); aquecimento que diz logo se acertaste.
-- Migrações já aplicadas no Supabase: `reports_user`, `novidades` (`push_subscriptions.news_sent`), `diagnostic` (`catalog_trails.diagnostic`).
+**Publicado** (versão 0.10 em `lib/changelog.ts`): Fases 14, 15 e quase todas as 16 a 18 (ver "Já feito"), mais a revisão visual pedida pelo Rodrigo (aviso rápido acima do menu e na cor da marca, boas-vindas com margens e cores certas também no escuro, botões pequenos que não existiam no CSS, hierarquia do Perfil).
+- Migrações aplicadas no Supabase: `catalog_trails.category` (com `check`), tabela `feedback` (RLS: só inserir a própria), `reports.resolved`. As escritas de dados no catálogo foram bloqueadas a partir da sessão na nuvem; por isso a categoria dos 9 temas iniciais está no código (`lib/categories.ts`, `KNOWN`). Pode ficar assim.
+- Testado num Supabase falso local (`/tmp`, não está no Git): entrar, boas-vindas, visita guiada, Explorar com categorias, lição inteira (aquecimento, cartões, 5 tipos de pergunta), resultado com confettis e conquistas, meta diária, desafio do dia, revisão, "Já existe", sem ligação, 404, Perfil, Definições, Admin, em claro/escuro, telemóvel e computador. **Não testado com a IA** (sem chave na sessão): "Querias dizer…", categoria escolhida pela IA, correção da resposta curta e tutor.
 
-**Pendente, por ordem**
-1. **hCaptcha (o Rodrigo pediu para o tirar).** O código já está pronto num commit **só no computador dele** e no ramo `sem-captcha` do GitHub (`components/Account.tsx` sem captcha, `.env.example`, changelog). **Não publicar na `main` antes de o Rodrigo desligar o captcha no Supabase** (Authentication → Attack Protection → "Enable Captcha protection"); senão ninguém consegue entrar. Depois: juntar o ramo à `main` (a entrada do changelog tem de passar a 0.9.6, por cima da 0.9.5), `npm run build`, publicar, e com o ok do Rodrigo `npm uninstall @hcaptcha/react-hcaptcha`. Sem captcha, contas falsas em massa são o risco: vigiar `auth.users` nos primeiros dias; as cotas da IA e o limite por IP já limitam o custo.
-2. **Catálogo: lições refeitas com os campos novos** (aquecimento, completar frase, ordenar, resposta curta, exemplos que se apagam, teste de nível). Estado a 05/10 ao fim do dia: 7 temas completos; **Primeiros socorros** com 6 de 8 lições novas; **Teoria das cores** sem nenhuma (e sem `diagnostic`). A IA devolveu 502 várias vezes no fim (provável limite diário do Groq gratuito: esperar). Só se corre no computador do Rodrigo (`SEED_TOKEN` e chave secreta só existem no `.env.local`), com `npm run dev` noutro terminal: `npm run seed:catalog -- --refresh "--only=Primeiros socorros,Teoria das cores"`. Verificar com SQL: por tema, lições com `lesson ? 'warmup'` = nº de conceitos e `diagnostic is not null`. Enquanto faltar, o app funciona: as lições antigas não têm os campos novos e mostram-se como antes.
-3. **Conferir no site** as linhas novas da tabela "Verificação" (Fases 9 a 13). Nada disto foi testado com conta no navegador (o captcha impedia o login em `localhost`; sem captcha, fica fácil): lição completa com aquecimento, teste com os 4 tipos de pergunta, "Quase lá" e repetir o teste, perguntas falhadas na revisão, retenção no Perfil, teste de nível ao criar tema, "voltar" depois de entrar com o Google e depois de criar o perfil.
-4. **Pequenos ajustes de qualidade a ver com o Rodrigo**: (a) algumas lições geradas trazem ortografia antiga ou brasileira ("electrones", "factos" vs "fatos"); considerar uma passagem de revisão ortográfica PT-PT depois de a IA responder; (b) cada tentativa falhada do teste dá 5 XP por certa, o que se pode repetir só por XP (limitar a 1.ª tentativa por conceito e sessão, se for abuso); (c) a mesma pergunta de "ordenar" repete-se em vários conceitos do mesmo tema (pedir à IA passos específicos do conceito); (d) o "Quase lá" usa o mascote: trocar por ícone se o Rodrigo quiser menos mascote.
-5. **Roteiro: Fases 14 a 18** (por baixo). Antes de executar cada uma, detalhá-la com código testado, como foi feito nas Fases 9 a 11.
-6. **Rodrigo**: desenhos (ícones das categorias, olhos e acessórios do mascote, emblema "Feito com IA · NOOBjects"); link do Ko-fi; testar no telemóvel (Google no Android e no iPhone, app instalado). **O Rodrigo já confirmou as Redirect URLs do Supabase** (`https://noobrain.vercel.app/**` e `http://localhost:*/**`).
+**Pendente: o que precisa do Rodrigo**
+1. **Painel de administração**: pôr na Vercel a variável `ADMIN_IDS` (Settings → Environment Variables) com o id da conta dele (Supabase → Authentication → Users → copiar o UID), e publicar de novo. Aparece em Definições → Administração.
+2. **Desenhos**: ícones das categorias (os atuais em `Icons.tsx` são provisórios: Flask, Column, Speech, Palette, Chip, Cross, Coin), olhos e acessórios do mascote (criador de personagem), emblema "Feito com IA · NOOBjects".
+3. **Ko-fi**: o link vai para `lib/config.ts` → `KOFI_URL` e substitui o "Fundraising em breve".
+4. **Catálogo**: refazer as lições de Teoria das cores e as 2 que faltam de Primeiros socorros (`npm run seed:catalog -- --refresh "--only=Primeiros socorros,Teoria das cores"` no computador dele). Enquanto não, funcionam como lições antigas.
+5. **Voz a falar (repetir a frase)**: usa o reconhecimento de voz do Chrome, que envia o áudio para a Google. Há menores no app: decidir antes; exige mudar a Privacidade e `microphone=(self)` em `next.config.ts`.
+6. **E-mail de boas-vindas**: precisa de `nodemailer` (pacote novo) ou de domínio próprio para o Resend.
+7. **Testar no telemóvel**: ouvir (vozes pt-PT variam por aparelho), sem ligação (app instalado, modo avião), confettis com a CPU lenta.
 
-**Pedidos do Rodrigo ainda sem fase** (anotados em "Ideias para depois"): imagens, voz e vídeo nas lições. A voz já está na Fase 17 (línguas); imagens, vídeo e esquemas mais ricos estão em "Ideias para depois".
+**Pendente: código (sem bloqueio)**
+- Conversa guiada em inglês no tutor (Fase 17.3) e esquemas desenhados nas lições (Fase 17.4, `Figure.tsx`): precisam de testar a IA com chave.
+- Criador de personagem (Fase 16.1): espera pelos desenhos.
+- Sem ligação: os ecrãs nunca abertos antes não estão guardados; e a sessão do Supabase expira ao fim de 1 h sem rede (o app pede para entrar). Aceite na beta.
 
 ## Registo de alterações (changelog)
 Vive em `lib/changelog.ts` e aparece no app em Novidades.
@@ -100,45 +104,8 @@ Verificado: publicação na Vercel, erros do servidor dos últimos 7 dias, base 
 
 ---
 
-## Roteiro: Fases 12 a 18
-Tudo o que estava em "Ideias para depois" e nas ideias de didática, organizado por ordem de impacto: primeiro o que faz o app ensinar melhor, depois o hábito, depois o resto. **Antes de executar cada uma, o Opus detalha-a com código testado, como as Fases 9 a 11.** O Rodrigo pode mudar a ordem.
-
-### Fase 14: hábito (meta diária, conquistas, celebrações, arquivo, 404, sem ligação)
-1. **Meta diária de XP** (`lib/types.ts`, `App.tsx`, `Settings.tsx`): `State.goal` (10, 30 ou 50; por omissão 30) e `State.today: { day, xp }`, somado em cada ganho e reiniciado noutro dia. No cabeçalho, anel de progresso à volta do XP (SVG, `--brand`; `--ok` só quando cumprida). Ao cumprir: celebração e "Meta de hoje cumprida". Definições → "Meta diária". O lembrete das 19h diz quanto falta.
-2. **Conquistas** (novo `lib/badges.ts`, `ProfileView.tsx`): lista fixa (`id`, nome, descrição, ícone, `test(state)`): primeiro conceito, primeira trilha concluída, 3, 7 e 30 dias seguidos, 100 cartões revistos (novo contador `State.reviewed`), 5 temas, 1000 XP. `State.badges: Record<id, data>`. O `App` verifica depois de cada mudança e mostra a conquista nova numa janela (`<dialog>`, como as boas-vindas). Perfil: grelha com as ganhas e as por ganhar (cinzentas, com a dica).
-3. **Celebrações** (`globals.css`): confettis só com CSS (pseudo-elementos, `transform` e `opacity`; cores `--brand`, `--sun`, `--brand-soft`) ao concluir conceito, trilha, meta e conquista. Desligados com "reduzir movimento".
-4. **Arquivar trilhas** (`App.tsx`, `lib/store.ts`): `Trail.archived?: boolean`; "Arquivar" ao lado de "Apagar esta trilha". As arquivadas saem dos chips e da revisão; "Arquivadas (N)" no fim dos chips para as reabrir.
-5. **Página 404** (`app/not-found.tsx`; ler o guia do Next 16): mascote triste, "Esta página não existe", botão "Ir para o início".
-6. **Sem ligação e modo offline** (`public/sw.js`, `App.tsx`, `lib/useSync.ts`): registar o service worker sempre (hoje só com lembretes). Páginas: rede primeiro e cópia guardada se falhar; `/_next/static/`: cache primeiro (os nomes já mudam a cada versão). Aviso "Sem ligação: o progresso fica guardado e sobe quando voltares" (`online`/`offline`); botões da IA desativados sem ligação; ao voltar, sincronizar logo. Teste: modo avião, abrir o app, rever cartões, voltar online e ver o progresso na nuvem.
-7. **Desempenho da página inicial**: o Lighthouse (telemóvel) dá 83 e a meta é 90. Medir de novo depois das Fases 10 e 11 e, se faltar, carregar só quando são precisos os ecrãs que quem chega não usa (`next/dynamic` para `Account`, `Ideas`, `Ranking`, `Settings` e `News`).
-
-### Fase 15: Explorar e criação de temas
-1. **Categorias** (migração, `app/api/trail`, `Explore.tsx`): `alter table public.catalog_trails add column category text not null default 'outros' check (category in ('ciencias','historia','linguas','artes','tecnologia','saude','dinheiro','outros'));`. A IA escolhe a categoria (`enum` no esquema); os 9 temas atuais acertam-se com `update`. Explorar: chips por categoria, filtro de nível, "Populares" / "Novos" e ícone por categoria (desenhos do Rodrigo, 24 px, traço como os do `Icons.tsx`).
-2. **Desambiguação com escolhas** (`app/api/trail`, `NewTopic.tsx`): com `needs_context`, a IA devolve também `options` (2 a 4 significados, ex.: "Mercúrio (planeta)", "Mercúrio (elemento químico)"), mostrados como chips "Querias dizer…"; tocar gera essa trilha.
-3. **"Já existe"** (`NewTopic.tsx`): ao escrever, procurar no catálogo (lista carregada uma vez) com `sameTopic` e mostrar "Já existe: X. Começar já", sem IA e instantâneo.
-4. **Mais fontes** (`lib/sources.ts`): Open Library (gratuita, sem chave) quando o tema é um livro ou autor: `https://openlibrary.org/search.json?q=<tema>&limit=1` → fonte com título, autor e link. Pesquisa na web citada só se houver um serviço gratuito sem cartão: pesquisar antes de prometer.
-5. **Mapa dos temas** (Perfil): todas as trilhas como nós (concluídas, em curso, cartões por rever), para ver de relance o que se sabe. Um mapa de dependências entre conceitos só se a IA o der com qualidade: testar com 3 temas antes.
-
-### Fase 16: identidade (criador de personagem, emblema, animações)
-1. **Criador de personagem** (migração, `Mascot.tsx`, `lib/mascot-paths.ts`, `ProfileForm.tsx`): `alter table public.profiles add column look jsonb not null default '{}'` com `check` dos campos `c` (cor, 0 a 7), `e` (olhos, 0 a 3) e `a` (acessório, 0 a 5), e `grant update (look) on public.profiles to authenticated`. O Rodrigo desenha os olhos e os acessórios em SVG, no `viewBox` do mascote. Editor com separadores Cor / Olhos / Acessório e pré-visualização. Os acessórios desbloqueiam com XP (100, 500, 1000, 2500, 5000) ou conquistas (Fase 14); os bloqueados mostram um cadeado e a dica.
-2. **Emblema "Feito com IA · NOOBjects"** (novo `components/MadeWithAI.tsx`): desenho do Rodrigo (SVG, claro e escuro); substitui o chip do Sobre e a linha do rodapé e liga a "Como é feito" no Sobre.
-3. **Animações sofisticadas**: transições entre ecrãs com a View Transitions API (`document.startViewTransition` dentro do `navigate` da Fase 10, só se existir e sem "reduzir movimento"); o nó da trilha "voa" para o título da lição (`view-transition-name`); mascote reativo (pisca, olha para o botão em foco, salta nas celebrações); micro-interações em cartões e respostas. Só `transform` e `opacity`; testar com a CPU 4x mais lenta.
-
-### Fase 17: línguas com voz e esquemas nas lições
-1. **Ouvir** (novo `lib/speech.ts`): `speechSynthesis` do navegador (gratuito, sem chave), voz `en-GB` ou `en-US`. A trilha ganha `lang` (a IA indica a língua estudada). Botão de altifalante nos cartões e frases dessa língua; pergunta "Ouve e escolhe".
-2. **Repetir a frase**: `SpeechRecognition` (Chrome, Edge e Safari) compara o que disseste com a frase (sem pontuação nem maiúsculas, até 20% de diferença); onde não existir, o botão não aparece. Exige mudar `microphone=()` para `microphone=(self)` em `next.config.ts` e acrescentar à Privacidade que, no Chrome, o reconhecimento de voz é feito por servidores da Google (confirmar a documentação antes; há menores no app).
-3. **Conversa guiada** (`/api/tutor`, modo `conversa`): diálogo curto em inglês sobre a lição, com correções. Conta na cota do tutor.
-4. **Esquemas** (novo `components/Figure.tsx`): a lição pode trazer `diagram: { kind: "passos" | "ciclo" | "comparar", labels: string[] }` e o app desenha-o com modelos SVG fixos, na identidade do app. A IA não gera SVG; o esquema não repete o texto por baixo (Mayer).
-
-### Fase 18: bastidores (administração, opinião, tutorial, e-mails)
-1. **Painel de administração** (vista `admin`, só para os ids em `ADMIN_IDS`, variável só do servidor; o app pergunta a `/api/admin/me`). Rotas `/api/admin/*` com a chave secreta:
-   - Ideias: todas, com estado e resposta editáveis; ao mudar o estado, aviso push ao autor ("A tua ideia «X» passou a Planeada"), se tiver avisos ligados (novo tipo `ideas` em `notify`, ligado por omissão);
-   - Erros reportados: lista e "resolvido" (`alter table public.reports add column resolved boolean not null default false`);
-   - Números: contas, ativas nos últimos 7 dias, pedidos à IA hoje e por tipo, temas e lições no catálogo, aparelhos com avisos, média da opinião, retenção aos 7 dias (Fase 12);
-   - Catálogo: apagar um tema impróprio.
-2. **Opinião dentro do app**: depois da 3.ª lição e de cada trilha concluída, cartão "Como está a correr?" (1 a 5 e texto opcional) → tabela `feedback` (RLS: inserir só o próprio; ler só pela rota de admin).
-3. **Tutorial**: depois de criar o perfil, 3 passos numa janela (Trilha, Lição, Rever), com "Saltar"; `State.tour = true`.
-4. **E-mail de boas-vindas e Resend**: em espera. O Resend só envia para outras pessoas com um domínio próprio verificado (confirmar nos termos atuais) e a decisão é não ter domínio. Alternativa: o SMTP do Gmail que o Supabase já usa, com o pacote `nodemailer` (pacote novo: pedir ok ao Rodrigo).
+## Roteiro
+As Fases 12 a 18 estão feitas (ver "Já feito"), menos o que está em "Pendente". Próximas ideias em "Ideias para depois".
 
 ## Notas de pesquisa: didática (ensinar DE FACTO)
 Pesquisa feita a 04/10/2026; é a base das Fases 12, 13 e 17. Cada ponto tem a fonte; o que não tem fonte é hipótese e está marcado.
@@ -162,6 +129,7 @@ Os resumos vêm de artigos e sínteses, não li os livros completos (Make It Sti
 |---|---|---|
 | todas | `npm run build` e `npm run lint` | sem `error` |
 | todas | `get_advisors` security | só os aceites: palavras-passe vazadas, `bump_catalog_use` e "RLS sem política" em `ai_daily`, `ai_usage` e `reports` (tabelas internas) |
+| todas | `npm run check:topic` e `npm run check:ptpt` | tudo `ok` |
 | 9 | Rever com cartões em Safari 16 (iPhone com iOS 16 ou simulador) | abre a lista e a sessão |
 | 9 | ecrã de entrada no app instalado no iPhone | sem aviso de "outra app" |
 | 9 | link aberto numa mensagem do Instagram (Android) | aviso; "Abrir no Chrome" abre o Chrome |
@@ -188,6 +156,15 @@ Os resumos vêm de artigos e sínteses, não li os livros completos (Make It Sti
 | 13 | resposta curta sem ligação ou com a cota esgotada | "Sem correção" e conta como certa |
 | 13 | criar tema novo no Iniciante | "Queres um teste rápido?"; 3 de 3 sugere o Intermediário |
 | 13 | lição antiga (sem campos novos) | abre como antes, sem erros |
+| 0.10 | ganhar XP até à meta | anel do cabeçalho enche; ao cumprir: toast, confettis e anel amarelo |
+| 0.10 | primeiro conceito dominado | janela "Conquista nova"; Perfil mostra a conquista |
+| 0.10 | 2 conceitos concluídos | cartão "Desafio do dia" na Trilha; 5 perguntas; XP a dobrar; uma vez por dia |
+| 0.10 | falhar exatamente 1 dia | sequência continua e toast do dia de folga (1 por semana) |
+| 0.10 | modo avião com o app aberto | faixa amarela "Sem ligação"; ao voltar, o progresso sobe |
+| 0.10 | `/qualquer-coisa` | página 404 com o mascote triste |
+| 0.10 | tema ambíguo ("Mercúrio") | mensagem e chips "Querias dizer…"; tocar cria essa trilha |
+| 0.10 | Novo tema "sistema solar" | "Já existe uma trilha pronta" e "Começar já" |
+| 0.10 | `ADMIN_IDS` com o id do Rodrigo | Definições → Administração abre o painel |
 | sempre | janela anónima no site | só o ecrã de entrada, com Beta e temas |
 | sempre | conta nova | 0 XP, sem trilhas, "Cria o teu perfil" com a caixa dos 13 anos |
 | sempre | `update profiles set xp = 999` pelo navegador | recusado |
@@ -224,9 +201,7 @@ Ideias novas entram aqui numa linha; antes de as executar, detalhar com código 
 - **Voz além das línguas**: ler a lição em voz alta (`speechSynthesis`, grátis), ditar perguntas ao tutor (`SpeechRecognition`), modo "ouvir enquanto andas".
 
 **Ensino**
-- Mais exercícios de arrastar: ligar pares (termo ↔ definição), etiquetar um esquema, agrupar por categoria.
-- "Desafio do dia": 5 perguntas misturadas de tudo o que já aprendeste (intercalar), com XP a dobrar.
-- Congelar a sequência (um dia de folga por semana) para não punir a vida real.
+- Mais exercícios de arrastar: etiquetar um esquema, agrupar por categoria (ligar pares já existe).
 - Cartões próprios: criar e editar cartões; exportar para Anki.
 - Trilha a partir de um texto, PDF ou ligação colados pela pessoa (com cota própria e verificação de adequação).
 - Lição de "revisão final" com perguntas de todos os conceitos da trilha, ligada à retenção (Fase 12).
@@ -237,7 +212,6 @@ Ideias novas entram aqui numa linha; antes de as executar, detalhar com código 
 - Metas semanais partilháveis no perfil público.
 
 **Qualidade e confiança**
-- Revisão ortográfica PT-PT depois de a IA responder; lista de brasileirismos a evitar nos prompts.
 - Validar o XP no servidor (por lição concluída) se o ranking ganhar peso.
 - Painel de qualidade: lições mais reportadas ("Reportar erro"), com botão para as refazer.
 - Acessibilidade: tamanho da letra, fonte para dislexia, auditoria com leitor de ecrã, contraste em ambos os temas.

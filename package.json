@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed:catalog": "node --env-file=.env.local scripts/seed-catalog.mjs",
-    "check:topic": "node --test lib/topic.test.ts"
+    "check:topic": "node --test lib/topic.test.ts",
+    "check:ptpt": "node --test lib/ptpt.test.ts"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^2.2.0",

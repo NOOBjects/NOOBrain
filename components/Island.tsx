@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "./Icons";
 
 export type IslandItem = { id: string; label: string; icon: ReactNode; badge?: number; onClick: () => void };
@@ -11,6 +11,19 @@ export type IslandItem = { id: string; label: string; icon: ReactNode; badge?: n
  */
 export function Island({ items, current }: { items: IslandItem[]; current: string }) {
   const [hidden, setHidden] = useState<null | "scroll" | "manual">(null);
+  const wrap = useRef<HTMLDivElement>(null);
+
+  // Diz ao resto do app quanto espaço a ilha ocupa em baixo (--dock), para os avisos rápidos ficarem sempre por cima dela.
+  useEffect(() => {
+    const root = document.documentElement.style;
+    const el = wrap.current?.firstElementChild;
+    if (!el || hidden) { root.setProperty("--dock", "0px"); return; }
+    const set = () => root.setProperty("--dock", `${Math.ceil(el.getBoundingClientRect().height) + 12}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => { ro.disconnect(); root.setProperty("--dock", "0px"); };
+  }, [hidden]);
 
   useEffect(() => {
     let last = window.scrollY;
@@ -34,7 +47,7 @@ export function Island({ items, current }: { items: IslandItem[]; current: strin
 
   return (
     <>
-      <div className={`island-wrap${hidden ? " is-hidden" : ""}`} inert={hidden ? true : undefined} onFocus={() => setHidden((h) => (h === "scroll" ? null : h))}>
+      <div ref={wrap} className={`island-wrap${hidden ? " is-hidden" : ""}`} inert={hidden ? true : undefined} onFocus={() => setHidden((h) => (h === "scroll" ? null : h))}>
         <div className="island pane"><nav className="in" aria-label="Menu principal">
           {items.map((it) => (
             <button key={it.id} type="button" className="isl ch" aria-label={it.label} aria-current={current === it.id ? "page" : undefined} onClick={it.onClick}>

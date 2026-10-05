@@ -12,7 +12,7 @@ type Idea = {
 };
 type Tab = "top" | "new" | "done";
 
-const TABS: [Tab, string][] = [["top", "Mais votadas"], ["new", "Novas"], ["done", "Feitas"]];
+const TABS: [Tab, string][] = [["top", "Populares"], ["new", "Novas"], ["done", "Feitas"]];
 const STATUS: Record<string, string> = { recebida: "Recebida", planeada: "Planeada", em_curso: "Em curso", feita: "Feita", recusada: "Recusada" };
 
 /** Mural público de ideias: toda a gente vê, vota e partilha; a NOOBjects responde e muda o estado no painel do Supabase. */

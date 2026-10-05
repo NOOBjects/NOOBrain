@@ -5,19 +5,37 @@ import type { Concept, Lesson, Question, Source, Trail } from "./types";
 
 // Chamadas às rotas do servidor. Aqui ficam os resultados guardados no estado para não gastar a cota gratuita da IA à toa.
 
-async function post<T>(url: string, body: unknown): Promise<T> {
+/** Erro de uma rota do servidor: a mensagem para mostrar e o resto da resposta (ex.: `options` de um tema ambíguo). */
+export class ApiError extends Error {
+  constructor(message: string, public data: Record<string, unknown> = {}) {
+    super(message);
+  }
+}
+
+/** Pedido a uma rota do app com a sessão da pessoa. */
+export async function call<T>(url: string, body?: unknown): Promise<T> {
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
-  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json", ...(token && { authorization: `Bearer ${token}` }) }, body: JSON.stringify(body) });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { ...(body !== undefined && { "content-type": "application/json" }), ...(token && { authorization: `Bearer ${token}` }) },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError("Sem ligação. Verifica a internet e tenta outra vez.");
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Algo correu mal. Tenta outra vez.");
+  if (!res.ok) throw new ApiError(data.error ?? "Algo correu mal. Tenta outra vez.", data);
   return data as T;
 }
+const post = <T,>(url: string, body: unknown) => call<T>(url, body);
 
 export const newId = () => `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 
 export async function createTrail(topic: string, level: string): Promise<Trail> {
-  const d = await post<{ topic: string; level: string; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null }>("/api/trail", { topic, level });
-  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, concepts: d.concepts, sources: d.sources, done: 0, diagnostic: d.diagnostic ?? undefined };
+  const d = await post<{ topic: string; level: string; category?: string; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null }>("/api/trail", { topic, level });
+  return { id: newId(), topic: d.topic, key: topicKey(d.topic), level: d.level, category: d.category, concepts: d.concepts, sources: d.sources, done: 0, diagnostic: d.diagnostic ?? undefined };
 }
 
 const pending = new Map<string, Promise<void>>();

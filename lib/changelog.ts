@@ -6,6 +6,39 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10",
+    date: "2026-10-05",
+    title: "Hábitos, conquistas e um app mais polido",
+    aviso: true,
+    novo: [
+      "Meta diária de XP: escolhe Leve, Normal ou Intensa nas Definições e acompanha-a no anel à volta do teu XP.",
+      "Conquistas: 12 para ganhar, com celebração quando chegas lá. Vê-as no teu Perfil.",
+      "Desafio do dia: 5 perguntas de tudo o que já aprendeste, com XP a dobrar.",
+      "Novo exercício no teste: ligar cada termo à sua definição.",
+      "Ouvir: a explicação lida em voz alta e, nos temas de línguas, a pronúncia nos cartões.",
+      "Explorar por categorias, com ordem por populares ou novos.",
+      "Ao criar um tema que já existe, começas logo, sem esperar. Num tema ambíguo, escolhes o que querias dizer com um toque.",
+      "Arquivar trilhas que já não queres ver, sem perder o progresso.",
+      "O Perfil mostra os teus temas de relance, com o progresso e os cartões por rever.",
+      "Uma visita guiada para quem chega e um pedido rápido de opinião de vez em quando.",
+      "O app abre mesmo sem internet e avisa quando estás sem ligação.",
+    ],
+    melhorias: [
+      "A sequência tem um dia de folga por semana: falhar um dia já não a apaga.",
+      "Rever cartões conta para a sequência e dá XP.",
+      "Os avisos rápidos aparecem na cor da marca e nunca por cima do menu.",
+      "A janela de boas-vindas tem margens certas e as cores da marca também no tema escuro.",
+      "Transições suaves entre ecrãs e o app abre mais depressa.",
+      "Correção automática da ortografia de Portugal nas lições.",
+      "Repetir um teste já concluído só dá XP uma vez por dia.",
+    ],
+    corrigido: [
+      "A correção de uma pergunta já não fica escondida por baixo do menu.",
+      "Frases para completar com dois espaços mostram-se e corrigem-se bem.",
+      "Recomeçar do zero já não volta a mostrar as boas-vindas.",
+    ],
+  },
+  {
     version: "0.9.6",
     date: "2026-10-05",
     title: "Entrar mais depressa",

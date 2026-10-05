@@ -4,11 +4,11 @@ import type { Concept, Lesson, Question, Source } from "./types";
 // Catálogo partilhado: cada trilha e lição gerada fica guardada uma vez e serve toda a gente (poupa a IA).
 // Só servidor. Um erro aqui nunca bloqueia: sem catálogo, segue-se para a IA.
 
-export type CatalogTrail = { topic: string; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null };
+export type CatalogTrail = { topic: string; concepts: Concept[]; sources: Source[]; diagnostic?: Question[] | null; category?: string };
 
 export async function findTrail(key: string, level: string): Promise<CatalogTrail | null> {
   try {
-    const { data } = await admin!.from("catalog_trails").select("topic,concepts,sources,diagnostic").eq("key", key).eq("level", level).maybeSingle();
+    const { data } = await admin!.from("catalog_trails").select("topic,concepts,sources,diagnostic,category").eq("key", key).eq("level", level).maybeSingle();
     return (data as CatalogTrail | null) ?? null;
   } catch {
     return null;
