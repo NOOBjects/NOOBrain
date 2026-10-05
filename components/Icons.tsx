@@ -111,3 +111,14 @@ export const Gear = () => (
   </Svg>
 );
 export const Share = () => <Svg><path {...stroke} strokeLinejoin="miter" d="M12 15 V3 M8 7 L12 3 L16 7 M7 10 H5 V21 H19 V10 H17" /></Svg>;
+export const Mind = () => (
+  <Svg>
+    <path {...stroke} strokeLinejoin="miter" d="M8 21 V17 L5 14 V9 L8 5 H15 L19 9 V14 L16 17 V21 Z" />
+    <path fill="currentColor" d="M10 9 H14 V13 H10 Z" />
+  </Svg>
+);
+export const Ball = () => (
+  <Svg>
+    <path {...stroke} strokeLinejoin="miter" d="M9 3 H15 L21 9 V15 L15 21 H9 L3 15 V9 Z M3 12 H21 M12 3 V21" />
+  </Svg>
+);

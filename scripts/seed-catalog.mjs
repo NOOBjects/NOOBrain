@@ -10,7 +10,7 @@ const DELAY = Number(process.env.SEED_DELAY) || 20_000;
 const LEVEL = "Iniciante";
 const REFRESH = process.argv.includes("--refresh");
 const TOPICS = [
-  "Fotossíntese", "Sistema Solar", "Fernando Pessoa", "Inglês para iniciantes", "Revolução dos Cravos",
+  "Fotossíntese", "Sistema Solar", "Fernando Pessoa", "Revolução dos Cravos",
   "Inteligência Artificial", "Finanças pessoais", "Primeiros socorros", "Teoria das cores",
 ];
 

@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { LANGUAGES_ON, isLanguageTopic } from "@/lib/categories";
+import { nextLevel, normLevel } from "@/lib/levels";
+import { startLevel } from "@/lib/nextlevel";
 import { Archive, Bolt, Flame, Sync } from "./Icons";
 import { TrailNode, ZIGZAG } from "./TrailNode";
 import { canChallenge } from "@/lib/challenge";
@@ -23,6 +26,8 @@ type Props = {
 export function TrailView({ state: s, trail, dueCount, onLesson, onReview, onChallenge, notify, children }: Props) {
   const [del, setDel] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [upBusy, setUpBusy] = useState(false);
+  const [upError, setUpError] = useState<string | null>(null);
   const total = trail.concepts.length;
   const pct = total ? Math.round((trail.done / total) * 100) : 0;
   const current = Math.min(trail.done, total - 1);
@@ -40,6 +45,15 @@ export function TrailView({ state: s, trail, dueCount, onLesson, onReview, onCha
       return { ...x, trails, active: next };
     });
     notify(on ? `“${trail.topic}” foi para as arquivadas` : `“${trail.topic}” voltou aos teus temas`);
+  }
+
+  const up = finished ? nextLevel(normLevel(trail.level)) : null;
+  async function goUp() {
+    if (!up) return;
+    setUpBusy(true);
+    setUpError(null);
+    try { await startLevel(trail.topic, trail.key, up, s); } catch (e) { setUpError(e instanceof Error ? e.message : "Sem ligação. Tenta outra vez."); }
+    setUpBusy(false);
   }
 
   function remove() {
@@ -81,6 +95,10 @@ export function TrailView({ state: s, trail, dueCount, onLesson, onReview, onCha
             <button key={t.id} type="button" className="chip ch" aria-pressed={t.id === trail.id} onClick={() => update((x) => ({ ...x, active: t.id }))}>{t.topic}</button>
           ))}
         </div>
+      )}
+
+      {!LANGUAGES_ON && isLanguageTopic(trail.topic) && (
+        <div className="nudge pane tint"><div className="in"><div><b>Línguas em pausa</b><div className="sub small">Os temas de línguas estão em pausa enquanto preparamos uma versão melhor. Podes acabar esta trilha ou arquivá-la.</div></div></div></div>
       )}
 
       {trail.archived && (
@@ -130,6 +148,12 @@ export function TrailView({ state: s, trail, dueCount, onLesson, onReview, onCha
             onClick={() => (i <= trail.done ? onLesson(i) : notify("Conclui o conceito atual para desbloquear este.", "lock"))} />
         ))}
       </div>
+      {up && (
+        <div className="nudge pane tint"><div className="in">
+          <div className="nudge-t"><b>Próximo nível: {up}</b><div className="sub small">Continua onde esta trilha acabou.</div>{upError && <div className="hint bad" role="alert">{upError}</div>}</div>
+          <button type="button" className="btn sm" disabled={upBusy} onClick={() => void goUp()}><span className="face">{upBusy ? "A montar…" : "Começar"}</span></button>
+        </div></div>
+      )}
       {finished && <p className="sub center">Trilha concluída. Revê os cartões quando chegar a hora, ou começa um tema novo.</p>}
 
       <div className="trail-del">

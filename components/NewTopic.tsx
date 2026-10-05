@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import { HeroIco, Idea } from "./Icons";
 import { Quiz } from "./Quiz";
 import { ApiError, createTrail } from "@/lib/api";
+import { LANGUAGES_ON, LANGUAGES_PAUSED, isLanguageTopic } from "@/lib/categories";
 import { loadCatalog, startFromCatalog, type CatalogRow } from "@/lib/catalog-client";
+import { LEVELS, nextLevel, normLevel, type Level } from "@/lib/levels";
+import { startLevel } from "@/lib/nextlevel";
 import { parse, getRaw, update } from "@/lib/store";
 import { sameTopic } from "@/lib/topic";
 import type { Trail } from "@/lib/types";
@@ -18,11 +21,11 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
   online?: boolean;
 }) {
   const [topic, setTopic] = useState("");
-  const [level, setLevel] = useState("Iniciante");
+  const [level, setLevel] = useState<Level>("Iniciante");
   const [force, setForce] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Teste rápido para escolher o nível: só no Iniciante e se a trilha trouxe as perguntas.
+  // Teste rápido para escolher o nível: só se há nível acima e a trilha trouxe as perguntas.
   const [check, setCheck] = useState<{ trail: Trail; stage: "ask" | "quiz" | "easy" } | null>(null);
   const [options, setOptions] = useState<string[]>([]); // tema ambíguo: significados possíveis
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
@@ -42,6 +45,7 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
     if (match) return onOpen(match);
     if (ready) return onDone(startFromCatalog(ready, parse(getRaw())).topic);
     if (asked.trim().length < 2) return setError("Escreve um tema ou escolhe uma sugestão.");
+    if (!LANGUAGES_ON && isLanguageTopic(asked)) return setError(LANGUAGES_PAUSED);
     if (!online) return setError("Sem ligação. Criar um tema precisa de internet.");
     setError(null);
     setOptions([]);
@@ -49,7 +53,7 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
     try {
       const trail = await createTrail(asked, level);
       update((s) => ({ ...s, trails: [{ ...trail, diagnostic: undefined }, ...s.trails], active: trail.id }));
-      if (trail.diagnostic?.length === 3 && level === "Iniciante") { setLoading(false); return setCheck({ trail, stage: "ask" }); }
+      if (trail.diagnostic?.length === 3 && nextLevel(level)) { setLoading(false); return setCheck({ trail, stage: "ask" }); }
       onDone(trail.topic);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");
@@ -59,12 +63,12 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
     }
   }
 
-  async function goIntermediate(from: Trail) {
+  async function goNext(from: Trail, to: Level) {
     setLoading(true);
     setError(null);
     try {
-      const harder = await createTrail(from.topic, "Intermediário");
-      update((s) => ({ ...s, trails: [{ ...harder, diagnostic: undefined }, ...s.trails.filter((x) => x.id !== from.id)], active: harder.id }));
+      const harder = await startLevel(from.topic, from.key, to, parse(getRaw()));
+      update((s) => ({ ...s, trails: s.trails.filter((x) => x.id !== from.id), active: harder.id })); // a do nível abaixo sai: o teste mostrou que já a dominas
       onDone(harder.topic);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sem ligação. Tenta outra vez.");
@@ -74,22 +78,24 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
 
   if (check) {
     const { trail } = check;
+    const lvl = normLevel(trail.level);
+    const up = nextLevel(lvl);
     return (
       <div className="newtopic">
         <div className="hero-new">
           <HeroIco><Idea /></HeroIco>
           {check.stage === "ask" && <>
             <h1 className="h-screen">Queres um teste rápido?</h1>
-            <p className="sub">São 3 perguntas para ver se o nível Iniciante é o certo para ti.</p>
+            <p className="sub">São 3 perguntas para ver se o nível {lvl} é o certo para ti.</p>
             <button type="button" className="btn block" onClick={() => setCheck({ trail, stage: "quiz" })}><span className="face">Fazer o teste</span></button>
             <button type="button" className="btn soft block" onClick={() => onDone(trail.topic)}><span className="face">Saltar</span></button>
           </>}
           {check.stage === "easy" && <>
             <h1 className="h-screen">Foi fácil!</h1>
-            <p className="sub">Acertaste as 3 à primeira. Queres começar no nível Intermediário?</p>
+            <p className="sub">Acertaste as 3 à primeira. Queres começar no nível {up}?</p>
             {error && <div className="note ch" role="alert">{error}</div>}
-            <button type="button" className="btn block" disabled={loading} onClick={() => void goIntermediate(trail)}><span className="face">{loading ? "A montar a trilha…" : "Sim, Intermediário"}</span></button>
-            <button type="button" className="btn soft block" disabled={loading} onClick={() => onDone(trail.topic)}><span className="face">Ficar no Iniciante</span></button>
+            <button type="button" className="btn block" disabled={loading} onClick={() => up && void goNext(trail, up)}><span className="face">{loading ? "A montar a trilha…" : `Sim, ${up}`}</span></button>
+            <button type="button" className="btn soft block" disabled={loading} onClick={() => onDone(trail.topic)}><span className="face">{`Ficar no ${lvl}`}</span></button>
           </>}
         </div>
         {check.stage === "quiz" && (
@@ -117,11 +123,12 @@ export function NewTopic({ trails, onOpen, onDone, online = true }: {
             <button key={s} type="button" className="chip ch" disabled={loading} onClick={() => { setTopic(s); setForce(false); }}>{s}</button>
           ))}
         </div>
-        <div className="seg" role="group" aria-label="Nível">
-          {["Iniciante", "Intermediário"].map((l) => (
-            <button key={l} type="button" className="ch" aria-pressed={level === l} disabled={loading} onClick={() => setLevel(l)}>{l}</button>
+        <div className="seg three" role="group" aria-label="Nível">
+          {LEVELS.map((l) => (
+            <button key={l.id} type="button" className="ch" aria-pressed={level === l.id} disabled={loading} onClick={() => setLevel(l.id)}>{l.id}</button>
           ))}
         </div>
+        <p className="sub small">{LEVELS.find((l) => l.id === level)?.hint}</p>
         {match && (
           <div className="note info ch" role="status">
             Já tens a trilha “{match.topic}” neste nível. Vou abrir essa em vez de criar outra.

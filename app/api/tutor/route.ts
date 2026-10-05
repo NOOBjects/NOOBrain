@@ -1,3 +1,4 @@
+import { PTPT_RULES } from "@/lib/prompt";
 import { ptpt } from "@/lib/ptpt";
 import { aiErrorResponse, generateJson } from "@/lib/ai";
 import { allow, clientKey } from "@/lib/limit";
@@ -33,7 +34,8 @@ export async function POST(request: Request) {
     const ref = clean(body?.ref, 300);
     if (answer.length < 2) return fail("Escreve a tua resposta.", 400);
     const judge = [
-      "És um professor a corrigir uma resposta curta, em português de Portugal (europeu, Acordo Ortográfico de 1990). Trata o aluno por tu.",
+      "És um professor a corrigir uma resposta curta.",
+      PTPT_RULES,
       `Tema: "${topic}". Conceito: "${title}".`,
       `Pergunta: "${question}"`,
       `O que uma boa resposta tem de dizer: "${ref}"`,
@@ -54,7 +56,8 @@ export async function POST(request: Request) {
     .join("\n");
 
   const prompt = [
-    "És um tutor paciente que responde em português de Portugal (europeu, Acordo Ortográfico de 1990), de forma curta (no máximo 120 palavras), clara e amigável. Trata o aluno por tu.",
+    "És um tutor paciente que responde de forma curta (no máximo 120 palavras), clara e amigável.",
+    PTPT_RULES,
     `Tema: "${topic}". Conceito da lição: "${title}".`,
     `Conteúdo da lição, que é a tua base:\n${lesson}`,
     history && `Conversa até agora:\n${history}`,
