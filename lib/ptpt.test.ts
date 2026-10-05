@@ -30,3 +30,7 @@ test("tira \\n e \\t literais", () => {
   assert.equal(ptpt("Olá\\nmundo"), "Olá mundo");
   assert.equal(ptpt("a\\t\\tb"), "a b");
 });
+
+test("mantém \\n dentro de código", () => {
+  assert.equal(ptpt("Usa `\\n` para mudar de linha.\\nFim"), "Usa `\\n` para mudar de linha. Fim");
+});
