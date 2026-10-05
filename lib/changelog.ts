@@ -6,6 +6,18 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.6",
+    date: "2026-10-05",
+    title: "Ideias bem arrumadas",
+    novo: [
+      "Podes pedir uma revisão de uma ideia tua que foi recusada: explicas porque vale a pena e a equipa volta a olhar para ela.",
+      "Novos separadores nas Ideias: A caminho e Recusadas, com cores para cada estado.",
+    ],
+    corrigido: [
+      "As ideias já feitas deixaram de aparecer em Novas e em Populares.",
+    ],
+  },
+  {
     version: "0.10.5",
     date: "2026-10-05",
     title: "Avisos de atualização",

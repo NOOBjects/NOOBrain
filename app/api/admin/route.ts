@@ -12,8 +12,8 @@ export const maxDuration = 60; // a procura de palavras com IA pode demorar
 // Painel de administração. Só para as contas em ADMIN_IDS (ids separados por vírgula, variável só do servidor, na Vercel).
 // Usa a chave secreta: lê e muda o que o RLS esconde do app (ideias, erros reportados, opiniões, números).
 const ADMINS = (process.env.ADMIN_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-const STATUS = ["recebida", "planeada", "em_curso", "feita", "recusada"];
-const LABEL: Record<string, string> = { recebida: "Recebida", planeada: "Planeada", em_curso: "Em curso", feita: "Feita", recusada: "Recusada" };
+const STATUS = ["recebida", "planeada", "em_curso", "feita", "recusada", "recurso"];
+const LABEL: Record<string, string> = { recebida: "Recebida", planeada: "Planeada", em_curso: "Em curso", feita: "Feita", recusada: "Recusada", recurso: "Em recurso" };
 const fail = (error: string, status: number) => Response.json({ error }, { status });
 
 async function who(request: Request) {
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const today = new Date().toISOString().slice(0, 10);
   const week = new Date(Date.now() - 7 * 86_400_000).toISOString();
   const [ideas, reports, feedback, usage, daily, catalog, accounts, active, devices, lessons, glossary] = await Promise.all([
-    admin.from("suggestions").select("id,title,body,status,reply,votes,created_at").order("created_at", { ascending: false }).limit(100),
+    admin.from("suggestions").select("id,title,body,status,reply,votes,created_at,appeal").order("created_at", { ascending: false }).limit(100),
     admin.from("reports").select("id,what,detail,created_at,resolved").order("created_at", { ascending: false }).limit(100),
     admin.from("feedback").select("id,rating,text,context,created_at").order("created_at", { ascending: false }).limit(100),
     admin.from("ai_usage").select("kind,n").eq("day", today),
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const reply = typeof b.reply === "string" ? b.reply.trim().slice(0, 400) : null;
     if (!id || !status) return fail("Pedido inválido.", 400);
     const { data: before } = await admin.from("suggestions").select("user_id,title,status").eq("id", id).maybeSingle();
-    const { error } = await admin.from("suggestions").update({ status, reply: reply || null }).eq("id", id);
+    const { error } = await admin.from("suggestions").update({ status, reply: reply || null, ...(before?.status !== status && { decided_at: new Date().toISOString() }) }).eq("id", id);
     if (error) return fail("Não consegui guardar.", 500);
     // Aviso ao autor quando o estado muda (se tiver os avisos ligados neste ou noutro aparelho).
     if (before && before.status !== status && pushReady) {
