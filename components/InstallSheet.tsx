@@ -12,7 +12,7 @@ export function InstallSheet({ onClose }: { onClose: () => void }) {
       <div className="pane"><div className="in set">
         <h2 id="inst-t">Instalar o NOOBrain</h2>
         <ol className="steps">
-          <li><span className="w-ico ch"><Share /></span><span>Toca em <b>Partilhar</b>, na barra do Safari.</span></li>
+          <li><span className="w-ico ch"><Share /></span><span>Toca em <b>Partilhar</b>, na barra do navegador (o quadrado com uma seta).</span></li>
           <li><span className="w-ico ch"><Book /></span><span>Escolhe <b>Adicionar ao ecrã principal</b>.</span></li>
           <li><span className="w-ico ch"><Download /></span><span>Toca em <b>Adicionar</b>. Pronto!</span></li>
         </ol>

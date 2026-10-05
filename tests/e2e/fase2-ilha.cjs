@@ -77,7 +77,11 @@ const near = (a, b) => ["x", "y", "width", "height"].every((k) => Math.abs(a[k] 
     await p.waitForTimeout(300);
     assert.equal(await p.evaluate(() => window.__prompted), 1, "chamou prompt()");
     await ctx.close();
-    const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" });
+    for (const ua of [
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/120.0.0.0 Mobile/15E148 Safari/604.1", // Chrome no iPhone
+    ]) {
+    const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, userAgent: ua });
     const q = await c2.newPage();
     await q.goto(BASE + "/", { waitUntil: "networkidle" });
     await q.fill("input[type=email]", "teste@noobrain.local");
@@ -91,6 +95,7 @@ const near = (a, b) => ["x", "y", "width", "height"].every((k) => Math.abs(a[k] 
     assert.equal(await q.locator("dialog .steps li").count(), 3, "3 passos");
     await q.screenshot({ path: `${__dirname}/out/f2-instalar-ios.png` });
     await c2.close();
+    }
   }
   console.log("fase2-ilha OK");
   await b.close();

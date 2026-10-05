@@ -198,9 +198,10 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
       <Group title="App">
         {installState === "installed" ? <Row label="Instalar o app" value="Já instalado" />
           : <Row label="Instalar o app" chevron onClick={() => (installState === "prompt" ? void install() : installState === "ios" ? setSheet(true) : setHint((h) => !h))} />}
-        {hint && installState === "none" && <p className="sub small set-note">Para instalar, abre o site no Chrome, no Edge ou no Safari do iPhone.</p>}
         <Row label="Novidades" value={`Versão ${VERSION}`} chevron onClick={onNews} />
       </Group>
+
+      {hint && installState === "none" && <p className="sub small set-note">Este navegador não deixa instalar. Abre o site no Chrome ou no Edge (computador ou Android), ou no iPhone ou iPad.</p>}
 
       <Group title="Conta">
         <Row label="E-mail" value={user.email} />

@@ -18,6 +18,9 @@ export const CHANGELOG: Release[] = [
       "O menu deixa de se mexer quando mudas de ecrã.",
       "O Perfil mostra quem és e o que conseguiste; as Definições juntam tudo o que é configuração, por grupos.",
     ],
+    corrigido: [
+      "Instalar o app já funciona no Chrome e noutros navegadores do iPhone, com os passos explicados.",
+    ],
   },
   {
     version: "0.10.1",
