@@ -497,6 +497,8 @@ Objetivo duplo: descanso (aprender aos poucos fixa melhor) e não esgotar a IA g
 
 ## Fase 5 · 0.10.6 · Ideias bem arrumadas
 
+> ✅ feita (0.10.6, 05/10/2026). Desvio: o pedido de revisão passa pela rota `/api/appeal` (chave secreta no servidor) em vez da função `appeal_suggestion`, para não gerar o aviso de segurança do Supabase "Signed-In Users Can Execute SECURITY DEFINER Function"; a função foi apagada.
+
 ### 5.1 Base de dados (migração `ideias_recurso`)
 ```sql
 alter table public.suggestions

@@ -353,7 +353,7 @@ export function App({ landing }: { landing?: ReactNode }) {
             onOpenTrail={(id) => { update((x) => ({ ...x, active: id })); go("trilha"); }} />
         )}
 
-        {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} />}
+        {view === "ideias" && user && profile && <Ideas user={user} onBack={() => go("perfil")} notify={notify} />}
 
         {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
 

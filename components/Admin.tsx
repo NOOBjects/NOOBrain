@@ -5,7 +5,7 @@ import { Switch } from "./Switch";
 import { call, setTestLimits, testLimits } from "@/lib/api";
 import { update } from "@/lib/store";
 
-type Idea = { id: number; title: string; body: string; status: string; reply: string | null; votes: number; created_at: string };
+type Idea = { id: number; title: string; body: string; status: string; reply: string | null; votes: number; created_at: string; appeal: string | null };
 type Report = { id: number; what: string; detail: string; created_at: string; resolved: boolean };
 type Opinion = { id: number; rating: number; text: string; context: string; created_at: string };
 type Topic = { key: string; level: string; topic: string; uses: number; category: string };
@@ -28,6 +28,7 @@ export function Admin({ onBack }: { onBack: () => void }) {
   const [limits, setLimits] = useState(testLimits);
   const [who, setWho] = useState("");
   const [done, setDone] = useState<string | null>(null);
+  const [onlyAppeals, setOnlyAppeals] = useState(false);
   const [gw, setGw] = useState("");
   const [gr, setGr] = useState("");
   const [found, setFound] = useState<{ word: string; replacement: string }[] | null>(null);
@@ -62,8 +63,12 @@ export function Admin({ onBack }: { onBack: () => void }) {
 
       {data && tab === "ideias" && (
         <div className="list">
+          <div className="topic-chips" role="group" aria-label="Filtro">
+            <button type="button" className="chip ch" aria-pressed={!onlyAppeals} onClick={() => setOnlyAppeals(false)}>Todas</button>
+            <button type="button" className="chip ch" aria-pressed={onlyAppeals} onClick={() => setOnlyAppeals(true)}>Recursos ({data.ideas.filter((i) => i.status === "recurso").length})</button>
+          </div>
           {!data.ideas.length && <p className="sub center">Ainda sem ideias.</p>}
-          {data.ideas.map((i) => <IdeaRow key={i.id} idea={i} onSave={(status, reply) => act({ act: "idea", id: i.id, status, reply })} />)}
+          {data.ideas.filter((i) => !onlyAppeals || i.status === "recurso").map((i) => <IdeaRow key={i.id} idea={i} onSave={(status, reply) => act({ act: "idea", id: i.id, status, reply })} />)}
         </div>
       )}
 
@@ -176,8 +181,10 @@ function IdeaRow({ idea, onSave }: { idea: Idea; onSave: (status: string, reply:
     <div className="pane"><div className="in set">
       <div className="row-between"><b>{idea.title}</b><span className="chip ch">▲ {idea.votes}</span></div>
       {idea.body && <p className="sub small pre">{idea.body}</p>}
+      {idea.appeal && <div className="note ch"><b>Pedido de revisão do autor:</b> {idea.appeal}</div>}
       <label className="lbl" htmlFor={`st${idea.id}`}>Estado</label>
       <select id={`st${idea.id}`} className="field ch" value={status} onChange={(e) => setStatus(e.target.value)}>
+        {idea.status === "recurso" && <option value="recurso" disabled>Em recurso (decide: aceitar ou manter recusada)</option>}
         {STATUS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
       </select>
       <label className="lbl" htmlFor={`re${idea.id}`}>Resposta da NOOBjects</label>

@@ -43,7 +43,13 @@ const db = {
   catalog_lessons: [],
   suggestions: [
     { id: 1, user_id: "2", title: "Modo escuro mais escuro", body: "Para ler à noite.", status: "planeada", reply: "Boa ideia!", votes: 4, created_at: "2026-10-01T10:00:00Z" },
-    { id: 2, user_id: UID, title: "Mais temas de história", body: "", status: "recebida", reply: null, votes: 1, created_at: "2026-10-03T10:00:00Z" },
+    { id: 2, user_id: UID, title: "Mais temas de história", body: "", status: "recebida", reply: null, votes: 1, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
+    { id: 3, user_id: "3", title: "Ouvir as lições em voz alta", body: "", status: "em_curso", reply: null, votes: 7, created_at: "2026-09-28T10:00:00Z" },
+    { id: 4, user_id: "2", title: "Instalar no telemóvel", body: "", status: "feita", reply: "Já está!", votes: 12, created_at: "2026-09-25T10:00:00Z", decided_at: "2026-10-05T10:00:00Z" },
+    { id: 5, user_id: UID, title: "Anúncios no app", body: "", status: "recusada", reply: "O NOOBrain fica sem anúncios.", votes: 2, created_at: "2026-09-26T10:00:00Z", decided_at: "2026-09-30T10:00:00Z" },
+    { id: 6, user_id: "3", title: "Pagar para ter mais lições", body: "", status: "recusada", reply: "A IA tem de ficar gratuita.", votes: 1, created_at: "2026-09-27T10:00:00Z", decided_at: "2026-09-30T10:00:00Z" },
+    { id: 7, user_id: "2", title: "Modo sem limites", body: "", status: "recurso", reply: "Os limites protegem a IA gratuita.", appeal: "Eu estudo muito e preciso de mais lições por dia.", votes: 3, created_at: "2026-09-29T10:00:00Z", decided_at: "2026-10-01T10:00:00Z" },
+    { id: 8, user_id: "3", title: "Ideia antiga ainda recebida", body: "", status: "recebida", reply: null, votes: 0, created_at: "2026-08-01T10:00:00Z" },
   ],
   suggestion_votes: [],
   push_subscriptions: [],
@@ -72,7 +78,7 @@ function match(row, filters) {
     if (op === "gte") return Number(r) >= Number(v);
     if (op === "lt") return Number(r) < Number(v);
     if (op === "in") return v.replace(/^\(|\)$/g, "").split(",").map((s) => s.replace(/^"|"$/g, "")).includes(String(r));
-    if (op === "is") return r === val(v);
+    if (op === "is") return (r ?? null) === val(v);
     return true;
   });
 }
@@ -151,8 +157,9 @@ http.createServer((req, res) => {
       return send(res, 201, prefer.includes("return=representation") ? list : undefined);
     }
     if (req.method === "PATCH") {
-      db[table].filter((r) => match(r, filters)).forEach((r) => Object.assign(r, body));
-      return send(res, 204);
+      const hit = db[table].filter((r) => match(r, filters));
+      hit.forEach((r) => Object.assign(r, body));
+      return prefer.includes("return=representation") ? send(res, 200, hit) : send(res, 204);
     }
     if (req.method === "DELETE") {
       const gone = db[table].filter((r) => match(r, filters));

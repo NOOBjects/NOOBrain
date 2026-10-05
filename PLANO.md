@@ -11,6 +11,8 @@ As regras gerais estão no `CLAUDE.md`.
 **Como aplicar o código das Fases 9 a 11.** Cada uma traz um diff já testado numa cópia do projeto (TypeScript, ESLint e `next build` sem erros; `git apply` funciona neste repositório com os fins de linha do Windows). Copiar o bloco para um ficheiro fora do projeto (ex.: `%TEMP%\fase9.diff`), correr `git apply --check <ficheiro>` e depois `git apply <ficheiro>`. Se o `--check` falhar (o código mudou entretanto), aplicar à mão: o diff diz linha a linha o que sai (`-`) e o que entra (`+`). Os diffs dependem uns dos outros: 9 → 10 → 11.
 
 ## Já feito
+**0.10.6 (05/10/2026):** Ideias com separadores certos (Populares, Novas, A caminho, Feitas, Recusadas), estados com cor, recusadas a vermelho (exceção aceite à regra de `--bad` só para errado, pedida pelo Rodrigo), pedir revisão (`/api/appeal`) e filtro Recursos no painel.
+**0.10.5 (05/10/2026):** avisos de nova versão da app e de trilhas desatualizadas (`rev` no catálogo), glossário de palavras de Portugal (`ptpt_glossary`) e ferramentas do dono no painel.
 **0.10.4 (05/10/2026):** limites diários (6 lições novas e 3 temas novos com IA), barras na trilha, no Novo tema e no Perfil, ecrã de descanso, `/api/quota`; donos sem limite.
 **0.10.3 (05/10/2026):** três níveis de verdade (Iniciante, Intermédio, Avançado), português de Portugal reforçado (`lib/prompt.ts`, `ptpt`), categorias novas, línguas em pausa.
 **0.10.2 (05/10/2026):** menu com 4 ecrãs e gaveta "Mais opções" (sem botão Lição, sem movimento), instalar o app (`lib/install.ts`, manifesto completo com ícone maskable, capturas e atalhos), "Dar opinião" no menu, Perfil (identidade, hoje, números, conquistas, temas) e Definições em lista agrupada com subecrãs (`?v=definicoes&s=`).
