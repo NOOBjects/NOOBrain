@@ -25,7 +25,7 @@ const WORDS: [string, string][] = [
 const STEMS: [string, string][] = [
   ["econômic", "económic"], ["astronômic", "astronómic"], ["atômic", "atómic"], ["anatômic", "anatómic"], ["harmônic", "harmónic"], ["carbônic", "carbónic"],
   ["acadêmic", "académic"], ["polêmic", "polémic"], ["sistêmic", "sistémic"], ["endêmic", "endémic"], ["epidêmi", "epidémi"], ["pandêmi", "pandémi"], ["genôm", "genom"], ["planej", "plane"],
-  ["optimiz", "otimiz"], ["inspeccion", "inspecion"], ["objectiv", "objetiv"], ["actualiz", "atualiz"], ["projecto", "projeto"], ["aspecto", "aspeto"], ["respectiv", "respetiv"], ["perspectiv", "perspetiv"], ["direcç", "direç"], ["protecç", "proteç"], ["selecç", "seleç"], ["correcç", "correç"], ["acç", "aç"],
+  ["optimiz", "otimiz"], ["activ", "ativ"], ["colecç", "coleç"], ["infecç", "infeç"], ["reacç", "reaç"], ["funcç", "funç"], ["instrucç", "instruç"], ["construcç", "construç"], ["recepç", "receç"], ["inspeccion", "inspecion"], ["objectiv", "objetiv"], ["actualiz", "atualiz"], ["projecto", "projeto"], ["aspecto", "aspeto"], ["respectiv", "respetiv"], ["perspectiv", "perspetiv"], ["direcç", "direç"], ["protecç", "proteç"], ["selecç", "seleç"], ["correcç", "correç"], ["acç", "aç"],
 ];
 
 const cap = (from: string, to: string) => (from[0] === from[0].toUpperCase() && from[0] !== from[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to);

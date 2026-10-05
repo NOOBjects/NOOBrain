@@ -101,3 +101,7 @@ test("glossário do dono acrescenta palavras", () => {
   setExtraRules([]);
   assert.equal(ptpt("Um bagulho."), "Um bagulho.");
 });
+
+test("mais grafias anteriores ao Acordo", () => {
+  assert.equal(ptpt("A activação e a colecção; a infecção activa."), "A ativação e a coleção; a infeção ativa.");
+});
