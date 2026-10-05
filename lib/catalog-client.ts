@@ -1,5 +1,5 @@
 import { newId } from "./api";
-import { categoryOf, type Category } from "./categories";
+import { LANGUAGES_ON, categoryOf, isLanguageTopic, type Category } from "./categories";
 import { update } from "./store";
 import { supabase } from "./supabase";
 import type { Concept, Source, State, Trail } from "./types";
@@ -12,7 +12,8 @@ export function loadCatalog(): Promise<CatalogRow[]> {
   cache ??= Promise.resolve(supabase!.from("catalog_trails").select("key,level,topic,concepts,sources,uses,created_at,category").order("uses", { ascending: false }).limit(200))
     .then(({ data, error }) => {
       if (error) throw error;
-      return ((data ?? []) as (Omit<CatalogRow, "category"> & { category?: string })[]).map((r) => ({ ...r, category: categoryOf(r.key, r.category) }));
+      return ((data ?? []) as (Omit<CatalogRow, "category"> & { category?: string })[]).map((r) => ({ ...r, category: categoryOf(r.key, r.category) }))
+        .filter((r) => LANGUAGES_ON || (r.category !== "linguas" && !isLanguageTopic(r.topic))); // línguas em pausa
     })
     .catch((e) => { cache = null; throw e; });
   return cache;

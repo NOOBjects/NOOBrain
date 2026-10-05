@@ -1,3 +1,4 @@
+import { LANGUAGES_ON, isLanguageTopic } from "./categories";
 import { supabase } from "./supabase";
 import { topicKey } from "./topic";
 import type { Concept, Source } from "./types";
@@ -18,7 +19,7 @@ export async function listTopics(limit = 100): Promise<PublicTopic[]> {
     const seen = new Set<string>();
     return (data ?? []).flatMap((r) => {
       const slug = slugify(r.topic);
-      if (!slug || seen.has(slug)) return [];
+      if (!slug || seen.has(slug) || (!LANGUAGES_ON && isLanguageTopic(r.topic))) return []; // línguas em pausa
       seen.add(slug);
       return [{ topic: r.topic as string, slug }];
     });
@@ -31,7 +32,7 @@ export async function listTopics(limit = 100): Promise<PublicTopic[]> {
 export async function getTheme(slug: string): Promise<PublicTrail | null> {
   try {
     const { data } = await supabase!.from("catalog_trails").select("key,level,topic,concepts,sources").eq("key", topicKey(slug.replace(/-/g, " ")));
-    const rows = (data ?? []) as PublicTrail[];
+    const rows = ((data ?? []) as PublicTrail[]).filter((r) => LANGUAGES_ON || !isLanguageTopic(r.topic)); // línguas em pausa: a página dá 404
     return rows.find((r) => r.level === "Iniciante") ?? rows[0] ?? null;
   } catch {
     return null;

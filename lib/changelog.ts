@@ -6,6 +6,20 @@ export type Release = { version: string; date: string; title: string; aviso?: bo
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.3",
+    date: "2026-10-05",
+    title: "Níveis a sério e português mais cuidado",
+    melhorias: [
+      "Iniciante, Intermédio e Avançado têm agora conteúdos mesmo diferentes, e no fim de uma trilha podes subir de nível com um toque.",
+      "O português de Portugal está mais cuidado nas lições, no tutor e nas correções.",
+      "Três categorias novas no Explorar: Mãos à obra, Sociedade e mente, e Desporto e jogos.",
+    ],
+    corrigido: [
+      "«Intermediário» passa a «Intermédio».",
+      "Os temas de línguas estão em pausa enquanto preparamos uma forma melhor de os ensinar. As trilhas que já tens continuam a funcionar.",
+    ],
+  },
+  {
     version: "0.10.2",
     date: "2026-10-05",
     title: "Menu novo, instalar o app e opinião",

@@ -1,3 +1,4 @@
+import { normLevel } from "./levels";
 import { topicKey } from "./topic";
 import type { Card, Question, State, Trail } from "./types";
 
@@ -30,7 +31,7 @@ export function parse(raw: string | null): State {
     const s = { ...initial, ...JSON.parse(raw) } as State;
     if (!Array.isArray(s.trails)) return initial;
     // estados guardados por versões anteriores podem ter a trilha de exemplo e não ter `key` nem `sources`
-    s.trails = s.trails.filter((t) => !(t as { example?: boolean }).example).map((t) => ({ ...t, key: t.key ?? topicKey(t.topic), sources: t.sources ?? [] }));
+    s.trails = s.trails.filter((t) => !(t as { example?: boolean }).example).map((t) => ({ ...t, level: normLevel(t.level), key: t.key ?? topicKey(t.topic), sources: t.sources ?? [] }));
     return s;
   } catch {
     return initial;

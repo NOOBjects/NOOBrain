@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CategoryIcon } from "./CategoryIcon";
 import { Compass, HeroIco } from "./Icons";
 import { CATEGORIES, categoryName, type Category } from "@/lib/categories";
+import { LEVELS } from "@/lib/levels";
 import { loadCatalog, startFromCatalog, type CatalogRow } from "@/lib/catalog-client";
 import { topicKey } from "@/lib/topic";
 import type { State, Trail } from "@/lib/types";
@@ -26,7 +27,7 @@ export function Explore({ state, initialQuery = "", onStart, onNew }: { state: S
   }, []);
 
   const cats = useMemo(() => CATEGORIES.filter(([id]) => rows?.some((r) => r.category === id)), [rows]);
-  const levels = useMemo(() => [...new Set(rows?.map((r) => r.level))], [rows]);
+  const levels = useMemo(() => LEVELS.map((l) => l.id as string).filter((l) => rows?.some((r) => r.level === l)), [rows]);
   const want = topicKey(q);
   const shown = (rows ?? [])
     .filter((r) => !q.trim() || r.key.includes(want) || norm(r.topic).includes(norm(q)))

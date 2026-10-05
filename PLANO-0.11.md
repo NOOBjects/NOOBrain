@@ -318,6 +318,8 @@ que conseguiste, as Definições juntam tudo o que é configuração, por grupos
 
 ## Fase 3 · 0.10.3 · Conteúdo: níveis, português de Portugal, categorias, línguas em pausa
 
+> Estado: código feito e testado em (A); migração `categorias_novas` aplicada. Falta: testes B com a IA (3 níveis de "Mecânica de bicicletas", categorias) e `scripts/audit-ptpt.mjs` no PR.
+
 ### 3.1 Três níveis que são mesmo diferentes
 Novo `lib/levels.ts` (partilhado entre servidor e navegador):
 ```ts
