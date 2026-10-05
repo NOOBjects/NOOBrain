@@ -12,6 +12,14 @@ const WORDS: [string, string][] = [
   ["equipe", "equipa"], ["equipes", "equipas"], ["usuário", "utilizador"], ["usuários", "utilizadores"], ["ônibus", "autocarro"], ["trem", "comboio"],
   ["café da manhã", "pequeno-almoço"], ["suco", "sumo"], ["sucos", "sumos"], ["sorvete", "gelado"], ["sorvetes", "gelados"], ["xícara", "chávena"], ["xícaras", "chávenas"], ["aluguel", "aluguer"], ["goleiro", "guarda-redes"], ["goleiros", "guarda-redes"],
   ["câmera", "câmara"], ["actual", "atual"], ["actuais", "atuais"], ["óptimo", "ótimo"], ["óptima", "ótima"], ["câmeras", "câmaras"], ["cadastro", "registo"], ["cadastrar", "registar"], ["deletar", "apagar"],
+  ["a samambaia", "o feto"], ["as samambaias", "os fetos"], ["uma samambaia", "um feto"], ["da samambaia", "do feto"], ["das samambaias", "dos fetos"],
+  ["o aplicativo", "a aplicação"], ["um aplicativo", "uma aplicação"], ["do aplicativo", "da aplicação"], ["no aplicativo", "na aplicação"], ["ao aplicativo", "à aplicação"], ["os aplicativos", "as aplicações"], ["dos aplicativos", "das aplicações"],
+  ["o pedágio", "a portagem"], ["um pedágio", "uma portagem"], ["samambaia", "feto"], ["samambaias", "fetos"], ["abacaxi", "ananás"], ["abacaxis", "ananases"],  ["guidão", "guiador"], ["guidões", "guiadores"],
+  ["freio", "travão"], ["freios", "travões"], ["mouse", "rato"], ["aplicativo", "aplicação"], ["aplicativos", "aplicações"],
+  ["gol", "golo"], ["gols", "golos"], ["caminhão", "camião"], ["caminhões", "camiões"], ["metrô", "metro"], ["carona", "boleia"], ["bacana", "fixe"], ["garota", "rapariga"], ["garotas", "raparigas"],
+  ["grana", "dinheiro"], ["pra", "para"], ["acessar", "aceder"], ["acessa", "acede"], ["acessam", "acedem"], ["gerenciar", "gerir"], ["gerenciamento", "gestão"], ["pedágio", "portagem"],
+  ["compartilhar", "partilhar"], ["compartilha", "partilha"], ["compartilham", "partilham"], ["compartilhado", "partilhado"], ["compartilhamento", "partilha"],
+  ["açougue", "talho"],  ["camiseta", "t-shirt"], ["camisetas", "t-shirts"], ["terno", "fato"], 
   ["banheiro", "casa de banho"], ["geladeira", "frigorífico"], ["esporte", "desporto"], ["esportes", "desportos"], ["de fato", "de facto"], ["fato de", "facto de"],
 ];
 const STEMS: [string, string][] = [
@@ -49,8 +57,9 @@ const LEVEL_BR = /(?<![A-Za-zÀ-ÿ])Intermediário(?![A-Za-zÀ-ÿ])/g;
 export function ptpt(text: string): string {
   // \n ou \t literais que a IA deixa no texto; fora dos blocos de código (`...`), onde podem ser o assunto da lição
   let t = text.includes("\\") ? text.split(/(`[^`]*`)/).map((p, i) => (i % 2 ? p : p.replace(/\\[nt]/g, " ").replace(/ {2,}/g, " "))).join("") : text;
+  t = t.replace(GERUND, gerund); // primeiro o gerúndio ("está acessando" → "está a acessar" → "está a aceder")
   for (const [re, to] of RULES) t = t.replace(re, (m) => cap(m, to));
-  t = t.replace(ACCENT, accent).replace(GERUND, gerund).replace(LEVEL_BR, "Intermédio");
+  t = t.replace(ACCENT, accent).replace(LEVEL_BR, "Intermédio");
   return t.replace(/(^|[.!?]\s+|¿)Por que (?!raz[ãa]o|motivo)(?=[^?]*\?)/g, "$1Porque é que ");
 }
 
@@ -69,6 +78,9 @@ export function brMarkers(text: string): string[] {
   if (/(?<![A-Za-zÀ-ÿ])a gente(?![A-Za-zÀ-ÿ])/i.test(text)) out.push("a gente");
   if (/celular/i.test(text) && /telefone|ecrã|tela|\bapp\b|ligar|mensagem|bateria|carregar/i.test(text)) out.push("celular");
   if (/(?<![A-Za-zÀ-ÿ])tela(?![A-Za-zÀ-ÿ])/i.test(text) && /celular|computador|telemóvel/i.test(text)) out.push("tela");
+  // Palavras do Brasil que não dá para trocar às cegas (têm outro sentido em Portugal): a IA reescreve.
+  if (/(?<![A-Za-zÀ-ÿ])(né|tá|galera|valeu|beleza|legal|baixar|salvar|ruim|gostoso|pessoal|cara)(?![A-Za-zÀ-ÿ])/i.test(text.replace(/\b(Lei|direito)\b[^.]*legal/gi, ""))) out.push("gíria");
+  if (/(?<![A-Za-zÀ-ÿ])arquivos?(?![A-Za-zÀ-ÿ])/i.test(text) && /computador|baixar|abrir|salvar|ficheiro|pasta|programa/i.test(text)) out.push("arquivo");
   for (const m of text.matchAll(GERUND)) if (!NOT_GERUND.has((m[3] + m[4]).toLowerCase()) && (m[3] || m[4].toLowerCase() === "indo")) out.push(m[0]);
   return out;
 }

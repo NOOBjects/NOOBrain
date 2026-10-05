@@ -12,6 +12,11 @@ export class ApiError extends Error {
   }
 }
 
+/** Dono a testar como pessoa normal (painel → Ferramentas): os limites diários valem também para esta conta. */
+export const TEST_LIMITS = "noobrain:testlimits";
+export const testLimits = () => { try { return localStorage.getItem(TEST_LIMITS) === "1"; } catch { return false; } };
+export function setTestLimits(on: boolean) { try { if (on) localStorage.setItem(TEST_LIMITS, "1"); else localStorage.removeItem(TEST_LIMITS); } catch { /* sem armazenamento */ } }
+
 /** Pedido a uma rota do app com a sessão da pessoa. */
 export async function call<T>(url: string, body?: unknown): Promise<T> {
   const token = (await supabase?.auth.getSession())?.data.session?.access_token;
@@ -19,7 +24,7 @@ export async function call<T>(url: string, body?: unknown): Promise<T> {
   try {
     res = await fetch(url, {
       method: body === undefined ? "GET" : "POST",
-      headers: { ...(body !== undefined && { "content-type": "application/json" }), ...(token && { authorization: `Bearer ${token}` }) },
+      headers: { ...(body !== undefined && { "content-type": "application/json" }), ...(token && { authorization: `Bearer ${token}` }), ...(testLimits() && { "x-noobrain-limits": "on" }) },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {

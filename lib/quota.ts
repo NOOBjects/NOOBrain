@@ -8,6 +8,9 @@ export const LIMITS = { trail: NEW_TOPICS_PER_DAY, lesson: 25, tutor: 40 } as co
 const OWNERS = (process.env.ADMIN_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 /** Os donos (ADMIN_IDS) não têm limite diário, para poderem testar. */
 export const isOwner = (uid: string | null) => !!uid && OWNERS.includes(uid);
+/** Um dono pode ligar os limites no painel ("Testar como pessoa normal"): o navegador manda este cabeçalho. Só retira privilégios, por isso não é um risco. */
+export const LIMITS_HEADER = "x-noobrain-limits";
+export const exempt = (uid: string | null, request: Request) => isOwner(uid) && request.headers.get(LIMITS_HEADER) !== "on";
 const GLOBAL_MAX = Number(process.env.AI_DAILY_MAX) || 2500; // abaixo dos ~3000 pedidos/dia que somam os modelos gratuitos
 
 const fail = (error: string, status: number) => Response.json({ error }, { status });
@@ -20,8 +23,8 @@ export async function requireUser(request: Request) {
 }
 
 /** Gasta 1 da cota do dia. Chamar só quando o pedido vai mesmo à IA. Devolve a resposta de erro se a cota acabou. */
-export async function spend(uid: string | null, kind: keyof typeof LIMITS): Promise<Response | null> {
-  if (!uid || isOwner(uid)) return null;
+export async function spend(uid: string | null, kind: keyof typeof LIMITS, request: Request): Promise<Response | null> {
+  if (!uid || exempt(uid, request)) return null;
   const { data, error } = await admin!.rpc("consume_ai", { p_user: uid, p_kind: kind, p_user_max: LIMITS[kind], p_global_max: GLOBAL_MAX });
   if (error) { console.error("consume_ai", error.message); return null; } // se o contador falhar, não bloqueamos a pessoa
   if (data === "user") return fail("Chegaste ao limite de hoje. Amanhã há mais.", 429);

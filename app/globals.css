@@ -891,6 +891,8 @@ textarea.field { resize: vertical; font: inherit; }
 .pane.is-mine .sub, .pane.is-mine .stat-n, .pane.is-mine .rank-n { color: inherit; opacity: 0.9; }
 .seg button small { display: block; margin-top: 4px; font: 600 11px/1 var(--font-body); letter-spacing: 0; text-transform: none; opacity: 0.8; }
 .seg.five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.seg.six { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg.six button { padding-inline: 4px; font-size: 11px; letter-spacing: 0.04em; }
 .seg.five button { padding-inline: 2px; font-size: 11px; letter-spacing: 0.04em; }
 @media (pointer: coarse) { .btn.sm > .face { padding-block: 13px; } }
 

@@ -81,3 +81,15 @@ test("grafias anteriores ao Acordo de 1990", () => {
   assert.equal(ptpt("A direcção e a protecção; a selecção correcta? A acção."), "A direção e a proteção; a seleção correcta? A ação.");
   assert.equal(ptpt("O contacto e a perspectiva respectiva."), "O contacto e a perspetiva respetiva.");
 });
+
+test("palavras do Brasil trocadas pelas de Portugal", () => {
+  assert.equal(ptpt("Samambaias e abacaxi; o guidão e o freio; o mouse e o aplicativo."), "Fetos e ananás; o guiador e o travão; o rato e a aplicação.");
+  assert.equal(ptpt("Um gol de caminhão no metrô? Uma carona, garota bacana, pra você."), "Um golo de camião no metro? Uma boleia, rapariga fixe, para você.");
+  assert.equal(ptpt("Compartilhar o arquivo é fácil. Estás acessando e estás gerenciando."), "Partilhar o arquivo é fácil. Estás a aceder e estás a gerir.");
+});
+
+test("gíria e arquivo do Brasil são marcados para revisão", () => {
+  assert.deepEqual(brMarkers("A galera vai baixar o arquivo no computador."), ["gíria", "arquivo"]);
+  assert.deepEqual(brMarkers("Isto é legal, né?"), ["gíria"]);
+  assert.deepEqual(brMarkers("O contrato é legal e o arquivo histórico fica na biblioteca."), ["gíria"]);
+});

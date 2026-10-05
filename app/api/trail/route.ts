@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   const shared = refresh ? null : await findTrail(key, level);
   if (shared) return Response.json({ ...shared, level });
 
-  const over = await spend(who.uid, "trail");
+  const over = await spend(who.uid, "trail", request);
   if (over) return over;
 
   const { sources, text } = await findSources(topic);

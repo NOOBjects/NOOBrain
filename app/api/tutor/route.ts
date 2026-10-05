@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const question = clean(body?.question, 300);
   if (!topic || !title || question.length < 2) return fail("Escreve uma pergunta.", 400);
 
-  const over = await spend(who.uid, "tutor");
+  const over = await spend(who.uid, "tutor", request);
   if (over) return over;
 
   // Modo "avaliar": julga uma resposta curta do teste (conta na cota do tutor).

@@ -1,6 +1,8 @@
 import { admin } from "@/lib/admin";
 import { userFrom } from "@/lib/auth";
 import { pushReady, sendPush } from "@/lib/push";
+import { ptptDeep } from "@/lib/ptpt";
+import { LIMITS } from "@/lib/quota";
 
 // Painel de administração. Só para as contas em ADMIN_IDS (ids separados por vírgula, variável só do servidor, na Vercel).
 // Usa a chave secreta: lê e muda o que o RLS esconde do app (ideias, erros reportados, opiniões, números).
@@ -35,6 +37,9 @@ export async function GET(request: Request) {
     count(admin.from("push_subscriptions").select("endpoint", { count: "exact", head: true })),
     count(admin.from("catalog_lessons").select("concept_key", { count: "exact", head: true })),
   ]);
+  const mineRows = await admin.from("ai_usage").select("kind,n").eq("user_id", user.id).eq("day", today);
+  const mine: Record<string, number> = {};
+  for (const r of mineRows.data ?? []) mine[r.kind] = r.n;
   const kinds: Record<string, number> = {};
   for (const r of usage.data ?? []) kinds[r.kind] = (kinds[r.kind] ?? 0) + r.n;
   const ratings = (feedback.data ?? []).map((f) => f.rating);
@@ -45,6 +50,7 @@ export async function GET(request: Request) {
       aiToday: daily.data?.n ?? 0, aiKinds: kinds,
       rating: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : null,
     },
+    tools: { usage: mine, max: LIMITS },
     ideas: ideas.data ?? [], reports: reports.data ?? [], feedback: feedback.data ?? [], catalog: catalog.data ?? [],
   });
 }
@@ -79,6 +85,35 @@ export async function POST(request: Request) {
     await admin.from("catalog_lessons").delete().eq("trail_key", key).eq("level", level);
     const { error } = await admin.from("catalog_trails").delete().eq("key", key).eq("level", level);
     return error ? fail("Não consegui apagar.", 500) : Response.json({ ok: true });
+  }
+  // Ferramenta: aplica a revisão de português de Portugal (lib/ptpt.ts) às trilhas e lições que já estão no catálogo.
+  if (b?.act === "ptpt") {
+    let changed = 0;
+    const [trails, lessons] = await Promise.all([
+      admin.from("catalog_trails").select("key,level,concepts").limit(1000),
+      admin.from("catalog_lessons").select("trail_key,level,concept_key,lesson").limit(5000),
+    ]);
+    for (const t of trails.data ?? []) {
+      const fixed = ptptDeep(t.concepts);
+      if (JSON.stringify(fixed) !== JSON.stringify(t.concepts)) { await admin.from("catalog_trails").update({ concepts: fixed }).eq("key", t.key).eq("level", t.level); changed++; }
+    }
+    for (const l of lessons.data ?? []) {
+      const fixed = ptptDeep(l.lesson);
+      if (JSON.stringify(fixed) !== JSON.stringify(l.lesson)) { await admin.from("catalog_lessons").update({ lesson: fixed }).eq("trail_key", l.trail_key).eq("level", l.level).eq("concept_key", l.concept_key); changed++; }
+    }
+    return Response.json({ ok: true, changed });
+  }
+  // Ferramenta de teste: repõe o uso de IA de hoje, da própria conta ou de outra (pelo @nome).
+  if (b?.act === "usage") {
+    let uid: string = user.id;
+    const name = typeof b.username === "string" ? b.username.trim().replace(/^@/, "").toLowerCase() : "";
+    if (name) {
+      const { data: p } = await admin.from("profiles").select("id").eq("username", name).maybeSingle();
+      if (!p) return fail("Não encontrei esse @nome.", 404);
+      uid = p.id;
+    }
+    const { error } = await admin.from("ai_usage").delete().eq("user_id", uid).eq("day", new Date().toISOString().slice(0, 10));
+    return error ? fail("Não consegui repor.", 500) : Response.json({ ok: true });
   }
   return fail("Ação desconhecida.", 400);
 }
