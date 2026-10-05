@@ -75,3 +75,9 @@ test("brMarkers só deteta", () => {
   assert.deepEqual(brMarkers("Ele está fazendo."), ["está fazendo"]);
   assert.deepEqual(brMarkersDeep({ q: "Quando?", o: ["Você sabe", "ok"] }), ["você"]);
 });
+
+test("grafias anteriores ao Acordo de 1990", () => {
+  assert.equal(ptpt("A optimização da transmissão: inspeccionar o aspecto actual do projecto."), "A otimização da transmissão: inspecionar o aspeto atual do projeto.");
+  assert.equal(ptpt("A direcção e a protecção; a selecção correcta? A acção."), "A direção e a proteção; a seleção correcta? A ação.");
+  assert.equal(ptpt("O contacto e a perspectiva respectiva."), "O contacto e a perspetiva respetiva.");
+});

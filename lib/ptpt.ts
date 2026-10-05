@@ -11,12 +11,13 @@ const WORDS: [string, string][] = [
   ["registrar", "registar"], ["registro", "registo"], ["registros", "registos"], ["contato", "contacto"], ["contatos", "contactos"],
   ["equipe", "equipa"], ["equipes", "equipas"], ["usuário", "utilizador"], ["usuários", "utilizadores"], ["ônibus", "autocarro"], ["trem", "comboio"],
   ["café da manhã", "pequeno-almoço"], ["suco", "sumo"], ["sucos", "sumos"], ["sorvete", "gelado"], ["sorvetes", "gelados"], ["xícara", "chávena"], ["xícaras", "chávenas"], ["aluguel", "aluguer"], ["goleiro", "guarda-redes"], ["goleiros", "guarda-redes"],
-  ["câmera", "câmara"], ["câmeras", "câmaras"], ["cadastro", "registo"], ["cadastrar", "registar"], ["deletar", "apagar"],
+  ["câmera", "câmara"], ["actual", "atual"], ["actuais", "atuais"], ["óptimo", "ótimo"], ["óptima", "ótima"], ["câmeras", "câmaras"], ["cadastro", "registo"], ["cadastrar", "registar"], ["deletar", "apagar"],
   ["banheiro", "casa de banho"], ["geladeira", "frigorífico"], ["esporte", "desporto"], ["esportes", "desportos"], ["de fato", "de facto"], ["fato de", "facto de"],
 ];
 const STEMS: [string, string][] = [
   ["econômic", "económic"], ["astronômic", "astronómic"], ["atômic", "atómic"], ["anatômic", "anatómic"], ["harmônic", "harmónic"], ["carbônic", "carbónic"],
   ["acadêmic", "académic"], ["polêmic", "polémic"], ["sistêmic", "sistémic"], ["endêmic", "endémic"], ["epidêmi", "epidémi"], ["pandêmi", "pandémi"], ["genôm", "genom"], ["planej", "plane"],
+  ["optimiz", "otimiz"], ["inspeccion", "inspecion"], ["objectiv", "objetiv"], ["actualiz", "atualiz"], ["projecto", "projeto"], ["aspecto", "aspeto"], ["respectiv", "respetiv"], ["perspectiv", "perspetiv"], ["direcç", "direç"], ["protecç", "proteç"], ["selecç", "seleç"], ["correcç", "correç"], ["acç", "aç"],
 ];
 
 const cap = (from: string, to: string) => (from[0] === from[0].toUpperCase() && from[0] !== from[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to);
