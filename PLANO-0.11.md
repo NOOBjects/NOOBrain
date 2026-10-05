@@ -20,8 +20,8 @@ Regras gerais: `CLAUDE.md` e `AGENTS.md` (PT-PT com "tu", chanfros, tokens de co
 
 | Fase | Versão | Conteúdo | Changelog |
 |---|---|---|---|
-| 1 | 0.10.1 | Login com e-mail, lembretes que não chegam, texto "\n" nas lições | corrigido |
-| 2 | 0.10.2 | Ilha nova (4 botões + gaveta), sem botão "Lição", instalar o app, "Dar opinião" | novo + melhorias |
+| 1 | 0.10.1 | Login com e-mail, lembretes que não chegam, texto "\n" nas lições, aviso de segurança do Supabase | corrigido |
+| 2 | 0.10.2 | Ilha nova (4 botões + gaveta), sem botão "Lição", instalar o app, "Dar opinião", Perfil e Definições reorganizados | novo + melhorias |
 | 3 | 0.10.3 | Níveis diferentes a sério, PT-PT, categorias novas, línguas em pausa | melhorias |
 | 4 | 0.10.4 | Limites diários com barras (lições novas e temas novos) | novo |
 | 5 | 0.10.5 | Ideias: separadores certos, recusadas a vermelho, pedir revisão | novo + corrigido |
@@ -94,6 +94,8 @@ A conta de teste tem as cotas normais (hoje: 5 temas e 25 lições por dia). Se 
 | D11 | Opinião só aparece por acaso | O cartão só surge depois do 3.º conceito dominado e ao concluir uma trilha (uma vez cada). Não há sítio fixo. | 2.4 |
 | D12 | Batota no ranking possível | O XP vem do aparelho; o banco só limita a 1000 por gravação. Com troféus, isto passa a importar. | 8.1 |
 | D13 | Texto com `\n` às vezes | A IA devolve por vezes a sequência literal `\n` dentro do texto; nada a limpa. | 1.3 |
+| D14 | Aviso do Supabase "Signed-In Users Can Execute SECURITY DEFINER Function" (`bump_catalog_use`) | A função que conta quantas pessoas começaram um tema corre com permissões de administrador e qualquer conta a pode chamar quantas vezes quiser. Não expõe dados nem deixa mudar mais nada, mas deixa inflacionar o contador e pôr um tema no topo de "Populares". | 1.4 |
+| D15 | Perfil e Definições confusos | O Perfil mistura identidade, números, atalhos (Ranking, Ideias) e "Terminar sessão". As Definições são 8 caixas iguais em fila, com ações perigosas (apagar conta) ao lado do tema claro/escuro, "Terminar sessão" repetido e o ranking separado do resto da privacidade. | 2.6 |
 
 Verificado e **sem problema**: o painel de administração funciona (o `ADMIN_IDS` está certo; os registos mostram-te a usá-lo);
 apagaste as duas trilhas da bicicleta no painel às 11:18 (por isso já não estão no catálogo); a gravação no catálogo funciona;
@@ -143,7 +145,42 @@ Nova rota `app/api/push/subscribe/route.ts` (servidor, chave secreta):
   Teste novo em `lib/ptpt.test.ts`: `"Olá\\nmundo"` → `"Olá mundo"`.
 - **Aceitação**: `npm run check:ptpt` passa.
 
-### 1.4 Publicar 0.10.1
+### 1.4 Contador de temas sem função exposta (aviso de segurança D14)
+Trocar a função `bump_catalog_use` (chamável por qualquer conta) por uma tabela onde cada pessoa só pode registar **uma vez** que
+começou cada tema; um gatilho soma ao contador. Sem funções expostas e sem forma de inflacionar.
+- Migração `catalog_starts`:
+  ```sql
+  create table public.catalog_starts (
+    key text not null, level text not null,
+    user_id uuid not null default auth.uid() references auth.users on delete cascade,
+    created_at timestamptz not null default now(),
+    primary key (key, level, user_id));
+  alter table public.catalog_starts enable row level security;
+  create policy "own starts insert" on public.catalog_starts for insert to authenticated
+    with check (user_id = (select auth.uid()));
+  create or replace function public.count_catalog_start() returns trigger
+  language plpgsql security definer set search_path = '' as $$
+  begin
+    update public.catalog_trails set uses = uses + 1 where key = new.key and level = new.level;
+    return null;
+  end $$;
+  revoke all on function public.count_catalog_start() from public, anon, authenticated;
+  create trigger catalog_starts_count after insert on public.catalog_starts
+    for each row execute function public.count_catalog_start();
+  ```
+- `lib/catalog-client.ts` (`startFromCatalog`): trocar `rpc("bump_catalog_use", …)` por
+  `supabase.from("catalog_starts").insert({ key, level })`, ignorando o erro de duplicado (código `23505`: a pessoa já tinha começado).
+- `tests/e2e/mock-supabase.cjs`: `PK.catalog_starts = ["key", "level", "user_id"]` e somar `uses` no catálogo do falso ao inserir.
+- **Depois** de publicar (para os separadores antigos ainda abertos não darem erro antes disso), segunda migração
+  `drop_bump_catalog_use`: `drop function public.bump_catalog_use(text, text);`.
+- Os números antigos de `uses` ficam como estão (a partir daqui conta pessoas diferentes).
+- **Aceitação**: `get_advisors` (security) sem o aviso `authenticated_security_definer_function_executable`; (A) começar um tema do
+  Explorar duas vezes soma 1 só uma vez; (B) com a conta de teste, um `POST /rest/v1/rpc/bump_catalog_use` dá 404.
+- Os outros avisos que ficam e porquê (anotar no PR): `rls_enabled_no_policy` em `ai_daily`, `ai_usage` e `reports` é
+  intencional (só o servidor lê/escreve com a chave secreta); "Leaked Password Protection" (verificar palavras-passe roubadas)
+  só existe nos planos pagos da Supabase: fica desligado.
+
+### 1.5 Publicar 0.10.1
 Changelog `corrigido`: entrar com e-mail volta a funcionar; os lembretes chegam à conta certa depois de mudares de conta no mesmo
 aparelho; texto estranho com "\n" deixa de aparecer nas lições.
 
@@ -181,8 +218,7 @@ aparelho; texto estranho com "\n" deixa de aparecer nas lições.
   `Escape` e com toque fora, e cada item abre o ecrã certo. Capturas claro/escuro, telemóvel/computador.
 
 ### 2.2 Onde cada ecrã fica acessível (para nada ficar perdido)
-- Perfil: tirar da `menu-list` as entradas Ranking e Ideias (agora estão na gaveta); fica só "Partilhar perfil". O par
-  "Editar perfil / Definições" fica.
+- Ranking e Ideias saem do Perfil (estão na gaveta). O Perfil e as Definições são reorganizados em 2.6.
 - Rodapé (`LegalLinks`): mantém-se como está.
 
 ### 2.3 Instalar o app (telemóvel e computador)
@@ -193,8 +229,8 @@ aparelho; texto estranho com "\n" deixa de aparecer nas lições.
 - Importar `lib/install.ts` em `App.tsx` (para ouvir cedo, também no ecrã de entrada).
 - Novo `components/InstallSheet.tsx`: `dialog.sheet` para o iPhone com 3 passos ilustrados com ícones: tocar em Partilhar (ícone
   novo `Share`, o quadrado com seta do iOS) → "Adicionar ao ecrã principal" → "Adicionar". Botão "Percebi".
-- Onde aparece: gaveta (2.1, item 5); Definições, nova secção "App" (botão "Instalar o NOOBrain"; se `"installed"`:
-  "O NOOBrain já está instalado neste aparelho."; se `"none"`: "Para instalar, abre o site no Chrome, no Edge ou no Safari do
+- Onde aparece: gaveta (2.1, item 5); Definições, grupo "App" (2.6: linha "Instalar o app"; se `"installed"`, a linha mostra
+  "Já instalado" sem ação; se `"none"`, a linha abre a explicação "Para instalar, abre o site no Chrome, no Edge ou no Safari do
   iPhone."); ecrã de entrada (sem sessão), por baixo dos blocos da landing: linha com botão `btn soft sm` "Instalar o app" quando
   `"prompt"` ou `"ios"`.
 - Ao instalar (`appinstalled`): aviso rápido "NOOBrain instalado. Encontra-o no ecrã principal.".
@@ -220,9 +256,59 @@ aparelho; texto estranho com "\n" deixa de aparecer nas lições.
 ### 2.5 Ícones novos (`components/Icons.tsx`, mesmo estilo dos outros)
 `Download`, `Gear` (engrenagem octogonal, a combinar com os chanfros), `Share` (iOS). Mais os da Fase 3.3.
 
-### 2.6 Publicar 0.10.2
+### 2.6 Perfil e Definições reorganizados
+Regra que separa os dois: **Perfil = quem és e o que já conseguiste** (o que os outros também veem). **Definições = como o app
+funciona para ti** (nada disto aparece aos outros). Cada coisa existe num só sítio.
+
+**Perfil** (`components/ProfileView.tsx`), de cima para baixo:
+1. Cabeçalho: avatar, nome, @nome, "Membro desde…", etiqueta "Equipa" (Fase 6); à direita, botão-ícone `iconbtn ch` com `Gear`
+   e `aria-label="Definições"`. A bio por baixo.
+2. Par de botões: "Editar perfil" (`btn sm`) e "Partilhar perfil" (`btn soft sm`, a função `share` que já existe).
+3. **Hoje**: o cartão da meta diária (e, depois da Fase 4, as duas barras de limites).
+4. **Números**: a grelha das 6 estatísticas (sem mudanças).
+5. **Troféus** (Fase 8, só se houver) e **Conquistas** (`BadgeGrid`).
+6. **Os teus temas** (o mapa que já existe), no fim.
+Sai do Perfil: o botão "Definições" do par (passa a ícone), a `menu-list` (Ranking e Ideias estão na gaveta; Partilhar sobe para o
+par) e "Terminar sessão" (passa para Definições → Conta).
+
+**Definições** (`components/Settings.tsx`): deixa de ser uma fila de caixas iguais e passa a **lista agrupada** (estilo das
+definições do iPhone): títulos de grupo (`eyebrow`) e, em cada grupo, um `pane` com linhas `menu-row` (rótulo à esquerda, valor
+atual à direita em `sub small`, `›` quando abre um subecrã). Subecrãs pelo endereço `?v=definicoes&s=<id>` (acrescentar `s` à
+função `navigate` em `App.tsx`; "voltar" do navegador funciona), com "← Definições" no topo.
+
+| Grupo | Linha | Valor à direita | Ao tocar |
+|---|---|---|---|
+| Estudo | Meta diária | "Normal · 30 XP" | subecrã `meta`: o seletor Leve/Normal/Intensa + a frase que já existe |
+| Estudo | Avisos | "Ligados" / "Desligados" / "Bloqueados" | subecrã `avisos`: os 2 interruptores + "Enviar aviso de teste" |
+| Aparência | Tema | — | o seletor Automático/Claro/Escuro **na própria linha** (sem subecrã) |
+| Privacidade | Aparecer no ranking | interruptor | muda logo; frase por baixo: "Desligado, o teu nome sai do ranking e o perfil público deixa de aparecer no Google." |
+| App | Instalar o app | — | 2.3 (só quando há forma de instalar) |
+| App | Novidades | "Versão 0.10.2" | abre Novidades |
+| Conta | E-mail | o e-mail | — (só leitura) |
+| Conta | Entras com | "Google" / "E-mail" / "Google e e-mail" | — |
+| Conta | Sincronização | "Guardado" / "A guardar…" / "Sem ligação" / "Erro ao guardar" | — (só leitura) |
+| Conta | Alterar palavra-passe | — | o fluxo atual (só com e-mail) |
+| Conta | Terminar sessão | — | termina (texto `--brand`, sem `›`) |
+| Dados | Descarregar os meus dados | — | descarrega logo (o `download` atual) |
+| Dados | Recomeçar do zero | — | subecrã `recomecar`: explicação + escrever RECOMEÇAR + botão |
+| Dados | Apagar a conta | — | subecrã `apagar`: `pane is-wrong` com o que se perde, escrever o @nome, botão `btn bad` |
+| Equipa (só com acesso) | Painel de administração | papel ("Dono", "Admin", "Moderador") | abre o painel |
+| Sobre | Sobre o NOOBrain | — | subecrã `sobre`: o texto atual do "Sobre", fontes, Termos, Privacidade, contacto, Ko-fi |
+
+- No fundo da página, centrado, `sub small`: "NOOBrain beta 0.10.2 · ✦ Feito com IA · NOOBjects".
+- Componente novo `components/Switch.tsx` para "Aparecer no ranking": `button role="switch" aria-checked`, calha e botão
+  **chanfrados** (`.ch`, sem `border-radius`), ligado = `--brand`, desligado = `--lock`; nunca `--ok`.
+- As ações perigosas (recomeçar, apagar conta) só existem dentro dos seus subecrãs, nunca na página principal.
+- O `ReminderToggle` mantém a lógica; só muda de sítio (subecrã `avisos`). A gaveta (2.1) continua a ter "Definições".
+- **Aceitação** (script `tests/e2e/fase2-perfil.cjs`, 390 e 1280 px, claro e escuro): o Perfil tem a ordem acima, sem "Terminar
+  sessão" nem lista de atalhos, e o ícone abre as Definições; as Definições mostram os grupos e valores certos; cada subecrã abre
+  pelo endereço, o "voltar" do navegador regressa à lista, e o seletor de meta, o tema, o interruptor do ranking, terminar sessão,
+  recomeçar (com RECOMEÇAR) e apagar conta (com o @nome; no falso, confirmar o pedido `DELETE /api/account`) funcionam.
+
+### 2.7 Publicar 0.10.2
 `novo`: instalar o app no telemóvel e no computador; "Dar opinião" sempre disponível. `melhorias`: menu com os 4 ecrãs principais e
-uma gaveta com o resto; o menu deixa de se mexer ao mudar de ecrã.
+uma gaveta com o resto; o menu deixa de se mexer ao mudar de ecrã; Perfil e Definições mais arrumados (o Perfil mostra quem és e o
+que conseguiste, as Definições juntam tudo o que é configuração, por grupos).
 
 ---
 
@@ -387,7 +473,7 @@ Objetivo duplo: descanso (aprender aos poucos fixa melhor) e não esgotar a IA g
 - `TrailView`: por baixo do painel "Progresso", barra fina "Lições novas hoje · 2 de 6".
 - `NewTopic`: no topo, "Temas novos com IA hoje · 1 de 3" + frase "Começar um tema do Explorar não conta.". Com 3 de 3: formulário
   desativado e botão "Explorar temas prontos".
-- `ProfileView`: no cartão "Meta de hoje", as duas barras por baixo da meta.
+- `ProfileView`: na secção "Hoje" (2.6), as duas barras por baixo da meta.
 - Nova rota `GET /api/quota` (com sessão): `{ trail: { used, max }, lesson: { used, max } }` lidos de `ai_usage` do dia (chave
   secreta). A barra de temas usa este valor; a de lições usa o estado local.
 - **Aceitação** (A): com o estado de teste a 5 lições novas, abrir a 6.ª funciona e a 7.ª mostra o descanso; repetir uma lição feita
@@ -525,7 +611,7 @@ Sem políticas de escrita: só o servidor escreve. Depois: `get_advisors` (secur
 - Todos os botões destrutivos com confirmação; todas as ações com aviso rápido de sucesso/erro.
 
 ### 6.5 Acesso e etiquetas
-- A gaveta (2.1) mostra "Administração" para qualquer papel; Definições mantém a secção.
+- A gaveta (2.1) mostra "Administração" para qualquer papel; nas Definições, o grupo "Equipa" (2.6).
 - Etiqueta pública **"Equipa"** (chip `ch` com `Shield`, cores `--brand`) ao lado do @nome: Ranking, Ideias (autor e quem
   responde), perfil público `/u/[username]`, Perfil próprio. Fonte: `staff` (leitura pública) + donos. Para os donos aparecerem,
   `GET /api/staff` (público, com cache de 5 min) devolve os ids de toda a equipa (donos incluídos), sem papéis.
