@@ -22,7 +22,7 @@ export function LegalLinks({ onIdea, onNews }: { onIdea?: () => void; onNews?: (
   return (
     <p className="sub small legal-links">
       <Link href="/privacidade">Política de privacidade</Link> · <Link href="/termos">Termos de serviço</Link>
-      <br />✦ Feito com IA · NOOBjects
+      <br />NOOBjects
       {BETA && <><br />Versão beta {VERSION} · {onNews && <><button type="button" className="linkbtn" onClick={onNews}>Novidades</button> · </>}{onIdea ? <button type="button" className="linkbtn" onClick={onIdea}>Dar uma ideia</button> : <a href={`mailto:${CONTACT}?subject=Ideia para o NOOBrain`}>Dar uma ideia</a>}</>}
     </p>
   );

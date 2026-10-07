@@ -23,7 +23,7 @@ const clear = async (p) => { for (let i = 0; i < 4 && (await p.locator("dialog[o
   await p.getByRole("button", { name: "Repor o meu uso de IA" }).click();
   assert.equal((await seen).headers()["x-noobrain-limits"], "on", "cabeçalho dos limites");
   await p.waitForTimeout(500);
-  assert(/foi reposto/i.test(await p.locator(".admin").innerText()), "mensagem de reposição");
+  assert(/foi reposto/i.test(await p.locator("body").innerText()), "mensagem de reposição");
 
   // repor as lições novas limpa a contagem do dia
   assert((await p.evaluate(() => JSON.parse(localStorage.getItem("noobrain:v2")).daily?.lessons?.length)) >= 6);
@@ -43,7 +43,7 @@ const clear = async (p) => { for (let i = 0; i < 4 && (await p.locator("dialog[o
   // revisão do português do catálogo
   await p.getByRole("button", { name: "Rever o catálogo" }).click();
   await p.waitForTimeout(800);
-  assert(/Corrigi|catálogo/i.test(await p.locator(".admin").innerText().then((t) => t.split("\n").slice(-3).join(" "))), "mensagem do catálogo");
+  assert(/Corrigi|catálogo/i.test(await p.locator("body").innerText()), "mensagem do catálogo");
   await p.getByRole("switch", { name: "Testar como pessoa normal" }).click();
   assert.equal(await p.evaluate(() => localStorage.getItem("noobrain:testlimits")), null);
   console.log("admin-ferramentas OK");

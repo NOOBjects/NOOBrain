@@ -1,235 +1,50 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Switch } from "./Switch";
-import { call, setTestLimits, testLimits } from "@/lib/api";
-import { update } from "@/lib/store";
+import { useState } from "react";
+import { Catalogo } from "./admin/Catalogo";
+import { Equipa } from "./admin/Equipa";
+import { Erros } from "./admin/Erros";
+import { Ferramentas } from "./admin/Ferramentas";
+import { Ideias } from "./admin/Ideias";
+import { Opinioes } from "./admin/Opinioes";
+import { Pessoas } from "./admin/Pessoas";
+import { Qualidade } from "./admin/Qualidade";
+import { Registo } from "./admin/Registo";
+import { Resumo } from "./admin/Resumo";
+import { ROLE_LABEL, type Role } from "./admin/shared";
 
-type Idea = { id: number; title: string; body: string; status: string; reply: string | null; votes: number; created_at: string; appeal: string | null };
-type Report = { id: number; what: string; detail: string; created_at: string; resolved: boolean };
-type Opinion = { id: number; rating: number; text: string; context: string; created_at: string };
-type Topic = { key: string; level: string; topic: string; uses: number; category: string };
-type Data = {
-  numbers: { accounts: number; active: number; devices: number; lessons: number; topics: number; aiToday: number; aiKinds: Record<string, number>; rating: number | null };
-  ideas: Idea[]; reports: Report[]; feedback: Opinion[]; catalog: Topic[];
-  tools: { usage: Record<string, number>; max: Record<string, number>; glossary: { word: string; replacement: string }[]; notices: { title: string; at: string; n: number }[]; pushReady: boolean };
-};
+type Tab = "resumo" | "ideias" | "erros" | "opinioes" | "catalogo" | "qualidade" | "pessoas" | "ferramentas" | "equipa" | "registo";
+const TABS: { id: Tab; label: string; only?: Role[] }[] = [
+  { id: "resumo", label: "Resumo" }, { id: "ideias", label: "Ideias" }, { id: "erros", label: "Erros" }, { id: "opinioes", label: "Opiniões" },
+  { id: "catalogo", label: "Catálogo" }, { id: "qualidade", label: "Qualidade" }, { id: "pessoas", label: "Pessoas" },
+  { id: "ferramentas", label: "Ferramentas", only: ["dono", "admin"] }, { id: "equipa", label: "Equipa", only: ["dono"] }, { id: "registo", label: "Registo", only: ["dono", "admin"] },
+];
 
-const STATUS: [string, string][] = [["recebida", "Recebida"], ["planeada", "Planeada"], ["em_curso", "Em curso"], ["feita", "Feita"], ["recusada", "Recusada"]];
-const TABS = [["numeros", "Números"], ["ideias", "Ideias"], ["erros", "Erros"], ["opiniao", "Opinião"], ["catalogo", "Catálogo"], ["ferramentas", "Ferramentas"]] as const;
-const when = (iso: string) => new Date(iso).toLocaleString("pt-PT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-
-/** Painel de administração: ideias, erros reportados, opiniões, números e catálogo. Só aparece a quem está em ADMIN_IDS. */
-export function Admin({ onBack }: { onBack: () => void }) {
-  const [data, setData] = useState<Data | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number][0]>("numeros");
-  const [del, setDel] = useState<string | null>(null);
-  const [limits, setLimits] = useState(testLimits);
-  const [who, setWho] = useState("");
-  const [done, setDone] = useState<string | null>(null);
-  const [onlyAppeals, setOnlyAppeals] = useState(false);
-  const [gw, setGw] = useState("");
-  const [gr, setGr] = useState("");
-  const [found, setFound] = useState<{ word: string; replacement: string }[] | null>(null);
-  const [scanning, setScanning] = useState(false);
-  const [nAud, setNAud] = useState<"all" | "team" | "users">("all");
-  const [nUsers, setNUsers] = useState("");
-  const [nTitle, setNTitle] = useState("");
-  const [nBody, setNBody] = useState("");
-  const [nLink, setNLink] = useState("");
-  const [nPush, setNPush] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const load = useCallback(() => call<Data>("/api/admin").then(setData, (e: Error) => setError(e.message)), []);
-  useEffect(() => { void Promise.resolve().then(load); }, [load]);
-
-  async function act(body: object, ok = "Guardado") {
-    try { await call("/api/admin", body); setError(null); await load(); return ok; } catch (e) { setError((e as Error).message); return null; }
-  }
-
+/** Painel de administração. O que cada pessoa vê depende do papel (dono, admin ou moderador); o servidor confere tudo outra vez. */
+export function Admin({ role, onBack, notify }: { role: Role; onBack: () => void; notify: (m: string) => void }) {
+  const [tab, setTab] = useState<Tab>("resumo");
+  const [bad, setBad] = useState<string | null>(null);
+  const say = (text: string, isBad = false) => { setBad(isBad ? text : null); notify(text); };
+  const tabs = TABS.filter((t) => !t.only || t.only.includes(role));
   return (
     <div className="admin">
       <button type="button" className="linkbtn back" onClick={onBack}>← Voltar ao perfil</button>
+      <div className="eyebrow">{ROLE_LABEL[role]}</div>
       <h1 className="h-screen">Administração</h1>
-      <div className="seg six" role="tablist" aria-label="Secções">
-        {TABS.map(([id, label]) => <button key={id} type="button" role="tab" className="ch" aria-selected={tab === id} onClick={() => setTab(id)}>{label}</button>)}
+      <div className="topic-chips" role="tablist" aria-label="Secções">
+        {tabs.map((t) => <button key={t.id} type="button" role="tab" className="chip ch" aria-selected={tab === t.id} onClick={() => { setTab(t.id); setBad(null); }}>{t.label}</button>)}
       </div>
-      {error && <div className="note ch" role="alert">{error}</div>}
-      {!data && !error && <p className="sub center">A carregar…</p>}
-
-      {data && tab === "numeros" && (
-        <div className="stats-grid">
-          {([["Contas", data.numbers.accounts], ["Ativas (7 dias)", data.numbers.active], ["Pedidos à IA hoje", data.numbers.aiToday], ["Aparelhos com avisos", data.numbers.devices],
-            ["Temas no catálogo", data.numbers.topics], ["Lições no catálogo", data.numbers.lessons], ["Opinião média", data.numbers.rating ?? "—"],
-            ...Object.entries(data.numbers.aiKinds).map(([k, n]) => [`IA hoje: ${k}`, n])] as [string, number | string][]).map(([label, n]) => (
-            <div key={label} className="pane"><div className="in stat-box"><span className="stat-n">{n}</span><span className="eyebrow">{label}</span></div></div>
-          ))}
-        </div>
-      )}
-
-      {data && tab === "ideias" && (
-        <div className="list">
-          <div className="topic-chips" role="group" aria-label="Filtro">
-            <button type="button" className="chip ch" aria-pressed={!onlyAppeals} onClick={() => setOnlyAppeals(false)}>Todas</button>
-            <button type="button" className="chip ch" aria-pressed={onlyAppeals} onClick={() => setOnlyAppeals(true)}>Recursos ({data.ideas.filter((i) => i.status === "recurso").length})</button>
-          </div>
-          {!data.ideas.length && <p className="sub center">Ainda sem ideias.</p>}
-          {data.ideas.filter((i) => !onlyAppeals || i.status === "recurso").map((i) => <IdeaRow key={i.id} idea={i} onSave={(status, reply) => act({ act: "idea", id: i.id, status, reply })} />)}
-        </div>
-      )}
-
-      {data && tab === "erros" && (
-        <div className="list">
-          {!data.reports.length && <p className="sub center">Nenhum erro reportado.</p>}
-          {data.reports.map((r) => (
-            <div key={r.id} className={`pane${r.resolved ? " flat dim" : ""}`}><div className="in set">
-              <div className="row-between"><span className="chip ch">{r.what}</span><span className="sub small">{when(r.created_at)}</span></div>
-              <p className="sub small pre">{r.detail}</p>
-              <button type="button" className="btn soft sm" onClick={() => void act({ act: "report", id: r.id, resolved: !r.resolved })}><span className="face">{r.resolved ? "Reabrir" : "Marcar como resolvido"}</span></button>
-            </div></div>
-          ))}
-        </div>
-      )}
-
-      {data && tab === "opiniao" && (
-        <div className="list">
-          {!data.feedback.length && <p className="sub center">Ainda sem opiniões.</p>}
-          {data.feedback.map((f) => (
-            <div key={f.id} className="pane"><div className="in set">
-              <div className="row-between"><b>{"★".repeat(f.rating)}{"☆".repeat(5 - f.rating)}</b><span className="sub small">{when(f.created_at)} · {f.context}</span></div>
-              {f.text && <p className="sub small pre">{f.text}</p>}
-            </div></div>
-          ))}
-        </div>
-      )}
-
-      {data && tab === "ferramentas" && (
-        <div className="stack">
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Enviar um aviso</div>
-            <p className="sub small">Aparece nas notificações de quem escolheres e, se quiseres, também chega ao telemóvel de quem tem os avisos ligados.</p>
-            <label className="lbl" htmlFor="n-aud">Para quem</label>
-            <select id="n-aud" className="field ch" value={nAud} onChange={(e) => setNAud(e.target.value as "all" | "team" | "users")}>
-              <option value="all">Toda a gente ({data.numbers.accounts} contas)</option>
-              <option value="team">Só a equipa</option>
-              <option value="users">Pessoas escolhidas (@nomes)</option>
-            </select>
-            {nAud === "users" && <input className="field ch" aria-label="@nomes, separados por vírgula" placeholder="@ana, @joao_99" value={nUsers} onChange={(e) => setNUsers(e.target.value)} autoCapitalize="none" autoComplete="off" />}
-            <label className="lbl" htmlFor="n-title">Título</label>
-            <input id="n-title" className="field ch" value={nTitle} maxLength={120} onChange={(e) => setNTitle(e.target.value)} autoComplete="off" />
-            <label className="lbl" htmlFor="n-body">Texto (opcional)</label>
-            <textarea id="n-body" className="field ch" rows={3} value={nBody} maxLength={600} onChange={(e) => setNBody(e.target.value)} />
-            <label className="lbl" htmlFor="n-link">Ao tocar, abre</label>
-            <select id="n-link" className="field ch" value={nLink} onChange={(e) => setNLink(e.target.value)}>
-              <option value="">Só a lista de notificações</option>
-              <option value="novidades">Novidades</option><option value="ideias">Ideias</option><option value="explorar">Explorar</option><option value="revisar">Rever</option><option value="perfil">Perfil</option><option value="ranking">Ranking</option>
-            </select>
-            <div className="menu-row static"><span>Enviar também para o telemóvel{data.tools.pushReady ? "" : " (avisos desligados no servidor)"}</span><Switch on={nPush && data.tools.pushReady} onChange={setNPush} label="Enviar também para o telemóvel" /></div>
-            <button type="button" className="btn" disabled={sending || nTitle.trim().length < 3 || (nAud === "users" && !nUsers.trim())} onClick={() => {
-              if (nAud === "all" && !window.confirm(`Enviar este aviso a ${data.numbers.accounts} contas?`)) return;
-              setSending(true);
-              void call<{ sent: number; pushed: number }>("/api/admin", { act: "notice", audience: nAud, usernames: nUsers, title: nTitle, body: nBody, link: nLink, push: nPush })
-                .then((r) => { setDone(`Aviso enviado a ${r.sent} ${r.sent === 1 ? "conta" : "contas"}${nPush ? ` (${r.pushed} no telemóvel)` : ""}.`); setNTitle(""); setNBody(""); setError(null); void load(); }, (e: Error) => setError(e.message))
-                .finally(() => setSending(false));
-            }}><span className="face">{sending ? "A enviar…" : "Enviar aviso"}</span></button>
-            {data.tools.notices.length > 0 && <>
-              <div className="eyebrow">Últimos avisos</div>
-              <ul className="gloss">{data.tools.notices.map((n) => <li key={n.at}><span>{n.title}</span><span className="sub small">{when(n.at)} · {n.n}</span></li>)}</ul>
-            </>}
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Limites diários</div>
-            <p className="sub small">As contas de dono não têm limites. Liga isto para testares como uma pessoa normal (só neste navegador).</p>
-            <div className="menu-row static"><span>Testar como pessoa normal</span><Switch on={limits} onChange={(on) => { setTestLimits(on); setLimits(on); setDone(on ? "Limites ligados nesta conta, neste navegador." : "Limites desligados (és dono outra vez)."); }} label="Testar como pessoa normal" /></div>
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Uso de IA de hoje</div>
-            <p>Temas {data.tools.usage.trail ?? 0} de {data.tools.max.trail} · lições {data.tools.usage.lesson ?? 0} de {data.tools.max.lesson} · tutor {data.tools.usage.tutor ?? 0} de {data.tools.max.tutor}</p>
-            <button type="button" className="btn soft" onClick={() => void act({ act: "usage" }).then((m) => m && setDone("O teu uso de IA de hoje foi reposto."))}><span className="face">Repor o meu uso de IA</span></button>
-            <label className="lbl" htmlFor="who">Ou de outra conta (@nome)</label>
-            <input id="who" className="field ch" value={who} onChange={(e) => setWho(e.target.value)} autoComplete="off" autoCapitalize="none" placeholder="@nome" />
-            <button type="button" className="btn soft" disabled={!who.trim()} onClick={() => void act({ act: "usage", username: who }).then((m) => { if (m) { setDone(`O uso de IA de hoje de ${who.trim()} foi reposto.`); setWho(""); } })}><span className="face">Repor o uso dessa conta</span></button>
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Lições novas de hoje</div>
-            <p className="sub small">Volta a zero a contagem de lições novas deste aparelho (o limite de 6 por dia).</p>
-            <button type="button" className="btn soft" onClick={() => { update((s) => ({ ...s, daily: undefined })); setDone("Lições novas de hoje repostas."); }}><span className="face">Repor as lições novas</span></button>
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Português de Portugal</div>
-            <p className="sub small">Aplica a revisão automática (palavras do Brasil, grafias antigas, gerúndio e o glossário abaixo) a todas as trilhas e lições do catálogo. Quem tiver uma trilha mudada recebe o aviso «atualizar».</p>
-            <button type="button" className="btn soft" onClick={() => void call<{ changed: number; trails: number }>("/api/admin", { act: "ptpt" }).then((r) => setDone(r.changed ? `Corrigi ${r.changed} entradas (${r.trails} trilhas). Quem as tem vai receber o aviso para atualizar.` : "O catálogo já está em português de Portugal."), (e: Error) => setError(e.message))}><span className="face">Rever o catálogo</span></button>
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Glossário: palavras de Portugal</div>
-            <p className="sub small">Palavra do Brasil → palavra de Portugal. Vale logo para tudo o que a IA escrever daqui para a frente; para o que já existe, usa «Rever o catálogo».</p>
-            {data.tools.glossary.length > 0 && (
-              <ul className="gloss">{data.tools.glossary.map((g) => <li key={g.word}><span>{g.word} → <b>{g.replacement}</b></span><button type="button" className="linkbtn" onClick={() => void act({ act: "gloss-del", word: g.word })}>Apagar</button></li>)}</ul>
-            )}
-            <div className="pair"><input className="field ch" aria-label="Palavra do Brasil" placeholder="do Brasil" value={gw} onChange={(e) => setGw(e.target.value)} autoCapitalize="none" /><input className="field ch" aria-label="Palavra de Portugal" placeholder="de Portugal" value={gr} onChange={(e) => setGr(e.target.value)} autoCapitalize="none" /></div>
-            <button type="button" className="btn soft" disabled={!gw.trim() || !gr.trim()} onClick={() => void act({ act: "gloss", word: gw, replacement: gr }).then((m) => { if (m) { setGw(""); setGr(""); setDone("Palavra guardada."); } })}><span className="face">Acrescentar ao glossário</span></button>
-            <button type="button" className="btn soft" disabled={scanning} onClick={() => { setScanning(true); setFound(null); void call<{ scanned: number; suggestions: { word: string; replacement: string }[] }>("/api/admin", { act: "gloss-scan" }).then((r) => { setFound(r.suggestions); setDone(r.suggestions.length ? `A IA leu ${r.scanned} palavras e sugere ${r.suggestions.length}.` : `A IA leu ${r.scanned} palavras e não encontrou nada do Brasil.`); }, (e: Error) => setError(e.message)).finally(() => setScanning(false)); }}><span className="face">{scanning ? "A IA está a ler o catálogo…" : "Procurar palavras do Brasil com a IA"}</span></button>
-            {found && found.length > 0 && (
-              <ul className="gloss">{found.map((g) => (
-                <li key={g.word}><span>{g.word} → <b>{g.replacement}</b></span>
-                  <span className="acts-inline">
-                    <button type="button" className="linkbtn" onClick={() => void act({ act: "gloss", word: g.word, replacement: g.replacement }).then((m) => m && setFound((f) => f && f.filter((x) => x.word !== g.word)))}>Aceitar</button>
-                    <button type="button" className="linkbtn" onClick={() => setFound((f) => f && f.filter((x) => x.word !== g.word))}>Ignorar</button>
-                  </span></li>
-              ))}</ul>
-            )}
-          </div></section>
-          <section className="pane"><div className="in set">
-            <div className="eyebrow">Atualizações</div>
-            <p className="sub small">Pede a toda a gente que atualize as trilhas guardadas (fica o progresso). Usa depois de refazeres conteúdo à mão. Quem tem a app aberta recebe sozinho o aviso de «nova versão» a cada publicação.</p>
-            <button type="button" className="btn soft" onClick={() => void call<{ trails: number }>("/api/admin", { act: "refresh-all" }).then((r) => setDone(`Pedi a atualização de ${r.trails} trilhas do catálogo.`), (e: Error) => setError(e.message))}><span className="face">Pedir a todos que atualizem as trilhas</span></button>
-          </div></section>
-          {done && <p className="sub center" role="status">{done}</p>}
-        </div>
-      )}
-
-      {data && tab === "catalogo" && (
-        <div className="list">
-          {data.catalog.map((t) => {
-            const id = `${t.key}|${t.level}`;
-            return (
-              <div key={id} className="pane"><div className="in due-row">
-                <div><b>{t.topic}</b><div className="sub small">{t.level} · {t.category} · {t.uses} usos</div></div>
-                {del === id ? (
-                  <span className="acts-inline">
-                    <button type="button" className="btn bad sm" onClick={() => { setDel(null); void act({ act: "topic", key: t.key, level: t.level }); }}><span className="face">Apagar</span></button>
-                    <button type="button" className="linkbtn" onClick={() => setDel(null)}>Cancelar</button>
-                  </span>
-                ) : <button type="button" className="linkbtn" onClick={() => setDel(id)}>Apagar</button>}
-              </div></div>
-            );
-          })}
-        </div>
-      )}
+      {bad && <div className="note ch" role="alert">{bad}</div>}
+      {tab === "resumo" && <Resumo />}
+      {tab === "ideias" && <Ideias say={say} />}
+      {tab === "erros" && <Erros say={say} />}
+      {tab === "opinioes" && <Opinioes />}
+      {tab === "catalogo" && <Catalogo say={say} />}
+      {tab === "qualidade" && <Qualidade say={say} />}
+      {tab === "pessoas" && <Pessoas role={role} say={say} />}
+      {tab === "ferramentas" && <Ferramentas say={say} />}
+      {tab === "equipa" && <Equipa say={say} />}
+      {tab === "registo" && <Registo />}
     </div>
-  );
-}
-
-function IdeaRow({ idea, onSave }: { idea: Idea; onSave: (status: string, reply: string) => Promise<string | null> }) {
-  const [status, setStatus] = useState(idea.status);
-  const [reply, setReply] = useState(idea.reply ?? "");
-  const [msg, setMsg] = useState<string | null>(null);
-  const changed = status !== idea.status || reply !== (idea.reply ?? "");
-  return (
-    <div className="pane"><div className="in set">
-      <div className="row-between"><b>{idea.title}</b><span className="chip ch">▲ {idea.votes}</span></div>
-      {idea.body && <p className="sub small pre">{idea.body}</p>}
-      {idea.appeal && <div className="note ch"><b>Pedido de revisão do autor:</b> {idea.appeal}</div>}
-      <label className="lbl" htmlFor={`st${idea.id}`}>Estado</label>
-      <select id={`st${idea.id}`} className="field ch" value={status} onChange={(e) => setStatus(e.target.value)}>
-        {idea.status === "recurso" && <option value="recurso" disabled>Em recurso (decide: aceitar ou manter recusada)</option>}
-        {STATUS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-      </select>
-      <label className="lbl" htmlFor={`re${idea.id}`}>Resposta da NOOBjects</label>
-      <textarea id={`re${idea.id}`} className="field ch" rows={2} maxLength={400} value={reply} onChange={(e) => setReply(e.target.value)} />
-      <button type="button" className="btn sm" disabled={!changed} onClick={async () => setMsg(await onSave(status, reply))}><span className="face">Guardar</span></button>
-      {msg && <p className="sub small" role="status">{msg}{status !== idea.status ? "" : ""}</p>}
-    </div></div>
   );
 }

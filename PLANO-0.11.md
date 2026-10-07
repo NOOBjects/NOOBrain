@@ -300,7 +300,7 @@ função `navigate` em `App.tsx`; "voltar" do navegador funciona), com "← Defi
 | Equipa (só com acesso) | Painel de administração | papel ("Dono", "Admin", "Moderador") | abre o painel |
 | Sobre | Sobre o NOOBrain | — | subecrã `sobre`: o texto atual do "Sobre", fontes, Termos, Privacidade, contacto, Ko-fi |
 
-- No fundo da página, centrado, `sub small`: "NOOBrain beta 0.10.2 · ✦ Feito com IA · NOOBjects".
+- No fundo da página, centrado, `sub small`: "NOOBrain beta 0.10.2 · NOOBjects" (o selo «Feito com IA» foi retirado em 0.10.8).
 - Componente novo `components/Switch.tsx` para "Aparecer no ranking": `button role="switch" aria-checked`, calha e botão
   **chanfrados** (`.ch`, sem `border-radius`), ligado = `--brand`, desligado = `--lock`; nunca `--ok`.
 - As ações perigosas (recomeçar, apagar conta) só existem dentro dos seus subecrãs, nunca na página principal.

@@ -36,20 +36,20 @@ const lessonFor = (title, i) => ({
 const trails = JSON.parse(fs.readFileSync(path.join(FIX, "catalog_trails.json"), "utf8"));
 const db = {
   profiles: [{ id: UID, username: "rodrigo_teste", display_name: "Rodrigo", avatar: 0, bio: "A aprender tudo.", in_ranking: true, xp: 0, streak: 0, topics_done: 0, week_xp: 120, week_start: weekStart(), created_at: "2026-09-20T10:00:00Z", age_ok: true },
-    { id: "2", username: "ana", display_name: "Ana", avatar: 2, bio: "", in_ranking: true, xp: 500, streak: 3, topics_done: 1, week_xp: 340, week_start: weekStart(), created_at: "2026-09-21T10:00:00Z" },
-    { id: "3", username: "joao_99", display_name: "", avatar: 3, bio: "", in_ranking: true, xp: 90, streak: 1, topics_done: 0, week_xp: 90, week_start: weekStart(), created_at: "2026-09-22T10:00:00Z" }],
+    { id: "22222222-2222-4222-8222-222222222222", username: "ana", display_name: "Ana", avatar: 2, bio: "", in_ranking: true, xp: 500, streak: 3, topics_done: 1, week_xp: 340, week_start: weekStart(), created_at: "2026-09-21T10:00:00Z" },
+    { id: "33333333-3333-4333-8333-333333333333", username: "joao_99", display_name: "", avatar: 3, bio: "", in_ranking: true, xp: 90, streak: 1, topics_done: 0, week_xp: 90, week_start: weekStart(), created_at: "2026-09-22T10:00:00Z" }],
   progress: [],
   catalog_trails: trails,
   catalog_lessons: [],
   suggestions: [
-    { id: 1, user_id: "2", title: "Modo escuro mais escuro", body: "Para ler à noite.", status: "planeada", reply: "Boa ideia!", votes: 4, created_at: "2026-10-01T10:00:00Z" },
+    { id: 1, user_id: "22222222-2222-4222-8222-222222222222", title: "Modo escuro mais escuro", body: "Para ler à noite.", status: "planeada", reply: "Boa ideia!", votes: 4, created_at: "2026-10-01T10:00:00Z" },
     { id: 2, user_id: UID, title: "Mais temas de história", body: "", status: "recebida", reply: null, votes: 1, created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
-    { id: 3, user_id: "3", title: "Ouvir as lições em voz alta", body: "", status: "em_curso", reply: null, votes: 7, created_at: "2026-09-28T10:00:00Z" },
-    { id: 4, user_id: "2", title: "Instalar no telemóvel", body: "", status: "feita", reply: "Já está!", votes: 12, created_at: "2026-09-25T10:00:00Z", decided_at: "2026-10-05T10:00:00Z" },
+    { id: 3, user_id: "33333333-3333-4333-8333-333333333333", title: "Ouvir as lições em voz alta", body: "", status: "em_curso", reply: null, votes: 7, created_at: "2026-09-28T10:00:00Z" },
+    { id: 4, user_id: "22222222-2222-4222-8222-222222222222", title: "Instalar no telemóvel", body: "", status: "feita", reply: "Já está!", votes: 12, created_at: "2026-09-25T10:00:00Z", decided_at: "2026-10-05T10:00:00Z" },
     { id: 5, user_id: UID, title: "Anúncios no app", body: "", status: "recusada", reply: "O NOOBrain fica sem anúncios.", votes: 2, created_at: "2026-09-26T10:00:00Z", decided_at: "2026-09-30T10:00:00Z" },
-    { id: 6, user_id: "3", title: "Pagar para ter mais lições", body: "", status: "recusada", reply: "A IA tem de ficar gratuita.", votes: 1, created_at: "2026-09-27T10:00:00Z", decided_at: "2026-09-30T10:00:00Z" },
-    { id: 7, user_id: "2", title: "Modo sem limites", body: "", status: "recurso", reply: "Os limites protegem a IA gratuita.", appeal: "Eu estudo muito e preciso de mais lições por dia.", votes: 3, created_at: "2026-09-29T10:00:00Z", decided_at: "2026-10-01T10:00:00Z" },
-    { id: 8, user_id: "3", title: "Ideia antiga ainda recebida", body: "", status: "recebida", reply: null, votes: 0, created_at: "2026-08-01T10:00:00Z" },
+    { id: 6, user_id: "33333333-3333-4333-8333-333333333333", title: "Pagar para ter mais lições", body: "", status: "recusada", reply: "A IA tem de ficar gratuita.", votes: 1, created_at: "2026-09-27T10:00:00Z", decided_at: "2026-09-30T10:00:00Z" },
+    { id: 7, user_id: "22222222-2222-4222-8222-222222222222", title: "Modo sem limites", body: "", status: "recurso", reply: "Os limites protegem a IA gratuita.", appeal: "Eu estudo muito e preciso de mais lições por dia.", votes: 3, created_at: "2026-09-29T10:00:00Z", decided_at: "2026-10-01T10:00:00Z" },
+    { id: 8, user_id: "33333333-3333-4333-8333-333333333333", title: "Ideia antiga ainda recebida", body: "", status: "recebida", reply: null, votes: 0, created_at: "2026-08-01T10:00:00Z" },
   ],
   suggestion_votes: [],
   push_subscriptions: [],
@@ -58,9 +58,11 @@ const db = {
   feedback: [],
 };
 if (process.env.NO_PROFILE) db.profiles.shift();
+const initial = JSON.stringify({ profiles: db.profiles, suggestions: db.suggestions, catalog_trails: db.catalog_trails });
 import(path.join(__dirname, "../../lib/topic.ts")).then(({ topicKey }) => { for (const t of trails) t.concepts.forEach((c, i) => db.catalog_lessons.push({ trail_key: t.key, level: t.level, concept_key: topicKey(c.title), lesson: lessonFor(c.title, i) })); });
 let inboxId = 0;
-const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"] };
+const banned = {}, gone = new Set(), authLog = [];
+const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"], staff: ["user_id"], ptpt_glossary: ["word"] };
 
 const session = () => ({ access_token: "mock-token", token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "mock-refresh", user });
 
@@ -103,14 +105,30 @@ http.createServer((req, res) => {
       // ?f=p-rich → progresso de tests/e2e/fixtures/p-rich.json; sem f → sem progresso
       const f = url.searchParams.get("f");
       db.progress = f && f !== "none" ? [{ user_id: UID, data: JSON.parse(fs.readFileSync(path.join(FIX, `${f.replace(/\.json$/, "")}.json`), "utf8")), updated_at: now() }] : [];
-      db.inbox = [];
+      Object.assign(db, JSON.parse(initial)); db.reports = []; db.feedback = []; db.suggestion_votes = [];
+      db.inbox = []; db.staff = []; db.admin_log = []; authLog.length = 0; gone.clear(); for (const k of Object.keys(banned)) delete banned[k];
       return send(res, 200, {});
     }
     if (p === "/auth/v1/token") {
       if (url.searchParams.get("grant_type") === "password" && body?.password !== PASSWORD) return send(res, 400, { code: "invalid_credentials", error_code: "invalid_credentials", msg: "Invalid login credentials" });
       return send(res, 200, session());
     }
-    if (p === "/auth/v1/user") return send(res, 200, user);
+    const authUsers = () => [user, { id: "22222222-2222-4222-8222-222222222222", aud: "authenticated", role: "authenticated", email: "ana@exemplo.pt", email_confirmed_at: now(), app_metadata: { provider: "google", providers: ["google", "email"] }, user_metadata: {}, created_at: "2026-09-21T10:00:00Z", last_sign_in_at: "2026-10-05T09:00:00Z", banned_until: banned["22222222-2222-4222-8222-222222222222"] ?? null },
+      { id: "33333333-3333-4333-8333-333333333333", aud: "authenticated", role: "authenticated", email: "joao@exemplo.pt", email_confirmed_at: null, app_metadata: { provider: "email", providers: ["email"] }, user_metadata: {}, created_at: "2026-09-22T10:00:00Z", banned_until: banned["33333333-3333-4333-8333-333333333333"] ?? null }].filter((u) => !gone.has(u.id));
+    if (p === "/__authlog") return send(res, 200, authLog);
+    if (p === "/auth/v1/user") { // tokens de teste: "mod-token" = ana (id 2), "adm-token" = joão (id 3); o resto = conta de teste
+      const t = (req.headers.authorization ?? "").replace("Bearer ", "");
+      return send(res, 200, t === "mod-token" ? authUsers()[1] : t === "adm-token" ? authUsers()[2] : t === "out-token" ? { ...user, id: "44444444-4444-4444-8444-444444444444", email: "fora@exemplo.pt" } : user);
+    }
+    if (p === "/auth/v1/admin/users" && req.method === "GET") return send(res, 200, { users: authUsers(), aud: "authenticated" });
+    const au = p.match(/^\/auth\/v1\/admin\/users\/([\w-]+)$/);
+    if (au) {
+      const u = authUsers().find((x) => x.id === au[1]);
+      if (req.method === "GET") return u ? send(res, 200, u) : send(res, 404, { message: "not found" });
+      if (req.method === "PUT") { authLog.push({ act: "update", id: au[1], body }); if (body?.ban_duration) banned[au[1]] = body.ban_duration === "none" ? null : new Date(Date.now() + 7 * 86400000).toISOString(); return send(res, 200, { ...(u ?? {}), banned_until: banned[au[1]] ?? null }); }
+      if (req.method === "DELETE") { authLog.push({ act: "delete", id: au[1] }); gone.add(au[1]); db.profiles = db.profiles.filter((x) => x.id !== au[1]); return send(res, 200, {}); }
+    }
+    if (p === "/auth/v1/recover" || p === "/auth/v1/resend") { authLog.push({ act: p.split("/").pop(), body }); return send(res, 200, {}); }
     if (p.startsWith("/auth/v1/")) return send(res, 200, {});
     if (p.startsWith("/rest/v1/rpc/")) return send(res, 200, null);
     const m = p.match(/^\/rest\/v1\/(\w+)$/);
@@ -144,6 +162,7 @@ http.createServer((req, res) => {
       const list = (Array.isArray(body) ? body : [body]).map((r) => ({ ...r }));
       for (const r of list) {
         if (table === "suggestions") Object.assign(r, { id: r.id ?? Date.now(), user_id: r.user_id ?? UID, status: "recebida", reply: null, votes: 0, created_at: now() });
+        if (table === "admin_log") Object.assign(r, { id: r.id ?? (inboxId += 1), created_at: r.created_at ?? now() });
         if (table === "inbox") Object.assign(r, { id: r.id ?? (inboxId += 1), created_at: r.created_at ?? now(), read_at: r.read_at ?? null });
         if (table === "suggestion_votes") { r.user_id = UID; const s = db.suggestions.find((x) => x.id === r.suggestion_id); if (s) s.votes++; }
         if (table === "profiles") Object.assign(r, { xp: 0, streak: 0, topics_done: 0, week_xp: 0, week_start: weekStart(), created_at: now(), in_ranking: true });

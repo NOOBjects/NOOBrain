@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
+import { TeamTag } from "./TeamTag";
 import { weekStart, type Profile } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
@@ -41,7 +42,7 @@ export function Ranking({ me, onBack }: { me: Profile; onBack: () => void }) {
           <li key={r.id} className={`pane rise${r.id === me.id ? " is-mine" : ""}`} style={{ ["--i" as string]: i }}><div className="in rank-row">
             <span className="rank-n">{i + 1}</span>
             <Avatar n={r.avatar} size={40} />
-            <div className="rank-id"><b>{r.display_name || `@${r.username}`}</b><div className="sub small">@{r.username}</div></div>
+            <div className="rank-id"><b>{r.display_name || `@${r.username}`}</b> <TeamTag id={r.id} /><div className="sub small">@{r.username}</div></div>
             <span className="stat-n">{r.week_xp}</span>
           </div></li>
         ))}

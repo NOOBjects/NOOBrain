@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { LegalLinks } from "@/components/LegalPage";
+import { TeamChip } from "@/components/TeamTag";
+import { staffIds } from "@/lib/staff";
 import { PROFILE_COLUMNS, USERNAME, type Profile } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
@@ -37,6 +39,7 @@ export default async function PublicProfile({ params }: Props) {
   const { username } = await params;
   const p = await load(username);
   if (!p) notFound();
+  const team = (await staffIds()).includes(p.id);
   const stats: [string, number][] = [["XP", p.xp], ["Sequência", p.streak], ["Temas concluídos", p.topics_done]];
 
   return (
@@ -46,7 +49,7 @@ export default async function PublicProfile({ params }: Props) {
         <Avatar n={p.avatar} size={84} />
         <div className="profile-id">
           <h1 className="h-screen">{p.display_name || `@${p.username}`}</h1>
-          <div className="sub">@{p.username}</div>
+          <div className="sub">@{p.username} {team && <TeamChip />}</div>
         </div>
       </div>
       {p.bio && <p className="sub">{p.bio}</p>}

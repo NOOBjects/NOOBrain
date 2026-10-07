@@ -51,10 +51,10 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
   const installState = useInstall();
   const [sheet, setSheet] = useState(false);
   const [hint, setHint] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
+    call<{ role: string | null }>("/api/admin?o=me").then((r) => live && setRole(r.role), () => {});
     return () => { live = false; };
   }, []);
   const goal = goalOf(state);
@@ -159,8 +159,7 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
         {sec === "sobre" && (
           <section className="pane gap"><div className="in set">
             <p>O NOOBrain ajuda-te a aprender qualquer tema, um conceito de cada vez, com trilhas, lições, cartões e revisão espaçada.{BETA && ` Versão beta ${VERSION}.`}</p>
-            <span className="chip ch ai">✦ Feito com IA · NOOBjects</span>
-            <p>O NOOBrain é feito quase 100% com inteligência artificial: o código foi escrito por modelos de IA. As ideias, o design, as decisões e o cuidado com cada detalhe são do Rodrigo, da NOOBjects.</p>
+            <p>O NOOBrain é feito pela NOOBjects.</p>
             <p className="sub small">As fontes são wikis abertas (Wikipédia, Wikilivros, Wikiversidade e Wikisource), sob licença CC BY-SA.</p>
             <p className="sub small"><Link href="/termos">Termos</Link> · <Link href="/privacidade">Privacidade</Link> · <a href={`mailto:${CONTACT}`}>{CONTACT}</a></p>
             <div className="chip ch">Fundraising em breve</div>
@@ -217,13 +216,13 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
         <Row label="Apagar a conta" chevron onClick={() => onSub("apagar")} />
       </Group>
 
-      {isAdmin && (
-        <Group title="Equipa"><Row label="Painel de administração" value="Dono" chevron onClick={onAdmin} /></Group>
+      {role && (
+        <Group title="Equipa"><Row label="Painel de administração" value={role === "dono" ? "Dono" : role === "admin" ? "Admin" : "Moderador"} chevron onClick={onAdmin} /></Group>
       )}
 
       <Group title="Sobre"><Row label="Sobre o NOOBrain" chevron onClick={() => onSub("sobre")} /></Group>
 
-      <p className="sub small set-foot">NOOBrain{BETA ? ` beta ${VERSION}` : ` ${VERSION}`} · ✦ Feito com IA · NOOBjects</p>
+      <p className="sub small set-foot">NOOBrain{BETA ? ` beta ${VERSION}` : ` ${VERSION}`} · NOOBjects</p>
       {sheet && <InstallSheet onClose={() => setSheet(false)} />}
     </div>
   );

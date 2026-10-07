@@ -643,7 +643,7 @@ button.chip:hover:not(:disabled) { background: var(--brand); color: var(--on-bra
 
 .topic-chips { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
 .topic-chips .chip { flex: none; }
-.topic-chips .chip[aria-pressed="true"] { background: var(--brand); color: var(--on-brand); }
+.topic-chips .chip[aria-pressed="true"], .topic-chips .chip[aria-selected="true"] { background: var(--brand); color: var(--on-brand); }
 
 /* ---------- Marco 5: lição guiada e avisos ---------- */
 .stepper { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 14px 0 18px; padding: 0; list-style: none; }
@@ -875,7 +875,6 @@ textarea.field { resize: vertical; font: inherit; }
 .landing-blocks { display: grid; gap: 12px; text-align: left; }
 .landing-blocks .in { display: grid; gap: 6px; padding: 18px; }
 .landing-blocks h2 { font-size: 20px; }
-.chip.ai { background: var(--ink); color: var(--bg); padding: 5px 10px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
 .trail-del { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; }
 
 /* ---------- 0.10: hábito, conquistas, explorar, voz e acabamentos ---------- */
@@ -1121,3 +1120,13 @@ body:has(dialog[open]) .island-wrap, body:has(dialog[open]) .toast { opacity: 0;
 .soon-list li { display: grid; gap: 1px; }
 @media (prefers-reduced-motion: reduce) { .pane.soon > .in { animation: none; } }
 .inbox .inbox-end { display: flex; justify-content: center; }
+
+/* ---------- equipa ---------- */
+.chip.team { display: inline-flex; align-items: center; gap: 4px; background: var(--brand); color: var(--on-brand); padding: 3px 7px; font: 700 10px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle; }
+.chip.team svg { width: 12px; height: 12px; }
+.ficha { display: grid; gap: 8px; margin: 0; width: 100%; }
+.ficha div { display: grid; gap: 1px; }
+.ficha dd { margin: 0; overflow-wrap: anywhere; }
+.acts-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+.acts-wrap .btn { width: auto; }
+mark { background: var(--sun); color: var(--on-sun); padding: 0 2px; }

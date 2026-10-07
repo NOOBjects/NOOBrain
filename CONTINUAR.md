@@ -25,3 +25,16 @@ de `PLANO-0.11.md` absorve parte disto.
 - Base: `profiles.avatar` = 0 em renatarondon e rodrigorondonsilva; permissões e RLS de `profiles` estão certas (insert/update com `avatar`).
 - Migração `inbox_notificacoes` já aplicada no Supabase (tabela `inbox` com RLS: ler/apagar/marcar lido só o próprio; inserir só pelo servidor).
 - O catálogo existente mantém lições antigas (fáceis, cloze com artigo): só mudam com a regeneração (apagar a trilha no painel → nasce de novo) ou Fase 6.6 «Refazer».
+
+## Plano restante (pedido do Rodrigo em 2026-10-07: «continue o plano inteiro» + tirar tudo o que diz «feito por IA»)
+Versões: Fase 6 → 0.10.8, Fase 7 → 0.10.9, Fase 8 → 0.10.10, Fase 9 → 0.11 (marco). Fases 10 e 11 não mudam o changelog.
+| Item | Estado |
+|---|---|
+| Tirar «Feito com IA» (Definições/Sobre, rodapé, LegalPage, CSS `.chip.ai`, PLANO) | feito (mantido: aviso legal em Termos, Privacidade e Tutor, que são avisos sobre erros, não selo) |
+| 9.1 Página de aprovação do mascote | publicada: https://claude.ai/artifact/7DXnD5T9DAz3zg673XVmn3 — **à espera de aprovação do Rodrigo** (só bloqueia 9.2) |
+| Fase 6 (painel completo, equipa, etiqueta Equipa) | feita no código e testada (`fase6-equipa.cjs`); migração `equipa` aplicada; 0.10.8 a publicar |
+| Fase 7 (Novidades com marcos, aviso de beta) | por fazer |
+| Fase 8 (troféus semanais) | por fazer |
+| Fase 10 (login Apple/Discord desligado) | por fazer |
+| Fase 11 (LICENSE, SECURITY.md, dependabot) | por fazer |
+| Fase 9.2 (código do mascote/criador) | depois da aprovação |
