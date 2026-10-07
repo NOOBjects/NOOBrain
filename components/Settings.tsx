@@ -159,8 +159,7 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
         {sec === "sobre" && (
           <section className="pane gap"><div className="in set">
             <p>O NOOBrain ajuda-te a aprender qualquer tema, um conceito de cada vez, com trilhas, lições, cartões e revisão espaçada.{BETA && ` Versão beta ${VERSION}.`}</p>
-            <span className="chip ch ai">✦ Feito com IA · NOOBjects</span>
-            <p>O NOOBrain é feito quase 100% com inteligência artificial: o código foi escrito por modelos de IA. As ideias, o design, as decisões e o cuidado com cada detalhe são do Rodrigo, da NOOBjects.</p>
+            <p>O NOOBrain é feito pela NOOBjects.</p>
             <p className="sub small">As fontes são wikis abertas (Wikipédia, Wikilivros, Wikiversidade e Wikisource), sob licença CC BY-SA.</p>
             <p className="sub small"><Link href="/termos">Termos</Link> · <Link href="/privacidade">Privacidade</Link> · <a href={`mailto:${CONTACT}`}>{CONTACT}</a></p>
             <div className="chip ch">Fundraising em breve</div>
@@ -223,7 +222,7 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
 
       <Group title="Sobre"><Row label="Sobre o NOOBrain" chevron onClick={() => onSub("sobre")} /></Group>
 
-      <p className="sub small set-foot">NOOBrain{BETA ? ` beta ${VERSION}` : ` ${VERSION}`} · ✦ Feito com IA · NOOBjects</p>
+      <p className="sub small set-foot">NOOBrain{BETA ? ` beta ${VERSION}` : ` ${VERSION}`} · NOOBjects</p>
       {sheet && <InstallSheet onClose={() => setSheet(false)} />}
     </div>
   );

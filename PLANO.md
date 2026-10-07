@@ -31,7 +31,7 @@ Testes no navegador sem contas reais: `tests/e2e/` (Supabase falso + Playwright;
 
 **Pendente: o que precisa do Rodrigo**
 1. **Painel de administração**: pôr na Vercel a variável `ADMIN_IDS` (Settings → Environment Variables) com o id da conta dele (Supabase → Authentication → Users → copiar o UID), e publicar de novo. Aparece em Definições → Administração.
-2. **Desenhos**: ícones das categorias (os atuais em `Icons.tsx` são provisórios: Flask, Column, Speech, Palette, Chip, Cross, Coin), olhos e acessórios do mascote (criador de personagem), emblema "Feito com IA · NOOBjects".
+2. **Desenhos**: ícones das categorias (os atuais em `Icons.tsx` são provisórios: Flask, Column, Speech, Palette, Chip, Cross, Coin), olhos e acessórios do mascote (criador de personagem).
 3. **Ko-fi**: o link vai para `lib/config.ts` → `KOFI_URL` e substitui o "Fundraising em breve".
 4. **Catálogo**: refazer as lições de Teoria das cores e as 2 que faltam de Primeiros socorros (`npm run seed:catalog -- --refresh "--only=Primeiros socorros,Teoria das cores"` no computador dele). Enquanto não, funcionam como lições antigas.
 5. **Voz a falar (repetir a frase)**: usa o reconhecimento de voz do Chrome, que envia o áudio para a Google. Há menores no app: decidir antes; exige mudar a Privacidade e `microphone=(self)` em `next.config.ts`.
@@ -65,7 +65,7 @@ Vive em `lib/changelog.ts` e aparece no app em Novidades.
 1. ~~Redirect URLs do Supabase~~ confirmadas a 05/10/2026.
 2. **Testar no telemóvel**: depois da Fase 10, o login do Google no Android (Chrome), no iPhone (Safari) e no app instalado; e o que ficou da Fase 8 (CPU 4x mais lenta).
 3. **Ko-fi**: criar a conta e dar o link. Vai para `lib/config.ts` → `KOFI_URL` e substitui o "Fundraising em breve" (Sobre, Novidades e boas-vindas da beta).
-4. **Desenhos** (para as Fases 15 e 16): ícones das categorias do Explorar, olhos e acessórios do mascote, emblema "Feito com IA · NOOBjects".
+4. **Desenhos** (para as Fases 15 e 16): ícones das categorias do Explorar, olhos e acessórios do mascote.
 5. Se ainda não fizeste: pôr a chave do Groq no `.env.local` (`AI_API_KEY=`) e apagar a chave antiga do Gemini no Google AI Studio.
 6. Dinheiro e alojamento: ver a última secção. Nada a fazer até ao fim da beta.
 
