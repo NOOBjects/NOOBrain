@@ -1130,3 +1130,20 @@ body:has(dialog[open]) .island-wrap, body:has(dialog[open]) .toast { opacity: 0;
 .acts-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
 .acts-wrap .btn { width: auto; }
 mark { background: var(--sun); color: var(--on-sun); padding: 0 2px; }
+
+/* ---------- novidades: marcos e correções ---------- */
+.release.marco .eyebrow, .release.marco .sub { color: var(--on-hero); opacity: 0.85; }
+.release.marco h2 { color: var(--on-hero); font-size: 1.7rem; }
+.marco-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.marco-mascot { width: 84px; flex: none; --logo-body: var(--on-hero); --logo-eye: var(--hero); }
+.release.marco .news-list { color: var(--on-hero); }
+.release.marco .rel-group .rel-tag { background: var(--hero-soft); color: var(--on-hero); }
+.news-list.destaques { font-weight: 700; }
+.release.fix summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; font-size: 14px; }
+.release.fix summary::-webkit-details-marker { display: none; }
+.release.fix .fix-body { padding-top: 8px; }
+.release.fix > .in { padding: 12px 14px; }
+.release.marco > .in { padding: 16px; }
+.beta-note > .in { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; font-size: 13px; line-height: 1.35; text-align: left; }
+.beta-note svg { flex: none; width: 18px; height: 18px; color: var(--brand); margin-top: 1px; }
+.beta-note p { margin: 0; }

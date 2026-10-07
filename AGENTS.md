@@ -11,7 +11,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Novidades (changelog): regras
 Fonte única: `lib/changelog.ts` (aparece no app em Novidades; a versão do app sai da entrada mais recente).
 - Cada publicação com mudanças que a pessoa vê acrescenta uma entrada **no topo** de `CHANGELOG`. Correções só internas (código, testes, documentação) não entram.
-- Campos: `version` (0.9.1 → 0.9.2 …; salto de "dezena" só em marcos), `date` (AAAA-MM-DD, a data real), `title` (curto), `novo`, `melhorias`, `corrigido` (listas; omitir as vazias) e, só nas atualizações maiores, `aviso: true` (envia aviso push a quem pediu).
+- Campos: `version` (0.9.1 → 0.9.2 …; salto de "dezena" só em marcos), `date` (AAAA-MM-DD, a data real), `title` (curto), `kind`, `novo`, `melhorias`, `corrigido` (listas; omitir as vazias) e, só nas atualizações maiores, `aviso: true` (envia aviso push a quem pediu).
+- `kind` (obrigatório): **marco** = salto de dezena (0.10, 0.11…), com `aviso: true` e até 3 `destaques` (frases curtas); **novidades** = há pelo menos uma linha em `novo` ou `melhorias`; **correcoes** = só `corrigido`. As correções aparecem fechadas nas Novidades e nunca interrompem ninguém com um aviso.
 - Onde vai cada linha: **novo** = funcionalidade que não existia; **melhorias** = algo que já existia e ficou melhor; **corrigido** = erro que deixou de acontecer.
 - Texto: PT-PT, a tratar por "tu", a falar para quem usa, uma frase por linha, sem "Fase N", sem nomes de ficheiros nem termos técnicos.
 - A versão e a data valem para a publicação inteira: várias mudanças do mesmo dia entram na mesma entrada se ainda não foi publicada.
