@@ -12,7 +12,7 @@ export default function Page() {
       <h2>A tua conta</h2>
       <p>Para usar o NOOBrain precisas de conta (e de ter pelo menos 13 anos). Guardamos:</p>
       <ul>
-        <li>o teu e-mail e a tua palavra-passe (esta fica cifrada; nós nunca a vemos). Se entrares com o Google, recebemos o e-mail e os dados básicos de perfil;</li>
+        <li>o teu e-mail e a tua palavra-passe (esta fica cifrada; nós nunca a vemos). Se entrares com o Google, a Apple ou o Discord, recebemos o e-mail e os dados básicos de perfil (nome e foto, se os tiveres); nunca recebemos a tua palavra-passe dessas contas, e a Apple pode esconder o teu e-mail verdadeiro;</li>
         <li>o teu progresso, para o poderes continuar em qualquer aparelho.</li>
       </ul>
       <p>Estes dados ficam no Supabase, num servidor em Paris (União Europeia), protegidos de forma a que cada pessoa só aceda aos seus.</p>

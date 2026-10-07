@@ -34,7 +34,7 @@ Versões: Fase 6 → 0.10.8, Fase 7 → 0.10.9, Fase 8 → 0.10.10, Fase 9 → 0
 | 9.1 Página de aprovação do mascote | publicada: https://claude.ai/artifact/7DXnD5T9DAz3zg673XVmn3 — **à espera de aprovação do Rodrigo** (só bloqueia 9.2) |
 | Fase 6 (painel completo, equipa, etiqueta Equipa) | **publicada** (0.10.8, PR 15); migração `equipa` aplicada |
 | Fase 7 (Novidades com marcos, aviso de beta) | **publicada** (0.10.9, PR 16) |
-| Fase 8 (troféus semanais) | feita e testada (`fase8-trofeus.cjs`); migrações `xp_diario` e `trofeus` aplicadas (cron `close-week` segunda 00:05 UTC; `close_week()` testada em transação com rollback); 0.10.10 a publicar |
-| Fase 10 (login Apple/Discord desligado) | por fazer |
-| Fase 11 (LICENSE, SECURITY.md, dependabot) | por fazer |
+| Fase 8 (troféus semanais) | **publicada** (0.10.10, PR 17); migrações `xp_diario` e `trofeus` aplicadas (cron `close-week`, segunda 00:05 UTC) |
+| Fase 10 (login Apple/Discord desligado) | feita e testada (`fase10-login.cjs off|on`); guia em `docs/login-social.md` |
+| Fase 11 (LICENSE, SECURITY.md, dependabot) | feita no repositório; faltam os passos do Rodrigo no GitHub/Vercel |
 | Fase 9.2 (código do mascote/criador) | depois da aprovação |

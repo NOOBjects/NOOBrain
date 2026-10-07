@@ -148,7 +148,7 @@ export function App({ landing }: { landing?: ReactNode }) {
   const hideToast = useCallback(() => setToast(null), []);
   useEffect(() => {
     if (!welcome) return;
-    const t = setTimeout(() => notify("Sessão iniciada com o Google."), 0);
+    const t = setTimeout(() => notify("Sessão iniciada."), 0);
     return () => clearTimeout(t);
   }, [welcome, notify]);
 

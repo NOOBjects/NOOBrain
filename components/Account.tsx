@@ -9,8 +9,14 @@ import { supabase } from "@/lib/supabase";
 import { distance } from "@/lib/topic";
 import { OAUTH_KEY } from "@/lib/useSync";
 
-// O botão do Google só aparece depois de o Google estar ligado no Supabase (ver .env.example).
-const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1";
+// Os botões de entrada com Google, Apple e Discord só aparecem depois de cada um estar ligado no Supabase (ver .env.example e docs/login-social.md).
+type Provider = "google" | "apple" | "discord";
+const PROVIDERS: { id: Provider; label: string; on: boolean; icon: string }[] = [
+  { id: "google", label: "Google", on: process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1", icon: "gicon" },
+  { id: "apple", label: "Apple", on: process.env.NEXT_PUBLIC_APPLE_LOGIN === "1", icon: "aicon" },
+  { id: "discord", label: "Discord", on: process.env.NEXT_PUBLIC_DISCORD_LOGIN === "1", icon: "dicon" },
+].filter((p) => p.on) as { id: Provider; label: string; on: boolean; icon: string }[];
+const GOOGLE = PROVIDERS.length > 0; // há pelo menos uma forma de entrar sem e-mail
 const LAST_EMAIL = "noobrain:email";
 
 /** Navegador embutido noutra app (Instagram, Facebook, TikTok, WebView...): o Google costuma bloquear o login aí. */
@@ -139,10 +145,10 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
   }, []);
   const [embedded] = useState(() => typeof navigator !== "undefined" && inAppBrowser());
   // Login do Google na janela à parte: a sessão chega a este separador pelo Supabase (BroadcastChannel).
-  const popup = useRef(false);
+  const popup = useRef<string | false>(false);
   useEffect(() => {
     const sub = supabase?.auth.onAuthStateChange((e) => {
-      if (e === "SIGNED_IN" && popup.current) { popup.current = false; onSignedIn("Sessão iniciada com o Google."); }
+      if (e === "SIGNED_IN" && popup.current) { const via = popup.current; popup.current = false; onSignedIn(`Sessão iniciada com o ${via}.`); }
     });
     return () => sub?.data.subscription.unsubscribe();
   }, [onSignedIn]);
@@ -201,23 +207,23 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
   // Num navegador normal, o Google abre numa janela à parte (no telemóvel, um separador) que se fecha sozinha no fim:
   // a página do Google nunca entra no histórico do app, por isso "voltar" não leva de volta ao login.
   // No app instalado e dentro de outras apps fica o método antigo (a página muda para o Google e volta).
-  async function google() {
+  async function signInWith(provider: Provider, label: string) {
     setMsg(null);
     const own = !embedded && !matchMedia("(display-mode: standalone)").matches;
-    const win = own ? window.open("", "noobrain-google", "popup,width=480,height=680") : null; // tem de abrir já, no clique
-    popup.current = !!win;
+    const win = own ? window.open("", "noobrain-oauth", "popup,width=480,height=680") : null; // tem de abrir já, no clique
+    popup.current = win ? label : false;
     if (!win) {
       setBusy(true);
       try { sessionStorage.setItem(OAUTH_KEY, "1"); } catch { /* sem armazenamento: só não haverá boas-vindas */ }
     }
     const { data, error } = await supabase!.auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: { redirectTo: `${window.location.origin}${win ? "/entrar" : ""}`, skipBrowserRedirect: true },
     });
     if (error || !data.url) { win?.close(); setBusy(false); return setMsg(error ? explain(error) : { ok: false, text: "Não foi possível continuar. Tenta outra vez." }); }
     if (!win) return window.location.assign(data.url);
     win.location.href = data.url;
-    setMsg({ ok: true, text: "Continua na janela do Google. Quando terminares, ela fecha-se sozinha." });
+    setMsg({ ok: true, text: `Continua na janela do ${label}. Quando terminares, ela fecha-se sozinha.` });
   }
 
   async function submit(e: React.FormEvent) {
@@ -315,16 +321,18 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
           <>
             {embedded && (
               <div className="note ch" role="note">
-                Abriste o NOOBrain dentro de outra app (como o Instagram ou o Facebook) e aqui o Google costuma bloquear a entrada.
+                Abriste o NOOBrain dentro de outra app (como o Instagram ou o Facebook) e aqui o início de sessão com Google, Apple ou Discord costuma ser bloqueado.
                 {android ? " Abre no Chrome ou entra com e-mail." : " Toca em ⋯ e escolhe «Abrir no navegador», ou entra com e-mail."}
                 {android && <a className="linkbtn" href={`intent://${window.location.host}/#Intent;scheme=https;package=com.android.chrome;end`}>Abrir no Chrome</a>}
                 <button type="button" className="linkbtn" onClick={copyLink}>Copiar o link</button>
               </div>
             )}
-            <button type="button" className="btn soft block" disabled={busy} onClick={google}>
-              <span className="face"><i className="gicon" aria-hidden="true" />Continuar com o Google</span>
-            </button>
-            {mode === "criar" && <p className="sub small">Com o Google, a conta é criada logo, se ainda não existir.</p>}
+            {PROVIDERS.map((p) => (
+              <button key={p.id} type="button" className="btn soft block" disabled={busy} data-provider={p.id} onClick={() => void signInWith(p.id, p.label)}>
+                <span className="face"><i className={p.icon} aria-hidden="true" />Continuar com {p.id === "apple" ? "a" : "o"} {p.label}</span>
+              </button>
+            ))}
+            {mode === "criar" && <p className="sub small">Sem e-mail, a conta é criada logo, se ainda não existir.</p>}
             <div className="or" aria-hidden="true"><span>ou com e-mail</span></div>
           </>
         )}
