@@ -31,6 +31,12 @@
   --on-bad: #ffffff;
   --sun: #ffc21a;
   --sun-deep: #d69a00;
+  --gold: #f5b800;
+  --gold-deep: #b98900;
+  --silver: #aeb9cc;
+  --silver-deep: #7d8aa3;
+  --bronze: #cd7f4a;
+  --bronze-deep: #9a5a2e;
   --on-sun: #08183a;
 
   --lock: #dae3f4;
@@ -55,6 +61,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --gold: #ffcc33;
+    --gold-deep: #c99700;
+    --silver: #c4cee0;
+    --silver-deep: #8e9bb4;
+    --bronze: #e39560;
+    --bronze-deep: #a86436;
     --brand: #5aa2ff;
     --brand-deep: #2f6fcb;
     --brand-soft: #12306b;
@@ -91,6 +103,12 @@
   }
 }
 :root[data-theme="dark"] {
+  --gold: #ffcc33;
+  --gold-deep: #c99700;
+  --silver: #c4cee0;
+  --silver-deep: #8e9bb4;
+  --bronze: #e39560;
+  --bronze-deep: #a86436;
   --brand: #5aa2ff;
   --brand-deep: #2f6fcb;
   --brand-soft: #12306b;
@@ -1147,3 +1165,19 @@ mark { background: var(--sun); color: var(--on-sun); padding: 0 2px; }
 .beta-note > .in { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; font-size: 13px; line-height: 1.35; text-align: left; }
 .beta-note svg { flex: none; width: 18px; height: 18px; color: var(--brand); margin-top: 1px; }
 .beta-note p { margin: 0; }
+
+/* ---------- troféus ---------- */
+.cup { display: block; flex: none; }
+.cup .c-body { fill: var(--c1); stroke: var(--c2); stroke-width: 2.5; stroke-linejoin: miter; }
+.cup .c-hand { fill: none; stroke: var(--c2); stroke-width: 3; stroke-linejoin: miter; }
+.cup .c-base { fill: var(--c2); }
+.cup text { fill: var(--on-sun); font: 700 15px var(--font-display); text-anchor: middle; }
+.cup.p1 { --c1: var(--gold); --c2: var(--gold-deep); } .cup.p2 { --c1: var(--silver); --c2: var(--silver-deep); } .cup.p3 { --c1: var(--bronze); --c2: var(--bronze-deep); } .cup.p4 { --c1: var(--brand); --c2: var(--brand-deep); }
+.cup.p4 text { fill: var(--on-brand); }
+.podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; }
+.podium > li { list-style: none; display: grid; justify-items: center; gap: 4px; text-align: center; padding: 10px 6px; background: var(--surface); --c: 10px; clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+.podium > li:nth-child(1) { order: 2; padding-block: 16px; } .podium > li:nth-child(2) { order: 1; } .podium > li:nth-child(3) { order: 3; }
+.podium b { font: 700 13px/1.2 var(--font-display); overflow-wrap: anywhere; }
+.trophy-line { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.trophy-line .t { display: inline-flex; align-items: center; gap: 6px; font: 700 15px var(--font-display); }
+.podium-wrap { display: grid; gap: 8px; }

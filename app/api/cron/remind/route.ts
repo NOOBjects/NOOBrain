@@ -47,8 +47,19 @@ export async function POST(request: Request) {
     if (r === "ok") sent.push(s.endpoint);
   }));
 
+  // Troféus do ranking semanal: avisa quem ganhou um prémio ainda não notificado (uma vez).
+  const { data: awards } = await admin.from("weekly_awards").select("week_start,user_id,place").eq("notified", false).limit(50);
+  let awarded = 0;
+  for (const a of awards ?? []) {
+    const { data: mine } = await admin.from("push_subscriptions").select("endpoint,p256dh,auth").eq("user_id", a.user_id);
+    const body = a.place === 1 ? "Foste o campeão do ranking da semana! Vê o teu troféu." : `Ficaste em ${a.place}.º lugar no ranking da semana! Vê o teu troféu.`;
+    for (const s of mine ?? []) { const r = await sendPush(s, { title: "Ranking da semana", body, tag: `award-${a.week_start}`, url: "/?v=perfil" }); if (r === "gone") gone.push(s.endpoint); }
+    await admin.from("weekly_awards").update({ notified: true }).eq("week_start", a.week_start).eq("user_id", a.user_id);
+    awarded++;
+  }
+
   if (gone.length) await admin.from("push_subscriptions").delete().in("endpoint", gone);
   if (sent.length) await admin.from("push_subscriptions").update({ last_sent_at: new Date().toISOString() }).in("endpoint", sent);
   if (told.length) await admin.from("push_subscriptions").update({ news_sent: LATEST.version }).in("endpoint", told);
-  return Response.json({ sent: sent.length, news: told.length, removed: gone.length });
+  return Response.json({ sent: sent.length, news: told.length, awards: awarded, removed: gone.length });
 }

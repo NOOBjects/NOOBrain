@@ -26,7 +26,7 @@ import { NEW_LESSONS_PER_DAY } from "@/lib/limits";
 import { LATEST, pendingRelease } from "@/lib/changelog";
 import { logActivity, useInbox } from "@/lib/inbox";
 import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
-import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, lessonsToday, markLesson, todayXp, update } from "@/lib/store";
+import { activeTrail, currentStreak, day, dueCards, frozeYesterday, getRaw, goalOf, lessonsToday, markLesson, parse, todayXp, update } from "@/lib/store";
 import { useAppState, useHydrated } from "@/lib/useAppState";
 import { useOnline } from "@/lib/useOnline";
 import { useSync } from "@/lib/useSync";
@@ -46,6 +46,7 @@ const Settings = dynamic(() => import("./Settings").then((m) => m.Settings), { l
 const Challenge = dynamic(() => import("./Challenge").then((m) => m.Challenge), { loading: Loading });
 const Notifications = dynamic(() => import("./Notifications").then((m) => m.Notifications), { loading: Loading });
 const Admin = dynamic(() => import("./Admin").then((m) => m.Admin), { loading: Loading });
+const TrophyDialog = dynamic(() => import("./Trophies").then((m) => m.TrophyDialog));
 const BadgeDialog = dynamic(() => import("./Badges").then((m) => m.BadgeDialog));
 const Tour = dynamic(() => import("./Tour").then((m) => m.Tour));
 
@@ -122,6 +123,7 @@ export function App({ landing }: { landing?: ReactNode }) {
   const [mood, setMood] = useState<Mood>("idle");
   const [burst, setBurst] = useState(0); // muda para lançar confettis
   const [badges, setBadges] = useState<Badge[] | null>(null);
+  const [won, setWon] = useState<{ week_start: string; place: number; xp: number }[] | null>(null); // prémios novos do ranking semanal
   const [feedback, setFeedback] = useState(false);
   const [showInstall, setShowInstall] = useState(false);
   const installState = useInstall();
@@ -212,6 +214,21 @@ export function App({ landing }: { landing?: ReactNode }) {
     window.addEventListener("noobrain:installed", done);
     return () => window.removeEventListener("noobrain:installed", done);
   }, [notify]);
+
+  // Prémios do ranking semanal: lê os da pessoa, guarda no estado e celebra os novos (uma vez).
+  useEffect(() => {
+    if (!inApp || !supabase || !user) return;
+    let live = true;
+    void supabase.from("weekly_awards").select("week_start,place,xp").eq("user_id", user.id).order("week_start").then(({ data }) => {
+      if (!live || !data) return;
+      const list = data.map((a) => ({ w: a.week_start as string, p: a.place as number, x: a.xp as number }));
+      const seen = parse(getRaw()).awardsSeen ?? "";
+      const fresh = data.filter((a) => a.week_start > seen);
+      update((x) => (JSON.stringify(x.awards ?? []) === JSON.stringify(list) ? x : { ...x, awards: list }));
+      if (fresh.length) setWon(fresh);
+    });
+    return () => { live = false; };
+  }, [inApp, user]);
 
   // Conquistas: na primeira verificação regista as que já existiam sem alarido; depois, cada nova abre uma janela.
   useEffect(() => {
@@ -416,7 +433,8 @@ export function App({ landing }: { landing?: ReactNode }) {
       {showInstall && <InstallSheet onClose={() => setShowInstall(false)} />}
 
       {burst > 0 && <Confetti key={burst} />}
-      {badges && <BadgeDialog badges={badges} onClose={() => setBadges(null)} />}
+      {won && <TrophyDialog awards={won} onClose={() => { update((x) => ({ ...x, awardsSeen: won.map((a) => a.week_start).sort().pop() })); setWon(null); }} />}
+      {badges && !won && <BadgeDialog badges={badges} onClose={() => setBadges(null)} />}
       {showTour && !badges && <Tour onDone={() => update((x) => ({ ...x, tour: true }))} />}
       <Toast msg={toast} onDone={hideToast} />
     </div>
