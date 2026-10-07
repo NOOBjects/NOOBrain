@@ -33,14 +33,14 @@ const put = (t, rows) => fetch(`${MOCK}/rest/v1/${t}`, { method: "POST", headers
     // mas fica nas Novidades
     await p.goto(`${BASE}/?v=novidades`, { waitUntil: "networkidle" }); await p.waitForTimeout(500);
     assert(await p.locator(".soon").count(), "Em breve nas Novidades");
-    assert(/Versão 0\.10\.7/i.test(await p.locator(".news").innerText()), "entrada 0.10.7");
+    assert(/Versão 0\.10\.8/i.test(await p.locator(".news").innerText()), "entrada 0.10.7");
     await p.screenshot({ path: `${__dirname}/out/p0107-news-${name}.png`, fullPage: false });
 
     // notificações: duas na caixa, o sino mostra 2, abrir a página lê-as
     await put("inbox", [
       { user_id: UID, kind: "ideia", title: "A tua ideia foi recusada", body: "«Mais cores» · Já temos isso.", link: "?v=ideias" },
       { user_id: UID, kind: "erro", title: "O erro que reportaste foi resolvido", body: "Obrigado por avisares", link: "" },
-      { user_id: "2", kind: "aviso", title: "De outra pessoa", body: "", link: "" },
+      { user_id: "22222222-2222-4222-8222-222222222222", kind: "aviso", title: "De outra pessoa", body: "", link: "" },
     ]);
     await p.goto(`${BASE}/`, { waitUntil: "networkidle" }); await p.waitForTimeout(800);
     const bell = p.getByRole("button", { name: /Notificações: \d+ por ler/ });
@@ -70,12 +70,12 @@ const put = (t, rows) => fetch(`${MOCK}/rest/v1/${t}`, { method: "POST", headers
     await p.getByLabel("@nomes, separados por vírgula").fill("@ana, @naoexiste");
     await p.locator("#n-title").fill("Manutenção às 18h");
     await p.getByRole("button", { name: "Enviar aviso" }).click(); await p.waitForTimeout(700);
-    assert(/Não encontrei: @naoexiste/.test(await p.locator(".admin").innerText()), "@nome inexistente é recusado");
+    assert(/Não encontrei: @naoexiste/.test(await p.locator("body").innerText()), "@nome inexistente é recusado");
     await p.getByLabel("@nomes, separados por vírgula").fill("@ana");
     await p.getByRole("button", { name: "Enviar aviso" }).click(); await p.waitForTimeout(700);
-    assert(/Aviso enviado a 1 conta/.test(await p.locator(".admin").innerText()), "enviado a 1");
+    assert(/Aviso enviado a 1 conta/.test(await p.locator("body").innerText()), "enviado a 1");
     let rows = (await db("inbox")).filter((r) => r.kind === "aviso" && r.title === "Manutenção às 18h");
-    assert.equal(rows.length, 1); assert.equal(rows[0].user_id, "2");
+    assert.equal(rows.length, 1); assert.equal(rows[0].user_id, "22222222-2222-4222-8222-222222222222");
     await p.locator("#n-aud").selectOption("all");
     await p.locator("#n-title").fill("Olá a todos");
     await p.getByRole("button", { name: "Enviar aviso" }).click(); await p.waitForTimeout(800);
@@ -86,14 +86,14 @@ const put = (t, rows) => fetch(`${MOCK}/rest/v1/${t}`, { method: "POST", headers
 
     // aviso ao autor da ideia: recusar e depois erro resolvido
     for (const [t, id] of [["suggestions", 901], ["reports", 902]]) await fetch(`${MOCK}/rest/v1/${t}?id=eq.${id}`, { method: "DELETE", headers: { authorization: "Bearer mock", apikey: "mock" } });
-    await put("suggestions", [{ id: 901, user_id: "2", title: "Modo escuro roxo", body: "x" }]);
-    await put("reports", [{ id: 902, user_id: "2", what: "quiz", detail: "Pergunta tal | marcada: a | certa: b", resolved: false }]);
+    await put("suggestions", [{ id: 901, user_id: "22222222-2222-4222-8222-222222222222", title: "Modo escuro roxo", body: "x" }]);
+    await put("reports", [{ id: 902, user_id: "22222222-2222-4222-8222-222222222222", what: "quiz", detail: "Pergunta tal | marcada: a | certa: b", resolved: false }]);
     const tok = { authorization: "Bearer mock-token", "content-type": "application/json" };
     for (const body of [{ act: "idea", id: 901, status: "recusada", reply: "Por agora não." }, { act: "report", id: 902, resolved: true }]) {
       const r = await fetch(`${BASE}/api/admin`, { method: "POST", headers: tok, body: JSON.stringify(body) });
       assert.equal(r.status, 200, `admin ${body.act}: ${r.status}`);
     }
-    const mine = (await db("inbox")).filter((r) => r.user_id === "2");
+    const mine = (await db("inbox")).filter((r) => r.user_id === "22222222-2222-4222-8222-222222222222");
     assert(mine.some((r) => r.kind === "ideia" && /recusada/.test(r.title) && /Por agora não/.test(r.body)), "autor avisado: recusada");
     assert(mine.some((r) => r.kind === "erro" && /resolvido/.test(r.title)), "quem reportou avisado");
     for (const [t, id] of [["suggestions", 901], ["reports", 902]]) await fetch(`${MOCK}/rest/v1/${t}?id=eq.${id}`, { method: "DELETE", headers: { authorization: "Bearer mock", apikey: "mock" } });

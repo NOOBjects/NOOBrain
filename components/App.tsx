@@ -125,7 +125,7 @@ export function App({ landing }: { landing?: ReactNode }) {
   const [feedback, setFeedback] = useState(false);
   const [showInstall, setShowInstall] = useState(false);
   const installState = useInstall();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<"dono" | "admin" | "moderador" | null>(null);
 
   const trail = activeTrail(s);
   const total = trail?.concepts.length ?? 0;
@@ -204,7 +204,7 @@ export function App({ landing }: { landing?: ReactNode }) {
   useEffect(() => {
     if (!inApp) return;
     let live = true;
-    call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
+    call<{ role: "dono" | "admin" | "moderador" | null }>("/api/admin?o=me").then((r) => live && setRole(r.role), () => {});
     return () => { live = false; };
   }, [inApp]);
   useEffect(() => {
@@ -300,7 +300,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     ...(installState === "prompt" || installState === "ios"
       ? [{ id: "instalar", label: "Instalar o app", icon: <Download />, onClick: () => (installState === "prompt" ? void install() : setShowInstall(true)) }] : []),
     { id: "definicoes", label: "Definições", icon: <Gear />, onClick: () => go("definicoes") },
-    ...(isAdmin ? [{ id: "admin", label: "Administração", icon: <Shield />, onClick: () => go("admin") }] : []),
+    ...(role ? [{ id: "admin", label: "Administração", icon: <Shield />, onClick: () => go("admin") }] : []),
   ];
   const ask = inApp && trail ? feedbackAsk(s, trail) : null;
   const showTour = inApp && view === "trilha" && s.seenVersion !== undefined && !s.tour && s.trails.length === 0;
@@ -370,7 +370,7 @@ export function App({ landing }: { landing?: ReactNode }) {
 
         {view === "ranking" && user && profile && <Ranking me={profile} onBack={() => go("perfil")} />}
 
-        {view === "admin" && user && profile && <Admin onBack={() => go("perfil")} />}
+        {view === "admin" && user && profile && role && <Admin role={role} onBack={() => go("perfil")} notify={notify} />}
 
         {view === "definicoes" && user && profile && (
           <Settings user={user} profile={profile} state={s} status={status} sub={params.get("s")} onSub={(x) => go("definicoes", undefined, false, x ?? undefined)} onNews={() => go("novidades")} onChangePassword={() => setChanging(true)}

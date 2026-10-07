@@ -1,5 +1,6 @@
 "use client";
 
+import { TeamTag } from "./TeamTag";
 import type { User } from "@supabase/supabase-js";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
@@ -131,7 +132,7 @@ export function Ideas({ user, onBack, notify }: { user: User; onBack: () => void
               <div className="row-between"><b>{i.title}</b><span className={`chip ch st-${i.status}`}>{i.status === "feita" && <Check />}{STATUS[i.status] ?? i.status}</span></div>
               {i.body && <p className="sub">{i.body}</p>}
               <div className="idea-by">
-                {i.profiles && <><Avatar n={i.profiles.avatar} size={22} /><span className="sub small">@{i.profiles.username}</span></>}
+                {i.profiles && <><Avatar n={i.profiles.avatar} size={22} /><span className="sub small">@{i.profiles.username}</span><TeamTag id={i.user_id} /></>}
                 {i.user_id === user.id && i.status === "recebida" && <button type="button" className="linkbtn" onClick={() => void remove(i)}>Apagar</button>}
               </div>
               {i.reply && (i.status === "recusada" || i.status === "recurso"

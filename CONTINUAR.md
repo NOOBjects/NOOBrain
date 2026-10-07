@@ -32,7 +32,7 @@ Versões: Fase 6 → 0.10.8, Fase 7 → 0.10.9, Fase 8 → 0.10.10, Fase 9 → 0
 |---|---|
 | Tirar «Feito com IA» (Definições/Sobre, rodapé, LegalPage, CSS `.chip.ai`, PLANO) | feito (mantido: aviso legal em Termos, Privacidade e Tutor, que são avisos sobre erros, não selo) |
 | 9.1 Página de aprovação do mascote | publicada: https://claude.ai/artifact/7DXnD5T9DAz3zg673XVmn3 — **à espera de aprovação do Rodrigo** (só bloqueia 9.2) |
-| Fase 6 (painel completo, equipa, etiqueta Equipa) | por fazer |
+| Fase 6 (painel completo, equipa, etiqueta Equipa) | feita no código e testada (`fase6-equipa.cjs`); migração `equipa` aplicada; 0.10.8 a publicar |
 | Fase 7 (Novidades com marcos, aviso de beta) | por fazer |
 | Fase 8 (troféus semanais) | por fazer |
 | Fase 10 (login Apple/Discord desligado) | por fazer |

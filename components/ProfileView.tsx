@@ -8,6 +8,7 @@ import { CategoryIcon } from "./CategoryIcon";
 import { DayBars } from "./DayBars";
 import { Gear } from "./Icons";
 import { ProfileForm } from "./ProfileForm";
+import { TeamTag } from "./TeamTag";
 import { categoryOf } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import type { Profile } from "@/lib/profile";
@@ -62,7 +63,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, notify,
         <Avatar n={profile.avatar} size={72} />
         <div className="profile-id">
           <h1 className="h-screen">{profile.display_name || `@${profile.username}`}</h1>
-          <div className="sub">@{profile.username}</div>
+          <div className="sub">@{profile.username} <TeamTag id={profile.id} /></div>
           <div className="sub small">Membro desde {since(profile.created_at)}</div>
         </div>
         <button type="button" className="iconbtn ch" aria-label="Definições" onClick={onSettings}><Gear /></button>

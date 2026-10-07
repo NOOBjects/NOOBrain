@@ -51,10 +51,10 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
   const installState = useInstall();
   const [sheet, setSheet] = useState(false);
   const [hint, setHint] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    call<{ admin: boolean }>("/api/admin?o=me").then((r) => live && setIsAdmin(r.admin), () => {});
+    call<{ role: string | null }>("/api/admin?o=me").then((r) => live && setRole(r.role), () => {});
     return () => { live = false; };
   }, []);
   const goal = goalOf(state);
@@ -216,8 +216,8 @@ export function Settings({ user, profile, state, status, sub, onSub, onChangePas
         <Row label="Apagar a conta" chevron onClick={() => onSub("apagar")} />
       </Group>
 
-      {isAdmin && (
-        <Group title="Equipa"><Row label="Painel de administração" value="Dono" chevron onClick={onAdmin} /></Group>
+      {role && (
+        <Group title="Equipa"><Row label="Painel de administração" value={role === "dono" ? "Dono" : role === "admin" ? "Admin" : "Moderador"} chevron onClick={onAdmin} /></Group>
       )}
 
       <Group title="Sobre"><Row label="Sobre o NOOBrain" chevron onClick={() => onSub("sobre")} /></Group>

@@ -21,6 +21,14 @@ export const SOON = {
 
 export const CHANGELOG: Release[] = [
   {
+    version: "0.10.8",
+    date: "2026-10-07",
+    title: "A equipa à vista",
+    novo: [
+      "Quem faz parte da equipa do NOOBrain tem agora uma etiqueta «Equipa» ao lado do nome, no Ranking, nas Ideias e no perfil.",
+    ],
+  },
+  {
     version: "0.10.7",
     date: "2026-10-05",
     title: "Notificações e testes mais justos",
