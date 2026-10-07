@@ -39,7 +39,7 @@
 - **Vercel** (funções em Paris).
 - IA a partir de um único ficheiro (`lib/ai.ts`), por isso trocar de fornecedor é simples.
 
-O NOOBrain é feito quase 100% com inteligência artificial: o código foi escrito por modelos de IA. As ideias, o design e as decisões são do Rodrigo, da [NOOBjects](https://github.com/NOOBjects).
+O NOOBrain é feito pela [NOOBjects](https://github.com/NOOBjects).
 
 ## Correr no teu computador
 
@@ -50,6 +50,14 @@ npm run dev                  # http://localhost:3000
 ```
 
 Antes de publicar: `npm run build` e `npm run lint`.
+
+## Segurança
+
+Encontraste uma falha? Diz-nos em privado, como explicado em [`SECURITY.md`](SECURITY.md).
+
+## Licença
+
+Código visível para transparência. Todos os direitos reservados: ver [`LICENSE`](LICENSE).
 
 ## Para quem contribui
 

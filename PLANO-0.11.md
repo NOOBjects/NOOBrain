@@ -20,18 +20,18 @@ Regras gerais: `CLAUDE.md` e `AGENTS.md` (PT-PT com "tu", chanfros, tokens de co
 
 | Fase | Versão | Conteúdo | Changelog |
 |---|---|---|---|
-| 1 | 0.10.1 | Login com e-mail, lembretes que não chegam, texto "\n" nas lições, aviso de segurança do Supabase | corrigido |
-| 2 | 0.10.2 | Ilha nova (4 botões + gaveta), sem botão "Lição", instalar o app, "Dar opinião", Perfil e Definições reorganizados | novo + melhorias |
-| 3 | 0.10.3 | Níveis diferentes a sério, PT-PT, categorias novas, línguas em pausa | melhorias |
-| 4 | 0.10.4 | Limites diários com barras (lições novas e temas novos) | novo |
-| 4b | 0.10.5 | **Atualizações** (pedido do Rodrigo): aviso de nova versão da app, aviso de trilhas desatualizadas, glossário de palavras de Portugal, ferramentas do dono | novo |
-| 5 | 0.10.6 | Ideias: separadores certos, recusadas a vermelho, pedir revisão | novo + corrigido |
-| 6 | 0.10.7 | Painel de administração completo, equipa com níveis de acesso, etiqueta "Equipa" | novo |
-| 7 | 0.10.8 | Novidades por tipo com destaques, aviso de beta antes de entrar | melhorias |
-| 8 | 0.10.9 | Troféus do ranking semanal | novo |
+| 1 | 0.10.1 | Login com e-mail, lembretes que não chegam, texto "\n" nas lições, aviso de segurança do Supabase | corrigido | ✅ feita (0.10.1, 05/10/2026)
+| 2 | 0.10.2 | Ilha nova (4 botões + gaveta), sem botão "Lição", instalar o app, "Dar opinião", Perfil e Definições reorganizados | novo + melhorias | ✅ feita (0.10.2, 05/10/2026)
+| 3 | 0.10.3 | Níveis diferentes a sério, PT-PT, categorias novas, línguas em pausa | melhorias | ✅ feita (0.10.3, 05/10/2026)
+| 4 | 0.10.4 | Limites diários com barras (lições novas e temas novos) | novo | ✅ feita (0.10.4, 05/10/2026)
+| 4b | 0.10.5 | **Atualizações** (pedido do Rodrigo): aviso de nova versão da app, aviso de trilhas desatualizadas, glossário de palavras de Portugal, ferramentas do dono | novo | ✅ feita (0.10.5, 05/10/2026)
+| 5 | 0.10.6 | Ideias: separadores certos, recusadas a vermelho, pedir revisão | novo + corrigido | ✅ feita (0.10.6, 05/10/2026)
+| 6 | 0.10.7 | Painel de administração completo, equipa com níveis de acesso, etiqueta "Equipa" | novo | ✅ feita (publicada como 0.10.8, 07/10/2026; a 0.10.7 foi o pacote de notificações)
+| 7 | 0.10.8 | Novidades por tipo com destaques, aviso de beta antes de entrar | melhorias | ✅ feita (publicada como 0.10.9, 07/10/2026)
+| 8 | 0.10.9 | Troféus do ranking semanal | novo | ✅ feita (publicada como 0.10.10, 07/10/2026)
 | 9 | **0.11** (marco, `aviso: true`) | Mascote com variações + criador de personagem | novo |
-| 10 | (sem versão até o Rodrigo ligar) | Login com Apple e Discord, preparado e desligado | — |
-| 11 | (interno) | Segurança do GitHub | — |
+| 10 | (sem versão até o Rodrigo ligar) | Login com Apple e Discord, preparado e desligado | — | ✅ feita e desligada (07/10/2026); falta o Rodrigo ligar (`docs/login-social.md`)
+| 11 | (interno) | Segurança do GitHub | — | ✅ feita no repositório (07/10/2026); faltam os passos do Rodrigo no GitHub e na Vercel
 
 ### 0.2 Antes da Fase 1 (Rodrigo)
 1. **Desligar o CAPTCHA no Supabase** (é a causa do login falhado; ver Fase 1.1): Supabase → projeto NOOBrain →
@@ -794,7 +794,7 @@ corram com as tuas chaves, agora que as variáveis estão também nas pré-visua
 1b. **Fase 1, falta**: `drop function public.bump_catalog_use(text, text);` (a migração `drop_bump_catalog_use` deu timeout 2 vezes pelo agente; a função já não é usada pelo app). Correr no SQL Editor do Supabase, e confirmar com `get_advisors` que o aviso desaparece.
 2. Fase 1: confirmar no telemóvel que entra com e-mail e que o "Enviar aviso de teste" chega.
 3. Fase 2: instalar o app no PC e no telemóvel.
-4. Fase 6: adicionar a conta de teste como moderador no painel (Equipa), para os testes de acesso.
+4. Fase 6: adicionar a conta de teste (`dev.noobjects+teste@gmail.com`) como moderador no painel (Administração → Equipa → «@devnoobjectsteste») para testar o acesso por papel no site verdadeiro. Está em `ADMIN_IDS`, por isso hoje é dona: para testar como moderador, tira-a de `ADMIN_IDS` ou usa outra conta de teste.
 5. Fase 9: aprovar (ou pedir mudanças) na página do mascote e do criador de personagem.
 6. Fase 10: decidir se paga o Apple Developer (99 USD/ano); criar a app no Discord (passos em `docs/login-social.md`).
 7. Fase 11: os passos do GitHub e da Vercel.
