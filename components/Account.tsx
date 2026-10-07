@@ -3,7 +3,7 @@
 import type { AuthError } from "@supabase/supabase-js";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Eye, EyeOff, HeroIco, Sync } from "./Icons";
+import { Eye, EyeOff, HeroIco, Spark, Sync } from "./Icons";
 import { Mascot, type Mood } from "./Mascot";
 import { supabase } from "@/lib/supabase";
 import { distance } from "@/lib/topic";
@@ -286,6 +286,12 @@ export function Account({ ready, recovery, onRecovered, changing, onChangingEnd,
   return (
     <div className="account">
       <div className="hero-mascot"><Mascot mood={mood} /></div>
+      {(mode === "entrar" || mode === "criar") && (
+        <div className="pane tint beta-note"><div className="in">
+          <Spark />
+          <p><b>Estás a entrar numa versão beta.</b> O NOOBrain é gratuito e está a ser construído contigo: algumas coisas podem falhar ou mudar. Se algo correr mal, diz-nos em Ideias ou em Dar opinião.</p>
+        </div></div>
+      )}
       {(mode === "entrar" || mode === "criar") && (
         <div className="seg" role="group" aria-label="Entrar ou criar conta">
           <button type="button" className="ch" aria-pressed={mode === "entrar"} onClick={() => go("entrar")}>Entrar</button>

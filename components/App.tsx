@@ -23,7 +23,7 @@ import { supabase } from "@/lib/supabase";
 import { BETA, VERSION } from "@/lib/config";
 import { install, useInstall } from "@/lib/install";
 import { NEW_LESSONS_PER_DAY } from "@/lib/limits";
-import { LATEST } from "@/lib/changelog";
+import { LATEST, pendingRelease } from "@/lib/changelog";
 import { logActivity, useInbox } from "@/lib/inbox";
 import { disable as disableReminders, notifyDue, syncPush } from "@/lib/reminders";
 import { activeTrail, currentStreak, day, dueCards, frozeYesterday, goalOf, lessonsToday, markLesson, todayXp, update } from "@/lib/store";
@@ -295,7 +295,7 @@ export function App({ landing }: { landing?: ReactNode }) {
     { id: "notificacoes", label: "Notificações", icon: <Bell />, dot: inbox.unread > 0, onClick: () => go("notificacoes") },
     { id: "ideias", label: "Ideias", icon: <Idea />, onClick: () => go("ideias") },
     { id: "ranking", label: "Ranking", icon: <Trophy />, onClick: () => go("ranking") },
-    { id: "novidades", label: "Novidades", icon: <Spark />, dot: s.seenVersion !== LATEST.version, onClick: () => go("novidades") },
+    { id: "novidades", label: "Novidades", icon: <Spark />, dot: !!pendingRelease(s.seenVersion), onClick: () => go("novidades") },
     { id: "opiniao", label: "Dar opinião", icon: <Speech />, onClick: () => setFeedback(true) },
     ...(installState === "prompt" || installState === "ios"
       ? [{ id: "instalar", label: "Instalar o app", icon: <Download />, onClick: () => (installState === "prompt" ? void install() : setShowInstall(true)) }] : []),

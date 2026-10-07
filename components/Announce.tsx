@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Bug, Hammer, Heart, Idea } from "./Icons";
 import { Soon } from "./Soon";
-import { highlights, LATEST, SOON } from "@/lib/changelog";
+import { highlights, LATEST, pendingRelease, SOON } from "@/lib/changelog";
 import { needsInstall, setNotify } from "@/lib/reminders";
 import { update } from "@/lib/store";
 import type { State } from "@/lib/types";
@@ -39,12 +39,13 @@ export function Announce({ state, uid, onNews, toast }: { state: State; uid: str
         </div>
       </div></div>
     );
-  if (state.seenVersion !== LATEST.version)
+  const pending = pendingRelease(state.seenVersion);
+  if (pending)
     return (
       <div className="pane tint announce" role="status"><div className="in">
-        <div className="eyebrow">Novidades · versão {LATEST.version}</div>
-        <b>{LATEST.title}</b>
-        <ul className="news-list sub small">{highlights(LATEST).map((t) => <li key={t}>{t}</li>)}</ul>
+        <div className="eyebrow">{pending.kind === "marco" ? "Grande atualização" : "Novidades"} · versão {pending.version}</div>
+        <b>{pending.title}</b>
+        <ul className="news-list sub small">{(pending.destaques ?? highlights(pending)).map((t) => <li key={t}>{t}</li>)}</ul>
         <div className="pair">
           <button type="button" className="btn sm" onClick={() => { markSeen(); onNews(); }}><span className="face">Ver tudo</span></button>
           <button type="button" className="btn soft sm" onClick={markSeen}><span className="face">Fechar</span></button>
