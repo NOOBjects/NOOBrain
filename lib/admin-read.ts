@@ -66,15 +66,17 @@ export async function qualidade() {
     db().from("reports").select("id,detail").eq("resolved", false).limit(300),
   ]);
   const asked = (reports.data ?? []).map((r) => ({ id: r.id as number, q: String(r.detail).split("|")[0].trim() })).filter((r) => r.q.length >= 15);
-  const out: { trail_key: string; level: string; concept_key: string; marks: string[]; reports: number[]; snippet: string }[] = [];
+  const out: { trail_key: string; level: string; concept_key: string; marks: string[]; word?: string; reports: number[]; snippet: string }[] = [];
   for (const l of lessons.data ?? []) {
     const marks = brMarkersDeep(l.lesson);
     const text = JSON.stringify(l.lesson);
     const hit = asked.filter((r) => text.includes(r.q.slice(0, 60).replace(/"/g, '\\"')));
     if (!marks.length && !hit.length) continue;
-    const first = marks[0]?.toLowerCase();
-    const i = first ? text.toLowerCase().indexOf(first) : -1;
-    out.push({ trail_key: l.trail_key, level: l.level, concept_key: l.concept_key, marks: [...new Set(marks)].slice(0, 8), reports: hit.map((h) => h.id), snippet: i >= 0 ? text.slice(Math.max(0, i - 60), i + 80) : hit.length ? asked.find((a) => a.id === hit[0].id)!.q : "" });
+    const hay = text.toLowerCase();
+    const where = (m: string) => (m === "gíria" ? hay.search(/(?<![a-zà-ÿ])(né|tá|galera|valeu|beleza|legal|baixar|salvar|ruim|gostoso|pessoal|cara)(?![a-zà-ÿ])/) : m === "arquivo" ? hay.search(/arquivos?/) : hay.indexOf(m.toLowerCase()));
+    const i = marks.map(where).find((x) => x >= 0) ?? -1;
+    const word = i >= 0 ? (hay.slice(i).match(/^[\p{L}]+/u)?.[0] ?? "") : "";
+    out.push({ trail_key: l.trail_key, level: l.level, concept_key: l.concept_key, marks: [...new Set(marks)].slice(0, 8), word, reports: hit.map((h) => h.id), snippet: i >= 0 ? text.slice(Math.max(0, i - 60), i + 80) : hit.length ? asked.find((a) => a.id === hit[0].id)!.q : "" });
   }
   return { suspicious: out.slice(0, 100), scanned: lessons.data?.length ?? 0 };
 }
