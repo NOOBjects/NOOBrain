@@ -13,8 +13,6 @@ export type Release = { version: string; date: string; title: string; kind: Kind
 export const SOON = {
   id: "2026-10-a",
   items: [
-    { title: "Uma equipa a cuidar do NOOBrain", text: "Mais gente a responder às ideias e aos erros, e avisos da equipa para ti." },
-    { title: "Troféus no ranking", text: "Quem acabar a semana no topo leva um troféu para o perfil." },
     { title: "O teu mascote, à tua maneira", text: "Variações do mascote e um criador de personagem para fazeres o teu avatar." },
     { title: "Línguas de volta", text: "Lições de línguas com pronúncia, feitas com mais cuidado." },
     { title: "Mais formas de entrar", text: "Entrar com Apple e com Discord." },
@@ -22,6 +20,20 @@ export const SOON = {
 } as const;
 
 export const CHANGELOG: Release[] = [
+  {
+    version: "0.10.10",
+    date: "2026-10-07",
+    title: "Troféus no ranking",
+    kind: "novidades",
+    novo: [
+      "Quem acaba a semana nos 10 primeiros do ranking ganha um troféu: ouro, prata ou bronze nos 3 primeiros e uma medalha «Top 10» nos outros.",
+      "O Ranking mostra o pódio da semana passada, e os teus troféus ficam no teu Perfil.",
+      "Duas conquistas novas: Pódio e Top 10.",
+    ],
+    melhorias: [
+      "O ranking passa a contar, no máximo, 1000 XP por dia.",
+    ],
+  },
   {
     version: "0.10.9",
     date: "2026-10-07",

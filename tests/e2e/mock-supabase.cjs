@@ -62,7 +62,7 @@ const initial = JSON.stringify({ profiles: db.profiles, suggestions: db.suggesti
 import(path.join(__dirname, "../../lib/topic.ts")).then(({ topicKey }) => { for (const t of trails) t.concepts.forEach((c, i) => db.catalog_lessons.push({ trail_key: t.key, level: t.level, concept_key: topicKey(c.title), lesson: lessonFor(c.title, i) })); });
 let inboxId = 0;
 const banned = {}, gone = new Set(), authLog = [];
-const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"], staff: ["user_id"], ptpt_glossary: ["word"] };
+const PK = { profiles: ["id"], progress: ["user_id"], catalog_trails: ["key", "level"], catalog_lessons: ["trail_key", "level", "concept_key"], push_subscriptions: ["endpoint"], suggestion_votes: ["suggestion_id", "user_id"], catalog_starts: ["key", "level", "user_id"], staff: ["user_id"], weekly_awards: ["week_start", "user_id"], ptpt_glossary: ["word"] };
 
 const session = () => ({ access_token: "mock-token", token_type: "bearer", expires_in: 86400, expires_at: Math.floor(Date.now() / 1000) + 86400, refresh_token: "mock-refresh", user });
 
@@ -80,6 +80,7 @@ function match(row, filters) {
     if (op === "gt") return Number(r) > Number(v);
     if (op === "gte") return Number(r) >= Number(v);
     if (op === "lt") return Number(r) < Number(v);
+    if (op === "lte") return Number(r) <= Number(v);
     if (op === "in") return v.replace(/^\(|\)$/g, "").split(",").map((s) => s.replace(/^"|"$/g, "")).includes(String(r));
     if (op === "is") return (r ?? null) === val(v);
     return true;
@@ -106,7 +107,7 @@ http.createServer((req, res) => {
       const f = url.searchParams.get("f");
       db.progress = f && f !== "none" ? [{ user_id: UID, data: JSON.parse(fs.readFileSync(path.join(FIX, `${f.replace(/\.json$/, "")}.json`), "utf8")), updated_at: now() }] : [];
       Object.assign(db, JSON.parse(initial)); db.reports = []; db.feedback = []; db.suggestion_votes = [];
-      db.inbox = []; db.staff = []; db.admin_log = []; authLog.length = 0; gone.clear(); for (const k of Object.keys(banned)) delete banned[k];
+      db.inbox = []; db.staff = []; db.weekly_awards = []; db.admin_log = []; authLog.length = 0; gone.clear(); for (const k of Object.keys(banned)) delete banned[k];
       return send(res, 200, {});
     }
     if (p === "/auth/v1/token") {

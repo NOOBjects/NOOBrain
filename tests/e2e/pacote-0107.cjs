@@ -33,7 +33,7 @@ const put = (t, rows) => fetch(`${MOCK}/rest/v1/${t}`, { method: "POST", headers
     // mas fica nas Novidades
     await p.goto(`${BASE}/?v=novidades`, { waitUntil: "networkidle" }); await p.waitForTimeout(500);
     assert(await p.locator(".soon").count(), "Em breve nas Novidades");
-    assert(/Versão 0\.10\.9/i.test(await p.locator(".news").innerText()), "entrada 0.10.7");
+    assert(/Versão 0\.10\.10/i.test(await p.locator(".news").innerText()), "entrada 0.10.7");
     await p.screenshot({ path: `${__dirname}/out/p0107-news-${name}.png`, fullPage: false });
 
     // notificações: duas na caixa, o sino mostra 2, abrir a página lê-as

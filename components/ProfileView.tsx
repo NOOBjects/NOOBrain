@@ -9,6 +9,7 @@ import { DayBars } from "./DayBars";
 import { Gear } from "./Icons";
 import { ProfileForm } from "./ProfileForm";
 import { TeamTag } from "./TeamTag";
+import { TrophyLine } from "./Trophies";
 import { categoryOf } from "@/lib/categories";
 import { SITE_URL } from "@/lib/config";
 import type { Profile } from "@/lib/profile";
@@ -89,6 +90,7 @@ export function ProfileView({ user, profile, state, onSaved, onSettings, notify,
         ))}
       </div>
 
+      <TrophyLine awards={(state.awards ?? []).map((a) => ({ place: a.p }))} />
       <BadgeGrid state={state} />
 
       {state.trails.length > 0 && (

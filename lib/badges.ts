@@ -20,6 +20,8 @@ export const BADGES: Badge[] = [
   { id: "temas5", name: "Curiosidade", how: "Começa 5 temas diferentes.", icon: "compass", test: (s) => s.trails.length >= 5 },
   { id: "xp1000", name: "Mil pontos", how: "Junta 1000 XP.", icon: "bolt", test: (s) => s.xp >= 1000 },
   { id: "seq30", name: "Um mês", how: "Estuda 30 dias seguidos.", icon: "flame", test: (s) => currentStreak(s) >= 30 },
+  { id: "podio", name: "Pódio", how: "Acaba uma semana nos 3 primeiros do ranking.", icon: "trophy", test: (s) => (s.awards ?? []).some((a) => a.p <= 3) },
+  { id: "top10", name: "Top 10", how: "Acaba uma semana nos 10 primeiros do ranking.", icon: "trophy", test: (s) => (s.awards ?? []).length > 0 },
   { id: "rever300", name: "Memória de elefante", how: "Acerta 300 cartões na revisão.", icon: "trophy", test: (s) => (s.reviewed ?? 0) >= 300 },
 ];
 

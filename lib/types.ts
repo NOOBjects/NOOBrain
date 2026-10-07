@@ -53,5 +53,7 @@ export type State = {
   challenge?: string; // último dia (AAAA-MM-DD) em que fez o desafio do dia
   tour?: boolean; // já viu (ou saltou) a visita guiada
   asked?: string[]; // pedidos de opinião já respondidos ou fechados
+  awards?: { w: string; p: number; x: number }[]; // prémios do ranking semanal (semana, lugar, XP), lidos da tabela weekly_awards
+  awardsSeen?: string; // semana do último prémio já celebrado
   soon?: string; // id do cartão «Em breve» que já viu no ecrã inicial (ver SOON em lib/changelog.ts)
 };

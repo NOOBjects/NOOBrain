@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Avatar } from "./Avatar";
 import { TeamTag } from "./TeamTag";
+import { TrophyCup } from "./Trophies";
+import { lastWeek } from "@/lib/awards";
 import { weekStart, type Profile } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
@@ -13,6 +15,7 @@ export function Ranking({ me, onBack }: { me: Profile; onBack: () => void }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [place, setPlace] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
+  const [podium, setPodium] = useState<{ place: number; xp: number; p: Pick<Row, "id" | "username" | "display_name" | "avatar"> | undefined }[]>([]);
 
   useEffect(() => {
     let live = true;
@@ -27,6 +30,12 @@ export function Ranking({ me, onBack }: { me: Profile; onBack: () => void }) {
         if (live && above.count !== null) setPlace(above.count + 1);
       }
     })();
+    (async () => { // pódio da semana passada
+      const aw = await supabase!.from("weekly_awards").select("user_id,place,xp").eq("week_start", lastWeek()).lte("place", 3).order("place");
+      if (!live || !aw.data?.length) return;
+      const ps = await supabase!.from("profiles").select("id,username,display_name,avatar").in("id", aw.data.map((a) => a.user_id));
+      if (live) setPodium(aw.data.map((a) => ({ place: a.place, xp: a.xp, p: ps.data?.find((x) => x.id === a.user_id) })));
+    })();
     return () => { live = false; };
   }, [me]);
 
@@ -35,6 +44,21 @@ export function Ranking({ me, onBack }: { me: Profile; onBack: () => void }) {
       <button type="button" className="linkbtn back" onClick={onBack}>← Voltar ao perfil</button>
       <h1 className="h-screen">Ranking da semana</h1>
       <p className="sub">Recomeça às segundas. {place ? `Estás em ${place}.º lugar.` : me.in_ranking ? "Ganha XP esta semana para entrares." : "Estás fora do ranking (nas Definições podes voltar)."}</p>
+      {podium.length > 0 && (
+        <section className="podium-wrap" aria-labelledby="pod-t">
+          <h2 id="pod-t" className="h-sec">Pódio da semana passada</h2>
+          <ol className="podium" style={{ padding: 0, margin: 0 }}>
+            {podium.map((a) => (
+              <li key={a.place}>
+                <TrophyCup place={a.place} size={a.place === 1 ? 56 : 44} />
+                {a.p && <Avatar n={a.p.avatar} size={36} />}
+                <b>{a.p?.display_name || (a.p ? `@${a.p.username}` : "—")}</b>
+                <span className="sub small">{a.xp} XP</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
       {failed && <div className="note ch" role="alert">Não consegui carregar o ranking. Tenta outra vez mais tarde.</div>}
       {rows && !rows.length && <p className="sub center">Ainda ninguém ganhou XP esta semana. Sê a primeira pessoa!</p>}
       <ol className="rank">

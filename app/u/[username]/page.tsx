@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { LegalLinks } from "@/components/LegalPage";
 import { TeamChip } from "@/components/TeamTag";
+import { TrophyLine } from "@/components/Trophies";
 import { staffIds } from "@/lib/staff";
 import { PROFILE_COLUMNS, USERNAME, type Profile } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
@@ -40,6 +41,7 @@ export default async function PublicProfile({ params }: Props) {
   const p = await load(username);
   if (!p) notFound();
   const team = (await staffIds()).includes(p.id);
+  const { data: awards } = await supabase!.from("weekly_awards").select("place").eq("user_id", p.id);
   const stats: [string, number][] = [["XP", p.xp], ["Sequência", p.streak], ["Temas concluídos", p.topics_done]];
 
   return (
@@ -58,6 +60,7 @@ export default async function PublicProfile({ params }: Props) {
           <div key={label} className="pane"><div className="in stat-box"><span className="stat-n">{n}</span><span className="eyebrow">{label}</span></div></div>
         ))}
       </div>
+      <TrophyLine awards={awards ?? []} />
       <Link href="/" className="btn block"><span className="face">Aprender no NOOBrain</span></Link>
       <LegalLinks />
     </main>
